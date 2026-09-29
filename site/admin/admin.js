@@ -105,6 +105,41 @@
     }
     return data;
   }
+  function whatsappMessage(order) {
+    const russianItems = order.items
+      .map(
+        (item, index) =>
+          `${index + 1}. ${item.name}\nОбъём: ${item.ml} мл · Количество: ${item.quantity}\nЦена за 1 шт.: ${money(item.price)} · Сумма: ${money(item.subtotal)}`,
+      )
+      .join("\n\n");
+    const kazakhItems = order.items
+      .map(
+        (item, index) =>
+          `${index + 1}. ${item.name}\nКөлемі: ${item.ml} мл · Саны: ${item.quantity}\nБір данасының бағасы: ${money(item.price)} · Сомасы: ${money(item.subtotal)}`,
+      )
+      .join("\n\n");
+    return `Здравствуйте, ${order.name}! Это BEY Perfume.
+
+Код заказа: ${order.id}
+Имя клиента: ${order.name}
+
+${russianItems}
+
+Итого: ${money(order.total)}
+Подтверждаете ли вы заказ?
+
+──────────
+
+Сәлеметсіз бе, ${order.name}! Бұл — BEY Perfume.
+
+Тапсырыс коды: ${order.id}
+Клиенттің аты: ${order.name}
+
+${kazakhItems}
+
+Жалпы сома: ${money(order.total)}
+Тапсырысыңызды растайсыз ба?`;
+  }
   function card(order) {
     const article = el("article", "order-card");
     const header = el("div", "order-card-heading");
@@ -126,9 +161,7 @@
       "https://wa.me/" +
       order.phone.replace(/\D/g, "") +
       "?text=" +
-      encodeURIComponent(
-        `Здравствуйте, ${order.name}! Это BEY Perfume, по вашей заявке ${order.id}.`,
-      );
+      encodeURIComponent(whatsappMessage(order));
     whatsapp.target = "_blank";
     whatsapp.rel = "noopener noreferrer";
     contact.append(phone, whatsapp);
