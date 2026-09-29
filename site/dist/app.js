@@ -288,8 +288,8 @@ if ("IntersectionObserver" in window) {
         if (reducedMotion.matches) return;
         entry.target.animate(
           [
-            { opacity: 0, transform: "translateY(24px)" },
-            { opacity: 1, transform: "translateY(0)" },
+            { opacity: 0, translate: "0 24px" },
+            { opacity: 1, translate: "0 0" },
           ],
           { duration: 850, easing: "cubic-bezier(.22,1,.36,1)" },
         );

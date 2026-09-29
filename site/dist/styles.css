@@ -253,7 +253,7 @@ body:focus {
   font-weight: 500;
   margin: 0 0 24px;
 }
-.hero h1 > span {
+.hero h1 .hero-dot {
   color: var(--gold);
 }
 .hero-description {
@@ -286,32 +286,69 @@ body:focus {
     box-shadow 0.45s,
     transform 0.45s var(--ease);
 }
-.button-light {
-  background: #f0eee8;
-  color: #171914;
-  box-shadow: 0 5px 20px #0002;
+/* A warm bank of light is clipped inside the button, like amber in glass. */
+.button-amber {
+  color: #fff7e9;
+  border-color: #dfc29448;
+  background: linear-gradient(
+    to top,
+    #d8bd85 0,
+    #bc914b 2px,
+    #8a632b 5px,
+    #584022 9px,
+    #35291b 15px,
+    #211d17 24px,
+    #181a16 38px
+  );
+  box-shadow:
+    inset 0 1px 0 #fff8e815,
+    0 2px 8px #0003;
 }
-.button-light:after {
+.button-amber > span {
+  position: relative;
+  z-index: 2;
+}
+.button-amber::before {
   content: "";
   position: absolute;
-  inset: -60% -100%;
-  background: linear-gradient(
-    105deg,
-    transparent 45%,
-    #fff8 50%,
-    transparent 55%
-  );
-  transform: translateX(-35%);
-  transition: transform 0.85s var(--ease);
+  inset: 0;
+  border-radius: inherit;
   pointer-events: none;
+  background:
+    linear-gradient(90deg, #ffe2a8aa, transparent 12px),
+    linear-gradient(270deg, #ffe2a8aa, transparent 12px);
+  mask-image: linear-gradient(to top, #000 0, #0009 8px, transparent 32px);
+  -webkit-mask-image: linear-gradient(
+    to top,
+    #000 0,
+    #0009 8px,
+    transparent 32px
+  );
 }
-.button-light:hover:after {
-  transform: translateX(35%);
+.button-amber::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    100px circle at var(--pointer-x, 50%) var(--pointer-y, 50%),
+    #ffe8bf28,
+    transparent 75%
+  );
+  transition: opacity 0.35s;
 }
-.button-light:hover {
-  background: #fffaf0;
-  box-shadow: 0 8px 28px #d9c39d16;
-  transform: translateY(-2px);
+.button-amber:hover,
+.button-amber:focus-visible {
+  border-color: #e6c58b80;
+  box-shadow:
+    inset 0 1px 0 #fff0cf30,
+    0 2px 8px #c8a16324;
+}
+.button-amber:hover::after,
+.button-amber:focus-visible::after {
+  opacity: 1;
 }
 .button-glass {
   background: #ffffff04;
@@ -700,7 +737,6 @@ h2 + p {
     border-color 0.3s;
 }
 .mood-card:hover {
-  transform: translateY(-6px);
   border-color: #cdb99066;
   box-shadow: 0 20px 50px #0004;
 }
@@ -847,6 +883,139 @@ h2 + p {
   padding-block: 22px;
   color: #858e7c;
   font-size: 10px;
+}
+/* Pointer light adds depth without changing the reading order or hit targets. */
+.hero-line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.12em;
+  margin-bottom: -0.12em;
+}
+.hero-line > span {
+  display: inline-block;
+  animation: headline-rise 1.1s 0.18s var(--ease) both;
+}
+.hero-line + .hero-line > span {
+  animation-delay: 0.3s;
+}
+.hero-copy > h1 {
+  animation: none;
+}
+.hero-light {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 38% 65% at 78% 43%,
+    #e5bb6926,
+    transparent 75%
+  );
+  opacity: 0;
+  transition:
+    opacity 0.8s,
+    translate 1s var(--ease);
+}
+.mood-card::before,
+.scent-visual::before,
+.about-image::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    360px circle at var(--pointer-x, 50%) var(--pointer-y, 50%),
+    #f5dbac2b,
+    transparent 72%
+  );
+  opacity: 0;
+  transition: opacity 0.55s;
+}
+.mood-index,
+.mood-content {
+  position: relative;
+  z-index: 2;
+}
+.mood-content {
+  transition: translate 0.65s var(--ease);
+}
+.card-action {
+  transition:
+    background 0.35s,
+    border-color 0.35s,
+    box-shadow 0.35s;
+}
+.mood-card:focus-visible .card-action {
+  background: #c6a77422;
+  border-color: #d1b68b70;
+}
+.scent-photo,
+.about-image > img {
+  transition: scale 0.85s var(--ease);
+}
+.about-detail {
+  transition:
+    border-color 0.35s,
+    background 0.35s;
+}
+.about-detail > span {
+  transition: color 0.35s;
+}
+.about-detail:hover {
+  border-color: #ccb48d66;
+  background: linear-gradient(90deg, #ccb48d05, transparent);
+}
+.about-detail:hover > span {
+  color: var(--gold);
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .hero-art {
+    translate: var(--hero-x, 0px) var(--hero-y, 0px);
+    transition: translate 1s var(--ease);
+  }
+  .hero-light {
+    translate: var(--light-x, 0px) var(--light-y, 0px);
+  }
+  .hero[data-pointer-active] .hero-light {
+    opacity: 1;
+  }
+  .mood-card {
+    transform: perspective(1000px) rotateX(var(--tilt-x, 0deg))
+      rotateY(var(--tilt-y, 0deg));
+  }
+  .mood-card[data-pointer-active] {
+    transform: perspective(1000px) translateY(-5px) rotateX(var(--tilt-x, 0deg))
+      rotateY(var(--tilt-y, 0deg));
+    border-color: #d3b78185;
+  }
+  .mood-card[data-pointer-active]::before,
+  .scent-visual[data-pointer-active]::before,
+  .about-image[data-pointer-active]::before {
+    opacity: 1;
+  }
+  .mood-card[data-pointer-active] .mood-content {
+    translate: 0 -4px;
+  }
+  .mood-card[data-pointer-active] .card-action {
+    background: #c6a77420;
+    border-color: #d1b68b6b;
+    box-shadow: inset 0 1px 0 #fff0cf12;
+  }
+  .scent-visual[data-pointer-active] .scent-photo,
+  .about-image[data-pointer-active] > img {
+    scale: 1.035;
+  }
+}
+@keyframes headline-rise {
+  from {
+    translate: 0 105%;
+    opacity: 0;
+  }
+  to {
+    translate: 0 0;
+    opacity: 1;
+  }
 }
 @keyframes enter {
   from {
@@ -1371,5 +1540,36 @@ h2 + p {
   }
   .hero-art {
     opacity: 0.95;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-art,
+  .hero-light,
+  .hero-line > span,
+  .mood-content {
+    translate: none !important;
+  }
+  .mood-card,
+  .mood-card:hover,
+  .button,
+  .button:hover,
+  .button:active,
+  .scent-tabs button:hover {
+    transform: none !important;
+  }
+  .mood-card .material-image,
+  .mood-card > img {
+    transform: none !important;
+  }
+  .scent-photo,
+  .about-image > img {
+    scale: none !important;
+  }
+  .hero-light,
+  .mood-card::before,
+  .scent-visual::before,
+  .about-image::before {
+    opacity: 0 !important;
   }
 }

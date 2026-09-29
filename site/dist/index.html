@@ -20,6 +20,7 @@
     />
     <link rel="stylesheet" href="/styles.css" />
     <script src="/app.js" defer></script>
+    <script src="/motion.js" defer></script>
   </head>
   <body id="top">
     <a class="skip-link" href="#main">Перейти к содержимому</a>
@@ -58,15 +59,22 @@
           role="img"
           aria-label="Флакон BEY Perfume из тёмного стекла на чёрном камне"
         ></div>
+        <div class="hero-light" aria-hidden="true"></div>
         <div class="container hero-inner">
           <div class="hero-copy">
             <p class="eyebrow">ПАРФЮМЕРИЯ НА РАСПИВ</p>
-            <h1 id="hero-title">Больше,<br />чем аромат<span>.</span></h1>
+            <h1 id="hero-title">
+              <span class="hero-line"><span>Больше,</span></span
+              ><span class="hero-line"
+                ><span>чем аромат<span class="hero-dot">.</span></span></span
+              >
+            </h1>
             <p class="hero-description">
               Ароматы с характером.<br />В каждой капле — твоя история.
             </p>
             <div class="hero-actions">
-              <a class="button button-light" href="#catalog">Открыть каталог </a
+              <a class="button button-amber" href="#catalog"
+                ><span>Открыть каталог</span></a
               ><a class="button button-glass" href="#about"
                 >Знакомство с BEY
               </a>
