@@ -247,7 +247,10 @@ export function createAPI(products, directory = privateDir) {
           }
           if (req.method === "GET" && path === "/api/admin/orders") {
             const status = url.searchParams.get("status") || "all";
-            if (status !== "all" && !Object.hasOwn(statuses, status))
+            if (
+              !["all", "active"].includes(status) &&
+              !Object.hasOwn(statuses, status)
+            )
               fail(400, "Неизвестный статус.");
             const q = (url.searchParams.get("q") || "")
               .trim()
@@ -259,7 +262,10 @@ export function createAPI(products, directory = privateDir) {
               .all();
             const matches = all.filter(
               (o) =>
-                (status === "all" || o.status === status) &&
+                (status === "all" ||
+                  o.status === status ||
+                  (status === "active" &&
+                    !["completed", "cancelled"].includes(o.status))) &&
                 [o.id, o.name, o.phone].some((s) =>
                   s.toLocaleLowerCase("ru").includes(q),
                 ),

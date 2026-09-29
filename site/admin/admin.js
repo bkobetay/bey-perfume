@@ -23,11 +23,69 @@
   let page = 1,
     pageCount = 1,
     request = 0;
-  for (const [value, title] of Object.entries(statuses)) {
-    const o = el("option", "", title);
-    o.value = value;
-    $("#status-filter").append(o);
+  let activeStatus = "active";
+  const tabLabels = {
+    active: "В работе",
+    new: "Новые",
+    confirmed: "Подтверждённые",
+    preparing: "Собираются",
+    ready: "Готовые",
+    completed: "Выданные",
+    cancelled: "Корзина",
+    all: "Все",
+  };
+  const tabs = Object.entries(tabLabels).map(([value, title]) => {
+    const button = el("button", "order-tab");
+    button.type = "button";
+    button.id = "order-tab-" + value;
+    button.setAttribute("role", "tab");
+    button.setAttribute("aria-controls", "orders-list");
+    button.dataset.status = value;
+    button.append(el("span", "", title), el("span", "tab-count", "0"));
+    button.onclick = () => {
+      if (!discardConfirmed()) return;
+      activeStatus = value;
+      page = 1;
+      updateTabs();
+      load();
+    };
+    $(".order-tabs").append(button);
+    return button;
+  });
+  function updateTabs() {
+    tabs.forEach((button) => {
+      const selected = button.dataset.status === activeStatus;
+      button.setAttribute("aria-selected", String(selected));
+      button.tabIndex = selected ? 0 : -1;
+    });
+    $("#orders-list").setAttribute(
+      "aria-labelledby",
+      "order-tab-" + activeStatus,
+    );
   }
+  tabs.forEach((button, index) =>
+    button.addEventListener("keydown", (event) => {
+      const next =
+        event.key === "ArrowRight"
+          ? (index + 1) % tabs.length
+          : event.key === "ArrowLeft"
+            ? (index + tabs.length - 1) % tabs.length
+            : event.key === "Home"
+              ? 0
+              : event.key === "End"
+                ? tabs.length - 1
+                : null;
+      if (next === null) return;
+      event.preventDefault();
+      tabs[next].focus();
+      tabs[next].click();
+    }),
+  );
+  const belongs = (status) =>
+    activeStatus === "all" ||
+    activeStatus === status ||
+    (activeStatus === "active" && !["completed", "cancelled"].includes(status));
+  updateTabs();
   function loginState() {
     request++;
     $("#dashboard").hidden = true;
@@ -141,6 +199,17 @@
         // Refresh only summary counters; preserve other unsaved seller notes.
         const summary = await api("orders");
         renderStats(summary.counts);
+        if (!belongs(order.status)) {
+          // Move only this card if another seller note is unsaved.
+          if (document.querySelector('[data-dirty="true"]')) {
+            article.remove();
+            $("#orders-caption").textContent =
+              "Список изменился. Сохрани остальные правки и обнови его.";
+          } else await load();
+          $("#admin-message").textContent =
+            `Заказ ${order.id} перемещён: ${tabLabels[order.status]}.`;
+          $("#order-tab-" + activeStatus).focus();
+        }
       } catch (error) {
         feedback.textContent = error.message;
       } finally {
@@ -151,6 +220,16 @@
     return article;
   }
   function renderStats(counts) {
+    const all = Object.values(counts).reduce((sum, count) => sum + count, 0);
+    tabs.forEach((button) => {
+      const status = button.dataset.status;
+      button.querySelector(".tab-count").textContent =
+        status === "all"
+          ? all
+          : status === "active"
+            ? all - (counts.completed || 0) - (counts.cancelled || 0)
+            : counts[status] || 0;
+    });
     $(".order-stats").replaceChildren();
     for (const s of ["new", "confirmed", "preparing", "ready"]) {
       const box = el("div");
@@ -164,7 +243,7 @@
     try {
       const params = new URLSearchParams({
         q: $("#order-search").value,
-        status: $("#status-filter").value,
+        status: activeStatus,
         page: String(page),
       });
       const data = await api("orders?" + params);
@@ -234,12 +313,6 @@
   $("#refresh-orders").onclick = () => {
     if (discardConfirmed()) load();
   };
-  $("#status-filter").onchange = () => {
-    if (discardConfirmed()) {
-      page = 1;
-      load();
-    }
-  };
   $("#order-search").addEventListener("keydown", (event) => {
     if (event.key === "Enter" && discardConfirmed()) {
       page = 1;
@@ -276,5 +349,17 @@
       load();
     }
   });
+  // Keep incoming orders in sync without replacing a seller's unfinished edit.
+  setInterval(() => {
+    if (
+      document.hidden ||
+      $("#dashboard").hidden ||
+      document.querySelector('[data-dirty="true"]') ||
+      document.querySelector(".order-edit :disabled") ||
+      document.activeElement?.closest(".order-edit, .admin-tools")
+    )
+      return;
+    load();
+  }, 20000);
   load();
 })();

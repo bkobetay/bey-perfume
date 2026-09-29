@@ -20,9 +20,12 @@ test("orders, authentication, persistence and security boundaries", async (t) =>
   const directory = await mkdtemp(join(tmpdir(), "bey-orders-test-"));
   const port = await unusedPort();
   const origin = `http://127.0.0.1:${port}`;
+  const adminPort = await unusedPort();
+  const adminOrigin = `http://127.0.0.1:${adminPort}`;
   const env = {
     ...process.env,
     PORT: String(port),
+    ADMIN_PORT: String(adminPort),
     BEY_PRIVATE_DIR: directory,
   };
   assert.equal(
@@ -34,34 +37,47 @@ test("orders, authentication, persistence and security boundaries", async (t) =>
   );
   const access = await readFile(join(directory, "admin-access.txt"), "utf8");
   const password = /Пароль: (.+)/.exec(access)[1];
-  let processHandle;
+  let processes = [];
   async function start() {
-    processHandle = spawn(process.execPath, ["scripts/serve.mjs"], {
-      cwd: project,
-      env,
-      stdio: ["ignore", "pipe", "pipe"],
-    });
-    await new Promise((resolve, reject) => {
-      const timer = setTimeout(
-        () => reject(new Error("Server start timed out")),
-        10000,
-      );
-      processHandle.stdout.once("data", () => {
-        clearTimeout(timer);
-        resolve();
+    processes = [];
+    for (const args of [
+      ["scripts/serve.mjs"],
+      ["scripts/serve.mjs", "--admin"],
+    ]) {
+      const child = spawn(process.execPath, args, {
+        cwd: project,
+        env,
+        stdio: ["ignore", "pipe", "pipe"],
       });
-      processHandle.once("exit", (code) => {
-        clearTimeout(timer);
-        reject(new Error("Server exit " + code));
+      processes.push(child);
+      await new Promise((resolve, reject) => {
+        const timer = setTimeout(
+          () => reject(new Error("Server start timed out")),
+          10000,
+        );
+        child.stdout.once("data", () => {
+          clearTimeout(timer);
+          resolve();
+        });
+        child.once("exit", (code) => {
+          clearTimeout(timer);
+          reject(new Error("Server exit " + code));
+        });
       });
-    });
+    }
   }
   async function stop() {
-    if (processHandle.exitCode !== null) return;
-    await new Promise((r) => {
-      processHandle.once("exit", r);
-      processHandle.kill("SIGTERM");
-    });
+    await Promise.all(
+      processes
+        .filter((p) => p.exitCode === null)
+        .map(
+          (p) =>
+            new Promise((r) => {
+              p.once("exit", r);
+              p.kill("SIGTERM");
+            }),
+        ),
+    );
   }
   t.after(async () => {
     await stop();
@@ -70,13 +86,14 @@ test("orders, authentication, persistence and security boundaries", async (t) =>
   await start();
   let cookie = "";
   async function call(path, method = "GET", data, options = {}) {
+    const destination = path.startsWith("/api/admin/") ? adminOrigin : origin;
     const headers = {
-      Origin: origin,
+      Origin: destination,
       "Content-Type": "application/json",
       ...(cookie ? { Cookie: cookie } : {}),
       ...options.headers,
     };
-    const response = await fetch(origin + path, {
+    const response = await fetch(destination + path, {
       method,
       headers,
       ...(data !== undefined ? { body: JSON.stringify(data) } : {}),
@@ -88,6 +105,40 @@ test("orders, authentication, persistence and security boundaries", async (t) =>
       : await response.text();
     return { response, value, status: response.status };
   }
+  for (const path of [
+    "/admin.html",
+    "/admin.js",
+    "/admin/index.html",
+    "/api/admin/login",
+    "/api/admin/orders",
+    "/%61dmin.js",
+    "/api/%61dmin/orders",
+  ]) {
+    assert.equal((await fetch(origin + path)).status, 404, path);
+    assert.equal(
+      (
+        await fetch(origin + path, {
+          method: "POST",
+          headers: { Origin: origin },
+        })
+      ).status,
+      404,
+      path + " POST",
+    );
+  }
+  assert.equal((await fetch(adminOrigin + "/")).status, 200);
+  assert.equal((await fetch(adminOrigin + "/catalog.html")).status, 404);
+  assert.equal((await fetch(adminOrigin + "/api/products")).status, 404);
+  assert.equal(
+    (
+      await fetch(adminOrigin + "/api/admin/login", {
+        method: "POST",
+        headers: { Origin: origin, "Content-Type": "application/json" },
+        body: JSON.stringify({ username: "admin", password }),
+      })
+    ).status,
+    403,
+  );
   assert.equal((await call("/api/admin/orders")).status, 401);
   assert.equal(
     (
@@ -238,6 +289,33 @@ test("orders, authentication, persistence and security boundaries", async (t) =>
       .value.total,
     0,
   );
+  assert.equal((await call("/api/admin/orders?status=active")).value.total, 1);
+  assert.equal(
+    (
+      await call("/api/admin/orders/" + id, "PATCH", {
+        status: "cancelled",
+        note: "Заберёт завтра",
+        version: 2,
+      })
+    ).status,
+    200,
+  );
+  assert.equal((await call("/api/admin/orders?status=active")).value.total, 0);
+  assert.equal(
+    (await call("/api/admin/orders?status=cancelled")).value.total,
+    1,
+  );
+  assert.equal(
+    (
+      await call("/api/admin/orders/" + id, "PATCH", {
+        status: "confirmed",
+        note: "Заберёт завтра",
+        version: 3,
+      })
+    ).status,
+    200,
+  );
+  assert.equal((await call("/api/admin/orders?status=active")).value.total, 1);
   for (let i = 0; i < 21; i++)
     assert.equal(
       (

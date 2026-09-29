@@ -1,0 +1,62 @@
+.order-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.order-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  min-height: 44px;
+  border: 1px solid #ffffff1c;
+  border-radius: 9px;
+  background: #ffffff03;
+  color: #b8c1ac;
+  font-size: 12px;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+.order-tab:hover {
+  background: #ffffff09;
+}
+.order-tab[aria-selected="true"] {
+  color: #eadac0;
+  border-color: #ccb48d75;
+  background: #ccb48d15;
+}
+.tab-count {
+  display: grid;
+  place-items: center;
+  min-width: 21px;
+  min-height: 21px;
+  padding-inline: 4px;
+  border-radius: 50%;
+  background: #ffffff0a;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+.order-tab[data-status="cancelled"] {
+  margin-left: auto;
+}
+.admin-tools {
+  grid-template-columns: 1fr auto;
+  margin-top: 24px;
+}
+@media (max-width: 760px) {
+  .order-tabs {
+    gap: 7px;
+  }
+  .order-tab {
+    font-size: 11px;
+    padding: 10px 12px;
+  }
+  .order-tab[data-status="cancelled"] {
+    margin-left: 0;
+  }
+  .admin-tools label:first-child {
+    grid-column: auto;
+  }
+}

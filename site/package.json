@@ -10,7 +10,8 @@
     "admin:setup": "node scripts/setup-admin.mjs",
     "test": "node --test tests/*.test.mjs",
     "reviews": "node scripts/reviews.mjs",
-    "orders:backup": "node scripts/backup-orders.mjs"
+    "orders:backup": "node scripts/backup-orders.mjs",
+    "admin": "node scripts/serve.mjs --admin"
   },
   "engines": {
     "node": ">=22.18.0"

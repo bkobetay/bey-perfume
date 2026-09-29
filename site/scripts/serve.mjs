@@ -6,7 +6,12 @@ import { createAPI } from "../server/api.mjs";
 
 process.umask(0o077);
 const root = fileURLToPath(new URL("../dist/", import.meta.url));
-const port = Number(process.env.PORT || 4173);
+const admin = process.argv.includes("--admin");
+const port = Number(
+  admin ? process.env.ADMIN_PORT || 4174 : process.env.PORT || 4173,
+);
+const adminRoot = fileURLToPath(new URL("../admin/", import.meta.url));
+const storefront = `http://127.0.0.1:${Number(process.env.PORT || 4173)}`;
 const products = JSON.parse(
   await readFile(new URL("../data/products.json", import.meta.url), "utf8"),
 );
@@ -36,8 +41,31 @@ const server = http.createServer(async (request, response) => {
   }
   try {
     const url = new URL(request.url, `http://${request.headers.host}`);
+    const notFound = () =>
+      response
+        .writeHead(404, {
+          "Content-Type": "text/plain; charset=utf-8",
+          "Cache-Control": "no-store",
+        })
+        .end("Страница не найдена");
+    if (admin) response.setHeader("X-Robots-Tag", "noindex, nofollow");
     if (url.pathname.startsWith("/api/")) {
+      const allowed = admin
+        ? url.pathname.startsWith("/api/admin/")
+        : (url.pathname === "/api/products" && request.method === "GET") ||
+          (url.pathname === "/api/orders" && request.method === "POST");
+      if (!allowed) {
+        notFound();
+        return;
+      }
       await api.handle(request, response, url);
+      return;
+    }
+    if (
+      !admin &&
+      /^\/admin(?:[./]|$)/i.test(decodeURIComponent(url.pathname))
+    ) {
+      notFound();
       return;
     }
     if (!["GET", "HEAD"].includes(request.method)) {
@@ -45,12 +73,31 @@ const server = http.createServer(async (request, response) => {
       return;
     }
     const pathname = decodeURIComponent(url.pathname);
+    const adminFile =
+      admin &&
+      ["/", "/index.html", "/admin.js", "/admin.css"].includes(pathname);
+    // The seller service serves only its UI and explicitly shared visual assets.
+    if (
+      admin &&
+      !adminFile &&
+      ![
+        "/styles.css",
+        "/commerce.css",
+        "/assets/favicon.svg",
+        "/assets/fonts/manrope-regular.ttf",
+        "/assets/fonts/manrope-semibold.ttf",
+      ].includes(pathname)
+    ) {
+      notFound();
+      return;
+    }
+    const fileRoot = adminFile ? adminRoot : root;
     const path = resolve(
-      root,
+      fileRoot,
       `.${pathname === "/" ? "/index.html" : pathname}`,
     );
     if (
-      !path.startsWith(root.endsWith(sep) ? root : root + sep) ||
+      !path.startsWith(fileRoot.endsWith(sep) ? fileRoot : fileRoot + sep) ||
       pathname.split("/").some((part) => part.startsWith("."))
     ) {
       response.writeHead(403).end("Forbidden");
@@ -60,7 +107,11 @@ const server = http.createServer(async (request, response) => {
       response.writeHead(404).end("Not found");
       return;
     }
-    const contents = await readFile(path);
+    let contents = await readFile(path);
+    if (adminFile && extname(path) === ".html")
+      contents = Buffer.from(
+        contents.toString().replaceAll("__STOREFRONT_URL__", storefront),
+      );
     response.writeHead(200, {
       "Content-Type": types[extname(path)],
       "Cache-Control": "no-store",
@@ -82,7 +133,9 @@ server.on("error", (error) => {
   process.exitCode = 1;
 });
 server.listen(port, "127.0.0.1", () =>
-  console.log(`BEY Perfume: http://127.0.0.1:${port}`),
+  console.log(
+    `BEY ${admin ? "Seller (local only)" : "Perfume"}: http://127.0.0.1:${port}`,
+  ),
 );
 for (const signal of ["SIGTERM", "SIGINT"])
   process.on(signal, () =>

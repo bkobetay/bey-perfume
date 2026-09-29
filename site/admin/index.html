@@ -9,12 +9,15 @@
     <link rel="icon" href="/assets/favicon.svg" />
     <link rel="stylesheet" href="/styles.css" />
     <link rel="stylesheet" href="/commerce.css" />
+    <link rel="stylesheet" href="/admin.css" />
     <script src="/admin.js" defer></script>
   </head>
   <body data-page="admin">
     <header class="admin-header container">
-      <a class="brand" href="/"><span>BEY</span><small>PERFUME</small></a
-      ><span>КАБИНЕТ ПРОДАВЦА</span><a class="text-link" href="/">На сайт ↗</a>
+      <a class="brand" href="__STOREFRONT_URL__"
+        ><span>BEY</span><small>PERFUME</small></a
+      ><span>КАБИНЕТ ПРОДАВЦА</span
+      ><a class="text-link" href="__STOREFRONT_URL__">На сайт ↗</a>
     </header>
     <main class="container admin-main">
       <section class="admin-login">
@@ -52,6 +55,15 @@
           </button>
         </div>
         <div class="order-stats" aria-label="Сводка заказов"></div>
+        <div
+          class="order-tabs"
+          role="tablist"
+          aria-label="Статусы заказов"
+        ></div>
+        <p class="field-hint">
+          Отменённые заказы сохраняются во вкладке «Корзина». Их можно вернуть в
+          работу.
+        </p>
         <div class="admin-tools">
           <label
             >Найти заказ<input
@@ -59,10 +71,6 @@
               type="search"
               placeholder="Код, имя или телефон"
               maxlength="80" /></label
-          ><label
-            >Статус<select id="status-filter">
-              <option value="all">Все заказы</option>
-            </select></label
           ><button
             id="refresh-orders"
             type="button"
@@ -72,7 +80,12 @@
           </button>
         </div>
         <p id="orders-caption" class="field-hint" aria-live="polite"></p>
-        <div id="orders-list"></div>
+        <div
+          id="orders-list"
+          role="tabpanel"
+          tabindex="0"
+          aria-labelledby="order-tab-active"
+        ></div>
         <div class="admin-pagination">
           <button type="button" id="orders-prev" class="button button-glass">
             Назад</button
