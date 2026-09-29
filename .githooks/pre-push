@@ -1,0 +1,11 @@
+#!/bin/sh
+# Reject an upload if the current JavaScript has a syntax error.
+set -eu
+root=$(git rev-parse --show-toplevel)
+cd "$root"
+if ! git diff --quiet HEAD -- site; then
+  printf '%s\n' '[BEY] Commit the remaining site changes before push so checks cover the committed version.' >&2
+  exit 1
+fi
+printf '%s\n' '[BEY] Checking JavaScript before push...'
+npm --prefix site run check

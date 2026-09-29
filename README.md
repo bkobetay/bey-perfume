@@ -46,9 +46,23 @@ npm --prefix site run check
 - `site/scripts/serve.mjs` — локальный сервер.
 - `docs/CHANGELOG.md`, `docs/QA.md` — изменения и результаты проверок.
 
-## Локальные сохранения и откат
+## Сохранения в GitHub и откат
 
-Состояние до каталога: тег `checkpoint/v3-before-product-catalog`, коммит `39c7722`. Состояние после этапа: `checkpoint/v4-product-catalog`. Никаких push и публикаций.
+Репозиторий: https://github.com/bkobetay/bey-perfume. Локальная ветка `codex/homepage-skeleton` отправляется в `origin/main`.
+
+После каждого завершённого изменения: проверка → коммит → автоматический push. Версионируемые hooks лежат в `.githooks/`; post-commit отправляет коммит и достижимые аннотированные теги, pre-push проверяет синтаксис JavaScript. Это отправка исходников; сайт по-прежнему запускается локально.
+
+Для включения hooks в новом клоне:
+
+```sh
+git config --local core.hooksPath .githooks
+```
+
+Для первой авторизации Git на Mac используется `gh auth login --hostname github.com --git-protocol https --web`, затем `gh auth setup-git`. Токены не записываются в проект. Если сети или авторизации нет, коммит остаётся локально и hook явно сообщает, что push не состоялся. После устранения причины повторить `git push --follow-tags`; проверить `git status -sb` и удалённый SHA.
+
+История:
+
+Состояние до каталога: тег `checkpoint/v3-before-product-catalog`, коммит `39c7722`. Состояние после этапа: `checkpoint/v4-product-catalog`.
 
 ```sh
 git log --oneline
