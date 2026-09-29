@@ -1,76 +1,4 @@
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
-const tabs = [...document.querySelectorAll('[role="tab"]')];
-const products = [...document.querySelectorAll("#product-grid .product-card")];
-const descriptions = {
-  all: "Вся коллекция — от лёгких цитрусов до тёплых древесных нот.",
-  woody: "Кедр, сандал и ветивер — глубина в нескольких нотах.",
-  fresh: "Цитрусовые и зелёные акценты для лёгкого звучания.",
-  oriental: "Тёплая амбра и мягкие ванильные оттенки.",
-  floral: "Жасмин, роза и белые цветы в многогранных сочетаниях.",
-  leather: "Мягкая замша и кожаные оттенки.",
-  spicy: "Имбирь, специи и пряные акценты.",
-};
-function selectFilter(tab) {
-  if (!tab) return;
-  const filter = tab.dataset.filter;
-  tabs.forEach((item) => {
-    const selected = item === tab;
-    item.setAttribute("aria-selected", String(selected));
-    item.tabIndex = selected ? 0 : -1;
-  });
-  document
-    .querySelector("#catalog-results")
-    .setAttribute("aria-labelledby", tab.id);
-  let count = 0;
-  products.forEach((card) => {
-    card.getAnimations().forEach((animation) => animation.cancel());
-    const visible =
-      filter === "all" || card.dataset.categories.split(" ").includes(filter);
-    card.hidden = !visible;
-    if (!visible) return;
-    const order = count++;
-    if (!reducedMotion.matches)
-      card.animate(
-        [
-          { opacity: 0, translate: "0 12px" },
-          { opacity: 1, translate: "0 0" },
-        ],
-        {
-          duration: 460,
-          delay: order * 35,
-          easing: "cubic-bezier(.22,1,.36,1)",
-          fill: "backwards",
-        },
-      );
-  });
-  const word =
-    count % 10 === 1 && count % 100 !== 11
-      ? "аромат"
-      : count % 10 >= 2 &&
-          count % 10 <= 4 &&
-          (count % 100 < 12 || count % 100 > 14)
-        ? "аромата"
-        : "ароматов";
-  document.querySelector("#catalog-count").textContent = `${count} ${word}`;
-  document.querySelector("#filter-description").textContent =
-    descriptions[filter];
-  document.querySelector(".catalog-empty").hidden = count > 0;
-}
-tabs.forEach((tab, index) => {
-  tab.addEventListener("click", () => selectFilter(tab));
-  tab.addEventListener("keydown", (event) => {
-    let next;
-    if (event.key === "ArrowRight") next = (index + 1) % tabs.length;
-    if (event.key === "ArrowLeft")
-      next = (index + tabs.length - 1) % tabs.length;
-    if (event.key === "Home") next = 0;
-    if (event.key === "End") next = tabs.length - 1;
-    if (next === undefined) return;
-    event.preventDefault();
-    tabs[next].focus({ preventScroll: true });
-    selectFilter(tabs[next]);
-  });
-});
 const toggle = document.querySelector(".menu-toggle");
 const navigation = document.querySelector("#navigation");
 function closeMenu() {
@@ -101,12 +29,20 @@ const navLinks = [...navigation.querySelectorAll("a")];
 const sections = [
   document.querySelector(".hero"),
   ...document.querySelectorAll("main section[id]"),
-];
+].filter(Boolean);
 const header = document.querySelector(".header");
 function updateNavigation() {
+  if (document.body.dataset.page === "catalog") {
+    header.classList.toggle("is-scrolled", window.scrollY > 24);
+    return;
+  }
   let current = "#top";
   for (const section of sections) {
-    if (section.getBoundingClientRect().top <= header.offsetHeight + 65)
+    if (
+      section.getBoundingClientRect().top <= header.offsetHeight + 65 &&
+      (!section.id ||
+        navLinks.some((link) => link.getAttribute("href") === `#${section.id}`))
+    )
       current = section.id ? `#${section.id}` : "#top";
   }
   navLinks.forEach((link) => {
@@ -215,7 +151,6 @@ document.addEventListener("click", (event) => {
   const target = document.getElementById(hash.slice(1));
   if (!target) return;
   event.preventDefault();
-  if (link.hasAttribute("data-reset-catalog")) selectFilter(tabs[0]);
   closeMenu();
   if (location.hash !== hash) history.pushState(null, "", hash);
   scrollToSection(target);

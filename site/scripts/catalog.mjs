@@ -53,33 +53,40 @@ function card(product, index, featured = false) {
     }</div></div>
   </article>`;
 }
-let html = await readFile(path, "utf8");
-const replace = (name, value) => {
-  html = html.replace(
-    new RegExp(`(<!-- ${name}:start -->)[\\s\\S]*?(<!-- ${name}:end -->)`),
-    `$1\n${value}\n$2`,
+const replace = (html, name, value) => {
+  const pattern = new RegExp(
+    `(<!-- ${name}:start -->)[\\s\\S]*?(<!-- ${name}:end -->)`,
   );
+  if (!pattern.test(html))
+    throw new Error(`Missing generated section: ${name}`);
+  return html.replace(pattern, (_, begin, end) => `${begin}\n${value}\n${end}`);
 };
-replace(
+const catalogPath = new URL("../dist/catalog.html", import.meta.url);
+let home = await readFile(path, "utf8");
+let catalog = await readFile(catalogPath, "utf8");
+// A larger assortment must never expand the homepage.
+const featured = products.filter((product) => product.featured).slice(0, 4);
+home = replace(
+  home,
+  "selection",
+  featured.map((product, index) => card(product, index, true)).join("\n"),
+);
+catalog = replace(
+  catalog,
   "catalog",
   products.map((product, index) => card(product, index)).join("\n"),
 );
-replace(
-  "selection",
-  products
-    .filter((product) => product.featured)
-    .map((product, index) => card(product, index, true))
-    .join("\n"),
-);
-html = html.replace(
+catalog = catalog.replace(
   /(<span id="collection-total">)\d+(<\/span>)/,
-  `$1${String(products.length).padStart(2, "0")}$2`,
+  (_, begin, end) =>
+    `${begin}${String(products.length).padStart(2, "0")}${end}`,
 );
-html = html.replace(
+catalog = catalog.replace(
   /(<p\s+id="catalog-count"[\s\S]*?>)[\s\S]*?(<\/p>)/,
-  `$1${countLabel(products.length)}$2`,
+  (_, begin, end) => `${begin}${countLabel(products.length)}${end}`,
 );
-await writeFile(path, html);
+await writeFile(path, home);
+await writeFile(catalogPath, catalog);
 console.log(
-  `Rendered ${products.length} fragrances and ${products.filter((product) => product.featured).length} BEY picks.`,
+  `Rendered ${products.length} fragrances on catalog.html and ${featured.length} homepage picks.`,
 );

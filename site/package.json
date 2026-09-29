@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node scripts/serve.mjs",
-    "check": "node --check dist/app.js && node --check dist/motion.js && node --check scripts/serve.mjs && node --check scripts/catalog.mjs",
+    "check": "node --check dist/app.js && node --check dist/motion.js && node --check scripts/serve.mjs && node --check scripts/catalog.mjs && node --check dist/catalog.js",
     "catalog": "node scripts/catalog.mjs"
   }
 }
