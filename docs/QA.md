@@ -108,4 +108,4 @@
 - При недоступном remote hook сообщает `PUSH FAILED`, локальный коммит остаётся доступным.
 - Синтаксис обоих shell hooks проверен через `sh -n`.
 
-Реальный GitHub remote найден пустым: `bkobetay/bey-perfume`. Проверка HTTPS push без интерактивного ввода выявила отсутствие авторизации Git на Mac. Для завершения первой отправки нужен однократный вход через установленный GitHub CLI. Это не отказ GitHub connector: учётные данные connector и локального Git независимы.
+Реальный GitHub remote изначально был пустым: `bkobetay/bey-perfume`. После подтверждённого пользователем входа GitHub CLI настроен credential helper для HTTPS. Первая отправка выполнена: `main` на GitHub и локальный HEAD совпали (`be1c9e50a1a9e92542068087978abda6d337cd98`). Оба тега `checkpoint/v3-before-product-catalog` и `checkpoint/v4-product-catalog` присутствуют на GitHub с исходными SHA. Проверка JavaScript перед push прошла; рабочее дерево после отправки было чистым. Следующий коммит этого отчёта отправляется уже через настроенный post-commit hook.
