@@ -21,6 +21,8 @@
     <script src="/app.js" defer></script>
     <script src="/catalog.js" defer></script>
     <script src="/motion.js" defer></script>
+    <script src="/cart.js" defer></script>
+    <link rel="stylesheet" href="/commerce.css" />
   </head>
   <body id="top" data-page="catalog">
     <a class="skip-link" href="#main">Перейти к содержимому</a>
@@ -44,7 +46,7 @@
             >Каталог</a
           >
           <a class="nav-link" href="/#selection">Выбор BEY</a>
-          <a class="nav-link" href="/#reviews">Обзоры ALISH</a>
+          <a class="nav-link" href="/reviews.html">Обзоры ALISH</a>
           <a class="nav-link" href="/#about">О магазине</a>
         </nav>
         <div class="social-links" aria-label="Социальные сети BEY Perfume">
@@ -76,6 +78,16 @@
               /></svg
           ></a>
         </div>
+        <button
+          class="cart-toggle"
+          type="button"
+          aria-label="Открыть корзину"
+          aria-haspopup="dialog"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 7h14l1 14H4L5 7ZM9 8V6a3 3 0 0 1 6 0v2" /></svg
+          ><span class="cart-count">0</span>
+        </button>
       </div>
     </header>
     <main id="main">
@@ -251,6 +263,26 @@
                   <div class="product-tags">
                     <span>Древесный</span><span>Свежий</span>
                   </div>
+                  <div class="purchase-controls">
+                    <label
+                      >Объём<select
+                        class="volume-select"
+                        aria-label="Объём Hacivat"
+                      >
+                        <option value="3">3 мл · 2 700 ₸</option>
+                        <option value="5">5 мл · 4 500 ₸</option>
+                        <option value="10">10 мл · 9 000 ₸</option>
+                      </select></label
+                    ><button
+                      class="add-cart"
+                      type="button"
+                      data-add="hacivat"
+                      aria-label="Добавить Hacivat в корзину"
+                      disabled
+                    >
+                      В корзину <span aria-hidden="true">+</span></button
+                    ><small>Демонстрационная цена</small>
+                  </div>
                 </div>
               </article>
               <article
@@ -276,6 +308,26 @@
                   <p class="product-notes">Жасмин · персик · сандал</p>
                   <div class="product-tags">
                     <span>Цветочный</span><span>Древесный</span>
+                  </div>
+                  <div class="purchase-controls">
+                    <label
+                      >Объём<select
+                        class="volume-select"
+                        aria-label="Объём Madurai"
+                      >
+                        <option value="3">3 мл · 3 000 ₸</option>
+                        <option value="5">5 мл · 5 000 ₸</option>
+                        <option value="10">10 мл · 10 000 ₸</option>
+                      </select></label
+                    ><button
+                      class="add-cart"
+                      type="button"
+                      data-add="madurai"
+                      aria-label="Добавить Madurai в корзину"
+                      disabled
+                    >
+                      В корзину <span aria-hidden="true">+</span></button
+                    ><small>Демонстрационная цена</small>
                   </div>
                 </div>
               </article>
@@ -303,6 +355,26 @@
                   <h3>Mawashi</h3>
                   <p class="product-notes">Характер аромата уточняется</p>
                   <div class="product-tags"><span>Знакомство скоро</span></div>
+                  <div class="purchase-controls">
+                    <label
+                      >Объём<select
+                        class="volume-select"
+                        aria-label="Объём Mawashi"
+                      >
+                        <option value="3">3 мл · 2 100 ₸</option>
+                        <option value="5">5 мл · 3 500 ₸</option>
+                        <option value="10">10 мл · 7 000 ₸</option>
+                      </select></label
+                    ><button
+                      class="add-cart"
+                      type="button"
+                      data-add="mawashi"
+                      aria-label="Добавить Mawashi в корзину"
+                      disabled
+                    >
+                      В корзину <span aria-hidden="true">+</span></button
+                    ><small>Демонстрационная цена</small>
+                  </div>
                 </div>
               </article>
               <article
@@ -328,6 +400,26 @@
                   <p class="product-notes">Ягоды тимур · роза · ветивер</p>
                   <div class="product-tags">
                     <span>Древесный</span><span>Свежий</span>
+                  </div>
+                  <div class="purchase-controls">
+                    <label
+                      >Объём<select
+                        class="volume-select"
+                        aria-label="Объём Wild Vetiver"
+                      >
+                        <option value="3">3 мл · 3 300 ₸</option>
+                        <option value="5">5 мл · 5 500 ₸</option>
+                        <option value="10">10 мл · 11 000 ₸</option>
+                      </select></label
+                    ><button
+                      class="add-cart"
+                      type="button"
+                      data-add="vetiver"
+                      aria-label="Добавить Wild Vetiver в корзину"
+                      disabled
+                    >
+                      В корзину <span aria-hidden="true">+</span></button
+                    ><small>Демонстрационная цена</small>
                   </div>
                 </div>
               </article>
@@ -355,6 +447,26 @@
                   <div class="product-tags">
                     <span>Свежий</span><span>Цветочный</span>
                   </div>
+                  <div class="purchase-controls">
+                    <label
+                      >Объём<select
+                        class="volume-select"
+                        aria-label="Объём Donna"
+                      >
+                        <option value="3">3 мл · 1 800 ₸</option>
+                        <option value="5">5 мл · 3 000 ₸</option>
+                        <option value="10">10 мл · 6 000 ₸</option>
+                      </select></label
+                    ><button
+                      class="add-cart"
+                      type="button"
+                      data-add="donna"
+                      aria-label="Добавить Donna в корзину"
+                      disabled
+                    >
+                      В корзину <span aria-hidden="true">+</span></button
+                    ><small>Демонстрационная цена</small>
+                  </div>
                 </div>
               </article>
               <article
@@ -381,6 +493,26 @@
                   <h3>Montacabo</h3>
                   <p class="product-notes">Характер аромата уточняется</p>
                   <div class="product-tags"><span>Знакомство скоро</span></div>
+                  <div class="purchase-controls">
+                    <label
+                      >Объём<select
+                        class="volume-select"
+                        aria-label="Объём Montacabo"
+                      >
+                        <option value="3">3 мл · 2 250 ₸</option>
+                        <option value="5">5 мл · 3 750 ₸</option>
+                        <option value="10">10 мл · 7 500 ₸</option>
+                      </select></label
+                    ><button
+                      class="add-cart"
+                      type="button"
+                      data-add="montacabo"
+                      aria-label="Добавить Montacabo в корзину"
+                      disabled
+                    >
+                      В корзину <span aria-hidden="true">+</span></button
+                    ><small>Демонстрационная цена</small>
+                  </div>
                 </div>
               </article>
               <article
@@ -407,6 +539,26 @@
                   <div class="product-tags">
                     <span>Свежий</span><span>Пряный</span>
                   </div>
+                  <div class="purchase-controls">
+                    <label
+                      >Объём<select
+                        class="volume-select"
+                        aria-label="Объём Symphony"
+                      >
+                        <option value="3">3 мл · 4 800 ₸</option>
+                        <option value="5">5 мл · 8 000 ₸</option>
+                        <option value="10">10 мл · 16 000 ₸</option>
+                      </select></label
+                    ><button
+                      class="add-cart"
+                      type="button"
+                      data-add="symphony"
+                      aria-label="Добавить Symphony в корзину"
+                      disabled
+                    >
+                      В корзину <span aria-hidden="true">+</span></button
+                    ><small>Демонстрационная цена</small>
+                  </div>
                 </div>
               </article>
               <article
@@ -432,6 +584,26 @@
                   <p class="product-notes">Маракуйя · жасмин · амбра</p>
                   <div class="product-tags">
                     <span>Свежий</span><span>Цветочный</span>
+                  </div>
+                  <div class="purchase-controls">
+                    <label
+                      >Объём<select
+                        class="volume-select"
+                        aria-label="Объём Gaba"
+                      >
+                        <option value="3">3 мл · 2 850 ₸</option>
+                        <option value="5">5 мл · 4 750 ₸</option>
+                        <option value="10">10 мл · 9 500 ₸</option>
+                      </select></label
+                    ><button
+                      class="add-cart"
+                      type="button"
+                      data-add="gaba"
+                      aria-label="Добавить Gaba в корзину"
+                      disabled
+                    >
+                      В корзину <span aria-hidden="true">+</span></button
+                    ><small>Демонстрационная цена</small>
                   </div>
                 </div>
               </article>
@@ -467,8 +639,8 @@
             </nav>
           </div>
           <p class="catalog-footnote">
-            Демоколлекция. Флаконы показаны для знакомства с ароматами; формат
-            распива и цены добавим позже.
+            Демоколлекция. Флаконы показаны для знакомства с ароматами; объёмы и
+            цены демонстрационные, окончательную стоимость подтвердит продавец.
           </p>
           <noscript
             ><p class="catalog-footnote">

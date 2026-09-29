@@ -4,20 +4,56 @@
     "brand": "NISHANE",
     "name": "Hacivat",
     "notes": "Ананас · кедр · дубовый мох",
-    "categories": ["woody", "fresh"],
+    "categories": [
+      "woody",
+      "fresh"
+    ],
     "image": "hacivat.webp",
     "featured": true,
-    "accent": "olive"
+    "accent": "olive",
+    "variants": [
+      {
+        "ml": 3,
+        "price": 2700
+      },
+      {
+        "ml": 5,
+        "price": 4500
+      },
+      {
+        "ml": 10,
+        "price": 9000
+      }
+    ]
   },
   {
     "id": "madurai",
     "brand": "MEMO PARIS",
     "name": "Madurai",
     "notes": "Жасмин · персик · сандал",
-    "categories": ["floral", "woody", "leather", "spicy"],
+    "categories": [
+      "floral",
+      "woody",
+      "leather",
+      "spicy"
+    ],
     "image": "madurai.webp",
     "featured": true,
-    "accent": "amber"
+    "accent": "amber",
+    "variants": [
+      {
+        "ml": 3,
+        "price": 3000
+      },
+      {
+        "ml": 5,
+        "price": 5000
+      },
+      {
+        "ml": 10,
+        "price": 10000
+      }
+    ]
   },
   {
     "id": "mawashi",
@@ -27,27 +63,79 @@
     "categories": [],
     "image": null,
     "featured": false,
-    "accent": "ink"
+    "accent": "ink",
+    "variants": [
+      {
+        "ml": 3,
+        "price": 2100
+      },
+      {
+        "ml": 5,
+        "price": 3500
+      },
+      {
+        "ml": 10,
+        "price": 7000
+      }
+    ]
   },
   {
     "id": "vetiver",
     "brand": "CREED",
     "name": "Wild Vetiver",
     "notes": "Ягоды тимур · роза · ветивер",
-    "categories": ["woody", "fresh", "spicy", "floral"],
+    "categories": [
+      "woody",
+      "fresh",
+      "spicy",
+      "floral"
+    ],
     "image": "vetiver.webp",
     "featured": true,
-    "accent": "olive"
+    "accent": "olive",
+    "variants": [
+      {
+        "ml": 3,
+        "price": 3300
+      },
+      {
+        "ml": 5,
+        "price": 5500
+      },
+      {
+        "ml": 10,
+        "price": 11000
+      }
+    ]
   },
   {
     "id": "donna",
     "brand": "TRUSSARDI",
     "name": "Donna",
     "notes": "Юзу · жасмин · сандал",
-    "categories": ["fresh", "floral", "woody", "oriental"],
+    "categories": [
+      "fresh",
+      "floral",
+      "woody",
+      "oriental"
+    ],
     "image": "donna.webp",
     "featured": false,
-    "accent": "ivory"
+    "accent": "ivory",
+    "variants": [
+      {
+        "ml": 3,
+        "price": 1800
+      },
+      {
+        "ml": 5,
+        "price": 3000
+      },
+      {
+        "ml": 10,
+        "price": 6000
+      }
+    ]
   },
   {
     "id": "montacabo",
@@ -57,27 +145,76 @@
     "categories": [],
     "image": null,
     "featured": false,
-    "accent": "ink"
+    "accent": "ink",
+    "variants": [
+      {
+        "ml": 3,
+        "price": 2250
+      },
+      {
+        "ml": 5,
+        "price": 3750
+      },
+      {
+        "ml": 10,
+        "price": 7500
+      }
+    ]
   },
   {
     "id": "symphony",
     "brand": "LOUIS VUITTON",
     "name": "Symphony",
     "notes": "Грейпфрут · бергамот · имбирь",
-    "categories": ["fresh", "spicy"],
+    "categories": [
+      "fresh",
+      "spicy"
+    ],
     "image": "symphony.webp",
     "featured": true,
-    "accent": "rose"
+    "accent": "rose",
+    "variants": [
+      {
+        "ml": 3,
+        "price": 4800
+      },
+      {
+        "ml": 5,
+        "price": 8000
+      },
+      {
+        "ml": 10,
+        "price": 16000
+      }
+    ]
   },
   {
     "id": "gaba",
     "brand": "HORMONE PARIS",
     "name": "Gaba",
     "notes": "Маракуйя · жасмин · амбра",
-    "categories": ["fresh", "floral", "oriental"],
+    "categories": [
+      "fresh",
+      "floral",
+      "oriental"
+    ],
     "image": "gaba.webp",
     "featured": false,
     "accent": "rose",
-    "edition": "This is Not GABA"
+    "edition": "This is Not GABA",
+    "variants": [
+      {
+        "ml": 3,
+        "price": 2850
+      },
+      {
+        "ml": 5,
+        "price": 4750
+      },
+      {
+        "ml": 10,
+        "price": 9500
+      }
+    ]
   }
 ]

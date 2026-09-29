@@ -32,7 +32,7 @@ const sections = [
 ].filter(Boolean);
 const header = document.querySelector(".header");
 function updateNavigation() {
-  if (document.body.dataset.page === "catalog") {
+  if (document.body.dataset.page !== "home") {
     header.classList.toggle("is-scrolled", window.scrollY > 24);
     return;
   }

@@ -1,0 +1,23 @@
+[
+  {
+    "id": "first-look",
+    "title": "Обзоры ароматов",
+    "topic": "Личный взгляд",
+    "visual": "ritual",
+    "url": null
+  },
+  {
+    "id": "your-scent",
+    "title": "Как выбрать свой",
+    "topic": "Твоё звучание",
+    "visual": "bottle",
+    "url": null
+  },
+  {
+    "id": "details",
+    "title": "Парфюм в деталях",
+    "topic": "Внимание к деталям",
+    "visual": "notes",
+    "url": null
+  }
+]

@@ -21,6 +21,8 @@
     <link rel="stylesheet" href="/styles.css" />
     <script src="/app.js" defer></script>
     <script src="/motion.js" defer></script>
+    <script src="/cart.js" defer></script>
+    <link rel="stylesheet" href="/commerce.css" />
   </head>
   <body id="top" data-page="home">
     <a class="skip-link" href="#main">Перейти к содержимому</a>
@@ -44,7 +46,7 @@
           >
           <a class="nav-link" href="/catalog.html">Каталог</a>
           <a class="nav-link" href="#selection">Выбор BEY</a>
-          <a class="nav-link" href="#reviews">Обзоры ALISH</a>
+          <a class="nav-link" href="/reviews.html">Обзоры ALISH</a>
           <a class="nav-link" href="#about">О магазине</a>
         </nav>
         <div class="social-links" aria-label="Социальные сети BEY Perfume">
@@ -76,6 +78,16 @@
               /></svg
           ></a>
         </div>
+        <button
+          class="cart-toggle"
+          type="button"
+          aria-label="Открыть корзину"
+          aria-haspopup="dialog"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 7h14l1 14H4L5 7ZM9 8V6a3 3 0 0 1 6 0v2" /></svg
+          ><span class="cart-count">0</span>
+        </button>
       </div>
     </header>
     <main id="main">
@@ -223,6 +235,26 @@
                 <div class="product-tags">
                   <span>Древесный</span><span>Свежий</span>
                 </div>
+                <div class="purchase-controls">
+                  <label
+                    >Объём<select
+                      class="volume-select"
+                      aria-label="Объём Hacivat"
+                    >
+                      <option value="3">3 мл · 2 700 ₸</option>
+                      <option value="5">5 мл · 4 500 ₸</option>
+                      <option value="10">10 мл · 9 000 ₸</option>
+                    </select></label
+                  ><button
+                    class="add-cart"
+                    type="button"
+                    data-add="hacivat"
+                    aria-label="Добавить Hacivat в корзину"
+                    disabled
+                  >
+                    В корзину <span aria-hidden="true">+</span></button
+                  ><small>Демонстрационная цена</small>
+                </div>
               </div>
             </article>
             <article
@@ -249,6 +281,26 @@
                 <p class="product-notes">Жасмин · персик · сандал</p>
                 <div class="product-tags">
                   <span>Цветочный</span><span>Древесный</span>
+                </div>
+                <div class="purchase-controls">
+                  <label
+                    >Объём<select
+                      class="volume-select"
+                      aria-label="Объём Madurai"
+                    >
+                      <option value="3">3 мл · 3 000 ₸</option>
+                      <option value="5">5 мл · 5 000 ₸</option>
+                      <option value="10">10 мл · 10 000 ₸</option>
+                    </select></label
+                  ><button
+                    class="add-cart"
+                    type="button"
+                    data-add="madurai"
+                    aria-label="Добавить Madurai в корзину"
+                    disabled
+                  >
+                    В корзину <span aria-hidden="true">+</span></button
+                  ><small>Демонстрационная цена</small>
                 </div>
               </div>
             </article>
@@ -277,6 +329,26 @@
                 <div class="product-tags">
                   <span>Древесный</span><span>Свежий</span>
                 </div>
+                <div class="purchase-controls">
+                  <label
+                    >Объём<select
+                      class="volume-select"
+                      aria-label="Объём Wild Vetiver"
+                    >
+                      <option value="3">3 мл · 3 300 ₸</option>
+                      <option value="5">5 мл · 5 500 ₸</option>
+                      <option value="10">10 мл · 11 000 ₸</option>
+                    </select></label
+                  ><button
+                    class="add-cart"
+                    type="button"
+                    data-add="vetiver"
+                    aria-label="Добавить Wild Vetiver в корзину"
+                    disabled
+                  >
+                    В корзину <span aria-hidden="true">+</span></button
+                  ><small>Демонстрационная цена</small>
+                </div>
               </div>
             </article>
             <article
@@ -303,6 +375,26 @@
                 <p class="product-notes">Грейпфрут · бергамот · имбирь</p>
                 <div class="product-tags">
                   <span>Свежий</span><span>Пряный</span>
+                </div>
+                <div class="purchase-controls">
+                  <label
+                    >Объём<select
+                      class="volume-select"
+                      aria-label="Объём Symphony"
+                    >
+                      <option value="3">3 мл · 4 800 ₸</option>
+                      <option value="5">5 мл · 8 000 ₸</option>
+                      <option value="10">10 мл · 16 000 ₸</option>
+                    </select></label
+                  ><button
+                    class="add-cart"
+                    type="button"
+                    data-add="symphony"
+                    aria-label="Добавить Symphony в корзину"
+                    disabled
+                  >
+                    В корзину <span aria-hidden="true">+</span></button
+                  ><small>Демонстрационная цена</small>
                 </div>
               </div>
             </article>
@@ -347,7 +439,8 @@
             >
           </div>
           <div class="review-grid">
-            <article class="review-card review-ritual reveal">
+            <!-- review-preview:start -->
+            <article class="review-card review-ritual" data-review="first-look">
               <span class="review-badge">СКОРО</span>
               <div class="reel-mark" aria-hidden="true">
                 <svg viewBox="0 0 32 32">
@@ -356,12 +449,12 @@
                 </svg>
               </div>
               <div class="review-copy">
-                <span>01 / ЛИЧНЫЙ ВЗГЛЯД</span>
+                <span>01 / Личный взгляд</span>
                 <h3>Обзоры ароматов</h3>
                 <p>Место для видео ALISH</p>
               </div>
             </article>
-            <article class="review-card review-bottle reveal">
+            <article class="review-card review-bottle" data-review="your-scent">
               <span class="review-badge">СКОРО</span>
               <div class="reel-mark" aria-hidden="true">
                 <svg viewBox="0 0 32 32">
@@ -370,12 +463,12 @@
                 </svg>
               </div>
               <div class="review-copy">
-                <span>02 / ТВОЁ ЗВУЧАНИЕ</span>
+                <span>02 / Твоё звучание</span>
                 <h3>Как выбрать свой</h3>
                 <p>Место для видео ALISH</p>
               </div>
             </article>
-            <article class="review-card review-notes reveal">
+            <article class="review-card review-notes" data-review="details">
               <span class="review-badge">СКОРО</span>
               <div class="reel-mark" aria-hidden="true">
                 <svg viewBox="0 0 32 32">
@@ -384,15 +477,17 @@
                 </svg>
               </div>
               <div class="review-copy">
-                <span>03 / ВНИМАНИЕ К ДЕТАЛЯМ</span>
+                <span>03 / Внимание к деталям</span>
                 <h3>Парфюм в деталях</h3>
                 <p>Место для видео ALISH</p>
               </div>
             </article>
+            <!-- review-preview:end -->
           </div>
           <p class="catalog-footnote">
-            Здесь появятся Instagram-обзоры ALISH. Пока — превью раздела, без
-            опубликованных видео.
+            <a class="text-link" href="/reviews.html">Все обзоры ALISH ↗</a
+            ><br />Здесь появятся Instagram-обзоры ALISH. Пока — превью раздела,
+            без опубликованных видео.
           </p>
         </div>
       </section>

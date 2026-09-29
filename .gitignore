@@ -5,3 +5,11 @@ node_modules/
 .env.*
 !.env.example
 artifacts/
+# Private customer data, authentication and local backups — never publish.
+site/private/
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+*.pem
+*.key

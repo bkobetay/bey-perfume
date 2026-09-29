@@ -5,7 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "node scripts/serve.mjs",
-    "check": "node --check dist/app.js && node --check dist/motion.js && node --check scripts/serve.mjs && node --check scripts/catalog.mjs && node --check dist/catalog.js",
-    "catalog": "node scripts/catalog.mjs"
+    "check": "node scripts/check.mjs",
+    "catalog": "node scripts/catalog.mjs",
+    "admin:setup": "node scripts/setup-admin.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "reviews": "node scripts/reviews.mjs",
+    "orders:backup": "node scripts/backup-orders.mjs"
+  },
+  "engines": {
+    "node": ">=22.18.0"
   }
 }

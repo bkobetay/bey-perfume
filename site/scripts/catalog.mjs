@@ -16,6 +16,20 @@ for (const product of products) {
   if (ids.has(product.id) || !/^[a-z0-9-]+$/.test(product.id))
     throw new Error(`Invalid or duplicate product id: ${product.id}`);
   ids.add(product.id);
+  if (
+    !Array.isArray(product.variants) ||
+    !product.variants.length ||
+    new Set(product.variants.map((v) => v.ml)).size !==
+      product.variants.length ||
+    product.variants.some(
+      (v) =>
+        !Number.isInteger(v.ml) ||
+        v.ml < 1 ||
+        !Number.isInteger(v.price) ||
+        v.price < 1,
+    )
+  )
+    throw new Error(`Invalid volumes/prices: ${product.id}`);
   if (product.categories.some((category) => !labels[category]))
     throw new Error(`Unknown category: ${product.id}`);
   if (product.image)
@@ -50,7 +64,7 @@ function card(product, index, featured = false) {
             .map((category) => `<span>${labels[category]}</span>`)
             .join("")
         : "<span>Знакомство скоро</span>"
-    }</div></div>
+    }</div><div class="purchase-controls"><label>Объём<select class="volume-select" aria-label="Объём ${name}">${product.variants.map((v) => `<option value="${v.ml}">${v.ml} мл · ${v.price.toLocaleString("ru-RU")} ₸</option>`).join("")}</select></label><button class="add-cart" type="button" data-add="${escape(product.id)}" aria-label="Добавить ${name} в корзину" disabled>В корзину <span aria-hidden="true">+</span></button><small>Демонстрационная цена</small></div></div>
   </article>`;
 }
 const replace = (html, name, value) => {
