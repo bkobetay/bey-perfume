@@ -868,3 +868,31 @@ select:focus-visible {
   min-width: 0;
   aspect-ratio: auto;
 }
+.phone-field {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ffffff20;
+  border-radius: 8px;
+  background: #ffffff04;
+  overflow: hidden;
+}
+.phone-prefix {
+  flex-shrink: 0;
+  padding: 0 14px;
+  color: var(--gold);
+  font-size: 16px;
+  border-right: 1px solid #ffffff20;
+}
+.checkout-form .phone-field input {
+  border: 0;
+  background: transparent;
+  border-radius: 0;
+  letter-spacing: 0.5px;
+}
+.phone-field:focus-within {
+  outline: 1px solid var(--gold);
+  outline-offset: 2px;
+}
+.phone-field input:focus-visible {
+  outline: none;
+}

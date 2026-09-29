@@ -17,7 +17,7 @@
   if (!Array.isArray(basket)) basket = [];
   const dialog = el("dialog", "cart-dialog");
   dialog.setAttribute("aria-labelledby", "cart-title");
-  dialog.innerHTML = `<div class="cart-heading"><div><p class="eyebrow">ТВОЯ КОЛЛЕКЦИЯ</p><h2 id="cart-title">Корзина</h2></div><button type="button" class="icon-close" aria-label="Закрыть корзину">×</button></div><div class="cart-body"><p class="demo-notice">Демоверсия · цены предварительные. Онлайн-оплаты пока нет.</p><div class="cart-items"></div><div class="cart-empty" hidden><span aria-hidden="true">BEY</span><h3>Начни с одного аромата</h3><p>Выбери флакон и объём в каталоге.</p><a class="button button-amber" href="/catalog.html">Открыть каталог</a></div><form class="checkout-form"><div class="cart-summary"><span>Сумма заявки</span><strong class="cart-total"></strong></div><h3>Как с тобой связаться?</h3><label>Твоё имя<input name="name" autocomplete="name" minlength="2" maxlength="80" placeholder="Имя" required /></label><label>Номер телефона<input name="phone" type="tel" autocomplete="tel" inputmode="tel" maxlength="30" placeholder="+7 700 000 00 00" required /></label><p class="field-hint">Укажи код страны. Продавец свяжется с тобой и уточнит наличие, стоимость и получение.</p><label class="contact-consent"><input type="checkbox" name="consent" required /><span>Разрешаю связаться со мной по этой заявке.</span></label><button class="button button-amber submit-order" type="submit">Оставить заявку</button></form><p class="checkout-message" role="status" aria-live="polite"></p><div class="order-success" hidden tabindex="-1"><span class="success-symbol" aria-hidden="true">✓</span><p class="eyebrow">ЗАЯВКА СОХРАНЕНА</p><h3>Твой аромат уже ближе.</h3><p>Продавец свяжется с тобой для подтверждения.</p><p class="receipt-code"></p><p class="receipt-total"></p><button type="button" class="button button-glass continue-shopping">Продолжить выбор</button></div></div>`;
+  dialog.innerHTML = `<div class="cart-heading"><div><p class="eyebrow">ТВОЯ КОЛЛЕКЦИЯ</p><h2 id="cart-title">Корзина</h2></div><button type="button" class="icon-close" aria-label="Закрыть корзину">×</button></div><div class="cart-body"><p class="demo-notice">Демоверсия · цены предварительные. Онлайн-оплаты пока нет.</p><div class="cart-items"></div><div class="cart-empty" hidden><span aria-hidden="true">BEY</span><h3>Начни с одного аромата</h3><p>Выбери флакон и объём в каталоге.</p><a class="button button-amber" href="/catalog.html">Открыть каталог</a></div><form class="checkout-form"><div class="cart-summary"><span>Сумма заявки</span><strong class="cart-total"></strong></div><h3>Как с тобой связаться?</h3><label>Твоё имя<input name="name" autocomplete="name" minlength="2" maxlength="80" placeholder="Имя" required /></label><label>Номер телефона<span class="phone-field"><span class="phone-prefix" aria-hidden="true">+7</span><input name="phone" type="tel" aria-label="Номер телефона" aria-describedby="phone-hint" autocomplete="tel-national" inputmode="numeric" maxlength="12" pattern="[0-9]{3} [0-9]{3} [0-9]{4}" placeholder="700 000 0000" required /></span></label><p class="field-hint" id="phone-hint">Код +7 уже указан. Введи 10 цифр номера. Продавец свяжется с тобой и уточнит наличие, стоимость и получение.</p><label class="contact-consent"><input type="checkbox" name="consent" required /><span>Разрешаю связаться со мной по этой заявке.</span></label><button class="button button-amber submit-order" type="submit">Оставить заявку</button></form><p class="checkout-message" role="status" aria-live="polite"></p><div class="order-success" hidden tabindex="-1"><span class="success-symbol" aria-hidden="true">✓</span><p class="eyebrow">ЗАЯВКА СОХРАНЕНА</p><h3>Твой аромат уже ближе.</h3><p>Продавец свяжется с тобой для подтверждения.</p><p class="receipt-code"></p><p class="receipt-total"></p><button type="button" class="button button-glass continue-shopping">Продолжить выбор</button></div></div>`;
   document.body.append(dialog);
   const form = dialog.querySelector("form"),
     list = dialog.querySelector(".cart-items"),
@@ -162,20 +162,92 @@
     button.disabled = true;
     button.addEventListener("click", open);
   });
+  const phoneInput = form.elements.phone;
+  const digitsOnly = (value) => value.replace(/\D/g, "");
+  const nationalNumber = (value) => {
+    let digits = digitsOnly(value);
+    if (digits.length === 11 && /^[78]/.test(digits)) digits = digits.slice(1);
+    return digits.slice(0, 10);
+  };
+  const formatPhone = (digits) =>
+    [digits.slice(0, 3), digits.slice(3, 6), digits.slice(6, 10)]
+      .filter(Boolean)
+      .join(" ");
+  function setPhone(digits, position) {
+    phoneInput.value = formatPhone(digits);
+    let caret = 0,
+      seen = 0;
+    while (caret < phoneInput.value.length && seen < position) {
+      if (/\d/.test(phoneInput.value[caret])) seen++;
+      caret++;
+    }
+    phoneInput.setSelectionRange(caret, caret);
+  }
+  function editPhone(text, deletion) {
+    const digits = digitsOnly(phoneInput.value);
+    let start = digitsOnly(
+      phoneInput.value.slice(0, phoneInput.selectionStart),
+    ).length;
+    let end = digitsOnly(
+      phoneInput.value.slice(0, phoneInput.selectionEnd),
+    ).length;
+    if (deletion && start === end) {
+      if (deletion === "back") start = Math.max(0, start - 1);
+      else end = Math.min(digits.length, end + 1);
+    }
+    const insert = text.slice(0, 10 - digits.length + end - start);
+    setPhone(
+      digits.slice(0, start) + insert + digits.slice(end),
+      start + insert.length,
+    );
+    phoneInput.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+  phoneInput.addEventListener("beforeinput", (event) => {
+    if (!event.cancelable) return;
+    if (event.inputType === "insertText") {
+      event.preventDefault();
+      const digits = digitsOnly(event.data || "");
+      if (digits) editPhone(digits);
+    } else if (
+      ["deleteContentBackward", "deleteContentForward"].includes(
+        event.inputType,
+      )
+    ) {
+      event.preventDefault();
+      editPhone(
+        "",
+        event.inputType === "deleteContentBackward" ? "back" : "forward",
+      );
+    }
+  });
+  phoneInput.addEventListener("paste", (event) => {
+    event.preventDefault();
+    const digits = nationalNumber(event.clipboardData.getData("text"));
+    if (digits) editPhone(digits);
+  });
+  // Autofill, drag/drop and non-cancelable mobile input use the same fallback.
+  phoneInput.addEventListener("input", () => {
+    const raw = phoneInput.value;
+    const position = digitsOnly(raw.slice(0, phoneInput.selectionStart)).length;
+    const digits = nationalNumber(raw);
+    const prefixRemoved =
+      digitsOnly(raw).length === 11 && /^[78]/.test(digitsOnly(raw));
+    setPhone(
+      digits,
+      Math.min(digits.length, Math.max(0, position - Number(prefixRemoved))),
+    );
+  });
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     if (busy || !basket.length || !form.reportValidity()) return;
     const data = new FormData(form);
-    const phone = String(data.get("phone"));
-    if (
-      !/^[+\d\s()\-]+$/.test(phone) ||
-      phone.replace(/\D/g, "").length < 10 ||
-      phone.replace(/\D/g, "").length > 15
-    ) {
-      message.textContent = "Проверь номер телефона и код страны.";
-      form.elements.phone.focus();
+    const national = digitsOnly(String(data.get("phone")));
+    if (national.length !== 10) {
+      message.textContent = "Введи ровно 10 цифр после +7.";
+      phoneInput.focus();
       return;
     }
+    const phone = "+7" + national;
     busy = true;
     message.textContent = "Сохраняем заявку…";
     dialog

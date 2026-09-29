@@ -78,8 +78,8 @@ export function createAPI(products, directory = privateDir) {
     let digits = data.phone.replace(/\D/g, "");
     if (digits.length === 11 && digits[0] === "8")
       digits = "7" + digits.slice(1);
-    if (!/^[1-9]\d{9,14}$/.test(digits))
-      fail(400, "Укажите телефон с кодом страны, например +7 700 000 00 00.");
+    if (!/^7\d{10}$/.test(digits))
+      fail(400, "Укажите +7 и ровно 10 цифр номера, например +7 700 000 0000.");
     if (
       !Array.isArray(data.items) ||
       !data.items.length ||

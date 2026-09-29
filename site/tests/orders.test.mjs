@@ -174,6 +174,17 @@ test("orders, authentication, persistence and security boundaries", async (t) =>
       .status,
     409,
   );
+  for (const phone of [
+    "+7700000000",
+    "+770000000000",
+    "+447000000000",
+    "+7700abc0000000",
+  ]) {
+    assert.equal(
+      (await call("/api/orders", "POST", { ...payload, phone })).status,
+      400,
+    );
+  }
   assert.equal(
     (await call("/api/orders", "POST", { ...payload, phone: "bad" })).status,
     400,
