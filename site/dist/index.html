@@ -11,12 +11,19 @@
     <title>BEY Perfume — больше, чем аромат</title>
     <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
     <link rel="preload" href="/assets/bey-hero.webp" as="image" />
+    <link
+      rel="preload"
+      href="/assets/fonts/manrope-regular.ttf"
+      as="font"
+      type="font/ttf"
+      crossorigin
+    />
     <link rel="stylesheet" href="/styles.css" />
     <script src="/app.js" defer></script>
   </head>
-  <body>
+  <body id="top">
     <a class="skip-link" href="#main">Перейти к содержимому</a>
-    <header class="header" id="top">
+    <header class="header">
       <div class="container header-inner">
         <a class="brand" href="#top" aria-label="BEY Perfume — главная"
           ><span>BEY</span><small>PERFUME</small></a
@@ -28,7 +35,7 @@
           aria-controls="navigation"
           aria-label="Открыть меню"
         >
-          <span></span><span></span>
+          <span class="menu-lines"><i></i><i></i></span>
         </button>
         <nav class="navigation" id="navigation" aria-label="Основная навигация">
           <a class="nav-link active" href="#top" aria-current="location"
@@ -38,7 +45,10 @@
           <a class="nav-link" href="#selection">Выбор BEY</a>
           <a class="nav-link" href="#about">О магазине</a>
         </nav>
-        <span class="header-note">АРОМАТЫ С ХАРАКТЕРОМ</span>
+        <span class="header-note"
+          >АЛМАТЫ <span class="header-dot" aria-hidden="true">·</span> BEY
+          PERFUME</span
+        >
       </div>
     </header>
     <main id="main">
@@ -56,11 +66,10 @@
               Ароматы с характером.<br />В каждой капле — твоя история.
             </p>
             <div class="hero-actions">
-              <a class="button button-light" href="#catalog"
-                >Открыть каталог <span aria-hidden="true">↗</span></a
-              ><a class="text-link" href="#about"
-                >Знакомство с BEY <span aria-hidden="true">↗</span></a
-              >
+              <a class="button button-light" href="#catalog">Открыть каталог </a
+              ><a class="button button-glass" href="#about"
+                >Знакомство с BEY
+              </a>
             </div>
           </div>
           <div class="hero-benefits">
@@ -99,7 +108,7 @@
         aria-labelledby="catalog-title"
       >
         <div class="container">
-          <div class="section-heading">
+          <div class="section-heading reveal">
             <div>
               <p class="eyebrow">01 / КОЛЛЕКЦИЯ</p>
               <h2 id="catalog-title">Каталог ароматов</h2>
@@ -176,11 +185,20 @@
           </div>
           <div
             class="scent-panel"
+            data-scent="woody"
             id="scent-panel"
             role="tabpanel"
             aria-labelledby="tab-woody"
             tabindex="0"
           >
+            <div class="scent-visual" aria-hidden="true">
+              <div class="scent-photo" data-material="woody"></div>
+              <div
+                class="scent-photo scent-photo-next"
+                data-material="woody"
+              ></div>
+              <span class="visual-label">THE ART OF SCENT</span>
+            </div>
             <div class="scent-number" aria-hidden="true">
               01<span>/ 06</span>
             </div>
@@ -199,7 +217,7 @@
             </div>
             <div class="scent-side">
               <span>ХАРАКТЕР АРОМАТА</span>
-              <p id="scent-character">Тёплый.<br />Глубокий.<br />Твой.</p>
+              <p id="scent-character">Тёплый. Глубокий. Твой.</p>
               <span class="fine-line"></span>
             </div>
           </div>
@@ -214,43 +232,100 @@
         id="selection"
         aria-labelledby="selection-title"
       >
-        <div class="container selection-grid">
-          <div>
-            <p class="eyebrow">02 / ВЫБОР BEY</p>
-            <h2 id="selection-title">Аромат —<br />продолжение тебя.</h2>
+        <div class="container">
+          <div class="section-heading reveal">
+            <div>
+              <p class="eyebrow">02 / ВЫБОР BEY</p>
+              <h2 id="selection-title">Твой день. Твой характер.</h2>
+              <p>У каждого момента — своё звучание.</p>
+            </div>
+            <span class="section-note">АРОМАТ КАК ЧАСТЬ ТВОЕГО СТИЛЯ</span>
           </div>
-          <div class="selection-copy">
-            <p>
-              Для спокойного утра. Для важной встречи. Для вечера, который
-              хочется запомнить.
-            </p>
-            <p class="muted">
-              Начни с того, что тебе близко: свежесть, тепло или глубина. У
-              каждого направления — свой характер.
-            </p>
-            <a class="text-link" href="#catalog"
-              >Найти своё направление <span aria-hidden="true">↗</span></a
+          <div class="mood-grid">
+            <a
+              class="mood-card mood-fresh reveal"
+              href="#catalog"
+              data-pick="fresh"
+              ><div class="material-image" data-material="fresh"></div>
+              <span class="mood-index">01 / НА КАЖДЫЙ ДЕНЬ</span>
+              <div class="mood-content">
+                <h3>Лёгкость<br />быть собой.</h3>
+                <p>Цитрусы, прохлада и чистые ноты.</p>
+                <span class="card-action">Открыть свежие</span>
+              </div></a
+            >
+            <a
+              class="mood-card mood-intense reveal"
+              href="#catalog"
+              data-pick="intense"
+              ><div class="material-image" data-material="intense"></div>
+              <span class="mood-index">02 / ОСОБЕННЫЙ МОМЕНТ</span>
+              <div class="mood-content">
+                <h3>Когда слова<br />не нужны.</h3>
+                <p>Глубина, тепло и выразительный шлейф.</p>
+                <span class="card-action">Открыть интенсивные</span>
+              </div></a
+            >
+            <a class="mood-card mood-discover reveal" href="#about"
+              ><img
+                src="/assets/bey-ritual.webp"
+                alt="Небольшой флакон парфюма в руке"
+                loading="lazy"
+                width="900"
+                height="600"
+              /><span class="mood-index">03 / ЗНАКОМСТВО С BEY</span>
+              <div class="mood-content">
+                <h3>Маленький флакон.<br />Большая история.</h3>
+                <p>Открой для себя формат распива.</p>
+                <span class="card-action">О бренде и формате</span>
+              </div></a
             >
           </div>
         </div>
       </section>
       <section class="about section" id="about" aria-labelledby="about-title">
-        <div class="container about-grid">
-          <div>
-            <p class="eyebrow">03 / О МАГАЗИНЕ</p>
-            <h2 id="about-title">
-              Большой мир ароматов.<br /><span>Ближе, чем кажется.</span>
-            </h2>
+        <div class="container about-grid reveal">
+          <div class="about-image">
+            <img
+              src="/assets/bey-ritual.webp"
+              alt="Ритуал нанесения парфюма: компактный флакон в руке"
+              loading="lazy"
+              width="900"
+              height="600"
+            /><span class="image-signature"
+              >BEY <small>МАЛЕНЬКИЕ РИТУАЛЫ. БОЛЬШОЕ ЗНАЧЕНИЕ.</small></span
+            >
           </div>
           <div class="about-copy">
+            <p class="eyebrow">03 / О МАГАЗИНЕ</p>
+            <h2 id="about-title">
+              Твой аромат.<br /><span>Твой маленький ритуал.</span>
+            </h2>
             <p>
-              BEY Perfume — магазин парфюмерии на распив с акцентом на мужские
-              ароматы.
+              BEY Perfume — мужская парфюмерия на распив. Знакомство с большим
+              миром ароматов начинается с небольшого флакона.
             </p>
-            <p class="muted">
-              Формат распива позволяет познакомиться с ароматом без покупки
-              целого флакона. Примерить его к своему ритму. И найти тот самый.
-            </p>
+            <div class="about-detail">
+              <span>01</span>
+              <div>
+                <h3>Начни со знакомства</h3>
+                <p>Попробуй аромат без покупки целого флакона.</p>
+              </div>
+            </div>
+            <div class="about-detail">
+              <span>02</span>
+              <div>
+                <h3>Дай ему раскрыться</h3>
+                <p>Почувствуй, как он звучит на твоей коже.</p>
+              </div>
+            </div>
+            <div class="about-detail">
+              <span>03</span>
+              <div>
+                <h3>Найди свой</h3>
+                <p>Выбери то, что подходит твоему ритму.</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -262,8 +337,7 @@
             ><span>BEY</span><small>PERFUME</small></a
           >
           <p>Ароматы, которые<br />остаются с тобой.</p>
-          <a class="text-link back-top" href="#top"
-            >Наверх <span aria-hidden="true">↑</span></a
+          <a class="text-link back-top" href="#top">Наверх </a
           ><span class="footer-motto">БОЛЬШЕ<br />ЧЕМ<br />ПАРФЮМ</span>
         </div>
         <div class="footer-bottom">

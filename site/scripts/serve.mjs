@@ -12,6 +12,7 @@ const types = {
   ".webp": "image/webp",
   ".png": "image/png",
   ".svg": "image/svg+xml",
+  ".ttf": "font/ttf",
 };
 const server = http.createServer(async (request, response) => {
   if (!["GET", "HEAD"].includes(request.method)) {
