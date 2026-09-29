@@ -5,7 +5,7 @@
   );
   const surfaces = [
     ...document.querySelectorAll(
-      ".hero, .mood-card, .scent-visual, .about-image, .button-amber",
+      ".hero, .product-card, .review-card, .about-image, .button-amber",
     ),
   ];
   const controllers = [];
@@ -26,7 +26,7 @@
     let bounds;
     let point;
     const hero = element.classList.contains("hero");
-    const card = element.classList.contains("mood-card");
+    const card = element.classList.contains("featured-card");
     function reset() {
       cancelAnimationFrame(frame);
       frame = undefined;

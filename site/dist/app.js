@@ -1,117 +1,63 @@
-const scents = {
-  woody: {
-    number: "01",
-    mood: "СПОКОЙНАЯ УВЕРЕННОСТЬ",
-    title: "Глубина в каждой ноте.",
-    description:
-      "Сухое тепло кедра, мягкость сандала и землистые оттенки ветивера. Сдержанное звучание, которое остаётся в памяти.",
-    notes: ["Кедр", "Сандал", "Ветивер"],
-    character: "Тёплый.\nГлубокий.\nТвой.",
-  },
-  fresh: {
-    number: "02",
-    mood: "ЧИСТАЯ ЭНЕРГИЯ",
-    title: "Навстречу новому дню.",
-    description:
-      "Искристые цитрусы, прохладные водные аккорды и зелёные оттенки. Лёгкое, чистое звучание для твоего повседневного ритма.",
-    notes: ["Бергамот", "Морские ноты", "Зелёный чай"],
-    character: "Лёгкий.\nЧистый.\nЖивой.",
-  },
-  oriental: {
-    number: "03",
-    mood: "ПРИТЯГАТЕЛЬНОЕ ТЕПЛО",
-    title: "История с продолжением.",
-    description:
-      "Тёплая амбра, смолистые аккорды и мягкая сладость ванили. Обволакивающие сочетания с глубоким, чувственным шлейфом.",
-    notes: ["Амбра", "Ваниль", "Смолы"],
-    character: "Мягкий.\nТёплый.\nМанящий.",
-  },
-  leather: {
-    number: "04",
-    mood: "НЕЗАВИСИМЫЙ ХАРАКТЕР",
-    title: "Оставаться собой.",
-    description:
-      "Бархатистая замша, дымные аккорды и сухие древесные ноты. Выразительное звучание для тех, кто выбирает свой путь.",
-    notes: ["Кожа", "Замша", "Дымные ноты"],
-    character: "Смелый.\nСухой.\nОсобенный.",
-  },
-  spicy: {
-    number: "05",
-    mood: "ТЁПЛЫЙ АКЦЕНТ",
-    title: "Искра в привычном.",
-    description:
-      "Пряное тепло кардамона, острота перца и свежесть имбиря. Живые, контрастные сочетания, которые раскрываются постепенно.",
-    notes: ["Кардамон", "Чёрный перец", "Имбирь"],
-    character: "Пряный.\nЯркий.\nЖивой.",
-  },
-  intense: {
-    number: "06",
-    mood: "ВЫРАЗИТЕЛЬНОЕ ЗВУЧАНИЕ",
-    title: "Впечатление надолго.",
-    description:
-      "Насыщенные древесные и смолистые аккорды с глубокими оттенками пачули. Плотное, многогранное звучание с заметным характером.",
-    notes: ["Уд", "Пачули", "Лабданум"],
-    character: "Густой.\nСложный.\nЗаметный.",
-  },
-};
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
 const tabs = [...document.querySelectorAll('[role="tab"]')];
-const panel = document.querySelector("#scent-panel");
-const photo = document.querySelector(".scent-photo");
-const nextPhoto = document.querySelector(".scent-photo-next");
-let photoTransition;
-function selectScent(tab) {
-  const scent = scents[tab.dataset.scent];
-  if (!scent || panel.dataset.scent === tab.dataset.scent) return;
-  photoTransition?.finish();
-  panel.dataset.scent = tab.dataset.scent;
+const products = [...document.querySelectorAll("#product-grid .product-card")];
+const descriptions = {
+  all: "Вся коллекция — от лёгких цитрусов до тёплых древесных нот.",
+  woody: "Кедр, сандал и ветивер — глубина в нескольких нотах.",
+  fresh: "Цитрусовые и зелёные акценты для лёгкого звучания.",
+  oriental: "Тёплая амбра и мягкие ванильные оттенки.",
+  floral: "Жасмин, роза и белые цветы в многогранных сочетаниях.",
+  leather: "Мягкая замша и кожаные оттенки.",
+  spicy: "Имбирь, специи и пряные акценты.",
+};
+function selectFilter(tab) {
+  if (!tab) return;
+  const filter = tab.dataset.filter;
   tabs.forEach((item) => {
     const selected = item === tab;
     item.setAttribute("aria-selected", String(selected));
     item.tabIndex = selected ? 0 : -1;
   });
-  panel.setAttribute("aria-labelledby", tab.id);
-  document.querySelector(".scent-number").firstChild.textContent = scent.number;
-  for (const key of ["mood", "title", "description", "character"]) {
-    document.querySelector(`#scent-${key}`).textContent = scent[key].replaceAll(
-      "\n",
-      " ",
-    );
-  }
-  document.querySelector("#scent-notes").replaceChildren(
-    ...scent.notes.map((note) => {
-      const li = document.createElement("li");
-      li.textContent = note;
-      return li;
-    }),
-  );
-  const material = tab.dataset.scent;
-  if (reducedMotion.matches) {
-    photo.dataset.material = material;
-    nextPhoto.dataset.material = material;
-    return;
-  }
-  nextPhoto.dataset.material = material;
-  photoTransition = nextPhoto.animate([{ opacity: 0 }, { opacity: 1 }], {
-    duration: 550,
-    easing: "ease-out",
+  document
+    .querySelector("#catalog-results")
+    .setAttribute("aria-labelledby", tab.id);
+  let count = 0;
+  products.forEach((card) => {
+    card.getAnimations().forEach((animation) => animation.cancel());
+    const visible =
+      filter === "all" || card.dataset.categories.split(" ").includes(filter);
+    card.hidden = !visible;
+    if (!visible) return;
+    const order = count++;
+    if (!reducedMotion.matches)
+      card.animate(
+        [
+          { opacity: 0, translate: "0 12px" },
+          { opacity: 1, translate: "0 0" },
+        ],
+        {
+          duration: 460,
+          delay: order * 35,
+          easing: "cubic-bezier(.22,1,.36,1)",
+          fill: "backwards",
+        },
+      );
   });
-  photoTransition.onfinish = () => {
-    photo.dataset.material = material;
-  };
-  for (const element of document.querySelectorAll(".scent-copy, .scent-side")) {
-    element.getAnimations().forEach((animation) => animation.cancel());
-    element.animate(
-      [
-        { opacity: 0, transform: "translateY(9px)" },
-        { opacity: 1, transform: "translateY(0)" },
-      ],
-      { duration: 480, easing: "cubic-bezier(.22,1,.36,1)" },
-    );
-  }
+  const word =
+    count % 10 === 1 && count % 100 !== 11
+      ? "аромат"
+      : count % 10 >= 2 &&
+          count % 10 <= 4 &&
+          (count % 100 < 12 || count % 100 > 14)
+        ? "аромата"
+        : "ароматов";
+  document.querySelector("#catalog-count").textContent = `${count} ${word}`;
+  document.querySelector("#filter-description").textContent =
+    descriptions[filter];
+  document.querySelector(".catalog-empty").hidden = count > 0;
 }
 tabs.forEach((tab, index) => {
-  tab.addEventListener("click", () => selectScent(tab));
+  tab.addEventListener("click", () => selectFilter(tab));
   tab.addEventListener("keydown", (event) => {
     let next;
     if (event.key === "ArrowRight") next = (index + 1) % tabs.length;
@@ -121,8 +67,8 @@ tabs.forEach((tab, index) => {
     if (event.key === "End") next = tabs.length - 1;
     if (next === undefined) return;
     event.preventDefault();
-    tabs[next].focus();
-    selectScent(tabs[next]);
+    tabs[next].focus({ preventScroll: true });
+    selectFilter(tabs[next]);
   });
 });
 const toggle = document.querySelector(".menu-toggle");
@@ -269,10 +215,7 @@ document.addEventListener("click", (event) => {
   const target = document.getElementById(hash.slice(1));
   if (!target) return;
   event.preventDefault();
-  if (link.dataset.pick)
-    selectScent(
-      document.querySelector(`[data-scent="${link.dataset.pick}"][role="tab"]`),
-    );
+  if (link.hasAttribute("data-reset-catalog")) selectFilter(tabs[0]);
   closeMenu();
   if (location.hash !== hash) history.pushState(null, "", hash);
   scrollToSection(target);
@@ -298,7 +241,7 @@ if ("IntersectionObserver" in window) {
     { threshold: 0.08 },
   );
   document
-    .querySelectorAll(".reveal, .scent-panel")
+    .querySelectorAll(".reveal")
     .forEach((element) => observer.observe(element));
 }
 reducedMotion.addEventListener("change", () => {

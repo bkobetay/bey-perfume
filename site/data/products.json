@@ -1,0 +1,83 @@
+[
+  {
+    "id": "hacivat",
+    "brand": "NISHANE",
+    "name": "Hacivat",
+    "notes": "Ананас · кедр · дубовый мох",
+    "categories": ["woody", "fresh"],
+    "image": "hacivat.webp",
+    "featured": true,
+    "accent": "olive"
+  },
+  {
+    "id": "madurai",
+    "brand": "MEMO PARIS",
+    "name": "Madurai",
+    "notes": "Жасмин · персик · сандал",
+    "categories": ["floral", "woody", "leather", "spicy"],
+    "image": "madurai.webp",
+    "featured": true,
+    "accent": "amber"
+  },
+  {
+    "id": "mawashi",
+    "brand": "КОЛЛЕКЦИЯ BEY",
+    "name": "Mawashi",
+    "notes": "Характер аромата уточняется",
+    "categories": [],
+    "image": null,
+    "featured": false,
+    "accent": "ink"
+  },
+  {
+    "id": "vetiver",
+    "brand": "CREED",
+    "name": "Wild Vetiver",
+    "notes": "Ягоды тимур · роза · ветивер",
+    "categories": ["woody", "fresh", "spicy", "floral"],
+    "image": "vetiver.webp",
+    "featured": true,
+    "accent": "olive"
+  },
+  {
+    "id": "donna",
+    "brand": "TRUSSARDI",
+    "name": "Donna",
+    "notes": "Юзу · жасмин · сандал",
+    "categories": ["fresh", "floral", "woody", "oriental"],
+    "image": "donna.webp",
+    "featured": false,
+    "accent": "ivory"
+  },
+  {
+    "id": "montacabo",
+    "brand": "КОЛЛЕКЦИЯ BEY",
+    "name": "Montacabo",
+    "notes": "Характер аромата уточняется",
+    "categories": [],
+    "image": null,
+    "featured": false,
+    "accent": "ink"
+  },
+  {
+    "id": "symphony",
+    "brand": "LOUIS VUITTON",
+    "name": "Symphony",
+    "notes": "Грейпфрут · бергамот · имбирь",
+    "categories": ["fresh", "spicy"],
+    "image": "symphony.webp",
+    "featured": true,
+    "accent": "rose"
+  },
+  {
+    "id": "gaba",
+    "brand": "HORMONE PARIS",
+    "name": "Gaba",
+    "notes": "Маракуйя · жасмин · амбра",
+    "categories": ["fresh", "floral", "oriental"],
+    "image": "gaba.webp",
+    "featured": false,
+    "accent": "rose",
+    "edition": "This is Not GABA"
+  }
+]

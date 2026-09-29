@@ -44,6 +44,7 @@
           >
           <a class="nav-link" href="#catalog">Каталог</a>
           <a class="nav-link" href="#selection">Выбор BEY</a>
+          <a class="nav-link" href="#reviews">Обзоры Альиша</a>
           <a class="nav-link" href="#about">О магазине</a>
         </nav>
         <span class="header-note"
@@ -120,10 +121,11 @@
             <div>
               <p class="eyebrow">01 / КОЛЛЕКЦИЯ</p>
               <h2 id="catalog-title">Каталог ароматов</h2>
-              <p>Найди своё звучание.</p>
+              <p>Твой характер. Твои ноты.</p>
             </div>
-            <span class="section-note"
-              >ШЕСТЬ НАПРАВЛЕНИЙ.<br />БЕСКОНЕЧНО МНОГО ХАРАКТЕРОВ.</span
+            <span class="collection-stamp"
+              ><span id="collection-total">08</span> АРОМАТОВ<br />ДЛЯ
+              ЗНАКОМСТВА</span
             >
           </div>
           <div
@@ -132,107 +134,327 @@
             aria-label="Направления ароматов"
           >
             <button
+              type="button"
+              role="tab"
+              id="tab-all"
+              aria-controls="catalog-results"
+              aria-selected="true"
+              tabindex="0"
+              data-filter="all"
+            >
+              Все
+            </button>
+            <button
+              type="button"
               role="tab"
               id="tab-woody"
-              aria-controls="scent-panel"
-              aria-selected="true"
-              data-scent="woody"
+              aria-controls="catalog-results"
+              aria-selected="false"
+              tabindex="-1"
+              data-filter="woody"
             >
               Древесные
             </button>
             <button
+              type="button"
               role="tab"
               id="tab-fresh"
-              aria-controls="scent-panel"
+              aria-controls="catalog-results"
               aria-selected="false"
               tabindex="-1"
-              data-scent="fresh"
+              data-filter="fresh"
             >
               Свежие
             </button>
             <button
+              type="button"
               role="tab"
               id="tab-oriental"
-              aria-controls="scent-panel"
+              aria-controls="catalog-results"
               aria-selected="false"
               tabindex="-1"
-              data-scent="oriental"
+              data-filter="oriental"
             >
               Восточные
             </button>
             <button
+              type="button"
               role="tab"
-              id="tab-leather"
-              aria-controls="scent-panel"
+              id="tab-floral"
+              aria-controls="catalog-results"
               aria-selected="false"
               tabindex="-1"
-              data-scent="leather"
+              data-filter="floral"
+            >
+              Цветочные
+            </button>
+            <button
+              type="button"
+              role="tab"
+              id="tab-leather"
+              aria-controls="catalog-results"
+              aria-selected="false"
+              tabindex="-1"
+              data-filter="leather"
             >
               Кожаные
             </button>
             <button
+              type="button"
               role="tab"
               id="tab-spicy"
-              aria-controls="scent-panel"
+              aria-controls="catalog-results"
               aria-selected="false"
               tabindex="-1"
-              data-scent="spicy"
+              data-filter="spicy"
             >
               Пряные
             </button>
-            <button
-              role="tab"
-              id="tab-intense"
-              aria-controls="scent-panel"
-              aria-selected="false"
-              tabindex="-1"
-              data-scent="intense"
+          </div>
+          <div class="catalog-context">
+            <p id="filter-description">
+              Вся коллекция — от лёгких цитрусов до тёплых древесных нот.
+            </p>
+            <p
+              id="catalog-count"
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
             >
-              Интенсивные
-            </button>
+              8 ароматов
+            </p>
           </div>
           <div
-            class="scent-panel"
-            data-scent="woody"
-            id="scent-panel"
+            id="catalog-results"
             role="tabpanel"
-            aria-labelledby="tab-woody"
+            aria-labelledby="tab-all"
             tabindex="0"
           >
-            <div class="scent-visual" aria-hidden="true">
-              <div class="scent-photo" data-material="woody"></div>
-              <div
-                class="scent-photo scent-photo-next"
-                data-material="woody"
-              ></div>
-              <span class="visual-label">THE ART OF SCENT</span>
+            <div class="product-grid" id="product-grid">
+              <!-- catalog:start -->
+              <article
+                class="product-card"
+                data-product="hacivat"
+                data-categories="woody fresh"
+                data-accent="olive"
+              >
+                <div class="product-visual">
+                  <span class="product-index" aria-hidden="true">01</span
+                  ><img
+                    src="/assets/products/hacivat.webp"
+                    alt="Флакон NISHANE Hacivat"
+                    width="800"
+                    height="800"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+                <div class="product-copy">
+                  <p class="product-brand">NISHANE</p>
+                  <h3>Hacivat</h3>
+                  <p class="product-notes">Ананас · кедр · дубовый мох</p>
+                  <div class="product-tags">
+                    <span>Древесный</span><span>Свежий</span>
+                  </div>
+                </div>
+              </article>
+              <article
+                class="product-card"
+                data-product="madurai"
+                data-categories="floral woody leather spicy"
+                data-accent="amber"
+              >
+                <div class="product-visual">
+                  <span class="product-index" aria-hidden="true">02</span
+                  ><img
+                    src="/assets/products/madurai.webp"
+                    alt="Флакон MEMO PARIS Madurai"
+                    width="800"
+                    height="800"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+                <div class="product-copy">
+                  <p class="product-brand">MEMO PARIS</p>
+                  <h3>Madurai</h3>
+                  <p class="product-notes">Жасмин · персик · сандал</p>
+                  <div class="product-tags">
+                    <span>Цветочный</span><span>Древесный</span>
+                  </div>
+                </div>
+              </article>
+              <article
+                class="product-card"
+                data-product="mawashi"
+                data-categories=""
+                data-accent="ink"
+              >
+                <div class="product-visual">
+                  <span class="product-index" aria-hidden="true">03</span>
+                  <div class="demo-bottle" aria-hidden="true">
+                    <div class="bottle-cap"></div>
+                    <div class="bottle-body">
+                      <div class="bottle-label">
+                        <small>BEY PERFUME</small><span>Mawashi</span
+                        ><i>SCENT COLLECTION</i>
+                      </div>
+                    </div>
+                  </div>
+                  <span class="visual-disclaimer">Демо-визуал</span>
+                </div>
+                <div class="product-copy">
+                  <p class="product-brand">КОЛЛЕКЦИЯ BEY</p>
+                  <h3>Mawashi</h3>
+                  <p class="product-notes">Характер аромата уточняется</p>
+                  <div class="product-tags"><span>Знакомство скоро</span></div>
+                </div>
+              </article>
+              <article
+                class="product-card"
+                data-product="vetiver"
+                data-categories="woody fresh spicy floral"
+                data-accent="olive"
+              >
+                <div class="product-visual">
+                  <span class="product-index" aria-hidden="true">04</span
+                  ><img
+                    src="/assets/products/vetiver.webp"
+                    alt="Флакон CREED Wild Vetiver"
+                    width="800"
+                    height="800"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+                <div class="product-copy">
+                  <p class="product-brand">CREED</p>
+                  <h3>Wild Vetiver</h3>
+                  <p class="product-notes">Ягоды тимур · роза · ветивер</p>
+                  <div class="product-tags">
+                    <span>Древесный</span><span>Свежий</span>
+                  </div>
+                </div>
+              </article>
+              <article
+                class="product-card"
+                data-product="donna"
+                data-categories="fresh floral woody oriental"
+                data-accent="ivory"
+              >
+                <div class="product-visual">
+                  <span class="product-index" aria-hidden="true">05</span
+                  ><img
+                    src="/assets/products/donna.webp"
+                    alt="Флакон TRUSSARDI Donna"
+                    width="800"
+                    height="800"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+                <div class="product-copy">
+                  <p class="product-brand">TRUSSARDI</p>
+                  <h3>Donna</h3>
+                  <p class="product-notes">Юзу · жасмин · сандал</p>
+                  <div class="product-tags">
+                    <span>Свежий</span><span>Цветочный</span>
+                  </div>
+                </div>
+              </article>
+              <article
+                class="product-card"
+                data-product="montacabo"
+                data-categories=""
+                data-accent="ink"
+              >
+                <div class="product-visual">
+                  <span class="product-index" aria-hidden="true">06</span>
+                  <div class="demo-bottle" aria-hidden="true">
+                    <div class="bottle-cap"></div>
+                    <div class="bottle-body">
+                      <div class="bottle-label">
+                        <small>BEY PERFUME</small><span>Montacabo</span
+                        ><i>SCENT COLLECTION</i>
+                      </div>
+                    </div>
+                  </div>
+                  <span class="visual-disclaimer">Демо-визуал</span>
+                </div>
+                <div class="product-copy">
+                  <p class="product-brand">КОЛЛЕКЦИЯ BEY</p>
+                  <h3>Montacabo</h3>
+                  <p class="product-notes">Характер аромата уточняется</p>
+                  <div class="product-tags"><span>Знакомство скоро</span></div>
+                </div>
+              </article>
+              <article
+                class="product-card"
+                data-product="symphony"
+                data-categories="fresh spicy"
+                data-accent="rose"
+              >
+                <div class="product-visual">
+                  <span class="product-index" aria-hidden="true">07</span
+                  ><img
+                    src="/assets/products/symphony.webp"
+                    alt="Флакон LOUIS VUITTON Symphony"
+                    width="800"
+                    height="800"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+                <div class="product-copy">
+                  <p class="product-brand">LOUIS VUITTON</p>
+                  <h3>Symphony</h3>
+                  <p class="product-notes">Грейпфрут · бергамот · имбирь</p>
+                  <div class="product-tags">
+                    <span>Свежий</span><span>Пряный</span>
+                  </div>
+                </div>
+              </article>
+              <article
+                class="product-card"
+                data-product="gaba"
+                data-categories="fresh floral oriental"
+                data-accent="rose"
+              >
+                <div class="product-visual">
+                  <span class="product-index" aria-hidden="true">08</span
+                  ><img
+                    src="/assets/products/gaba.webp"
+                    alt="Флакон HORMONE PARIS Gaba — This is Not GABA"
+                    width="800"
+                    height="800"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+                <div class="product-copy">
+                  <p class="product-brand">HORMONE PARIS</p>
+                  <h3>Gaba</h3>
+                  <p class="product-notes">Маракуйя · жасмин · амбра</p>
+                  <div class="product-tags">
+                    <span>Свежий</span><span>Цветочный</span>
+                  </div>
+                </div>
+              </article>
+              <!-- catalog:end -->
             </div>
-            <div class="scent-number" aria-hidden="true">
-              01<span>/ 06</span>
-            </div>
-            <div class="scent-copy">
-              <span class="eyebrow" id="scent-mood">СПОКОЙНАЯ УВЕРЕННОСТЬ</span>
-              <h3 id="scent-title">Глубина в каждой ноте.</h3>
-              <p id="scent-description">
-                Сухое тепло кедра, мягкость сандала и землистые оттенки
-                ветивера. Сдержанное звучание, которое остаётся в памяти.
-              </p>
-              <ul class="notes" id="scent-notes" aria-label="Характерные ноты">
-                <li>Кедр</li>
-                <li>Сандал</li>
-                <li>Ветивер</li>
-              </ul>
-            </div>
-            <div class="scent-side">
-              <span>ХАРАКТЕР АРОМАТА</span>
-              <p id="scent-character">Тёплый. Глубокий. Твой.</p>
-              <span class="fine-line"></span>
-            </div>
+            <p class="catalog-empty" hidden>
+              В этом направлении пока нет ароматов. Посмотри всю коллекцию.
+            </p>
           </div>
           <p class="catalog-footnote">
-            Знакомство с коллекцией начинается с нот. Ассортимент появится здесь
-            позже.
+            Демоколлекция. Флаконы показаны для знакомства с ароматами; формат
+            распива и цены добавим позже.
           </p>
+          <noscript
+            ><p class="catalog-footnote">
+              Показана вся коллекция. Для фильтрации включи JavaScript.
+            </p></noscript
+          >
         </div>
       </section>
       <section
@@ -243,52 +465,210 @@
         <div class="container">
           <div class="section-heading reveal">
             <div>
-              <p class="eyebrow">02 / ВЫБОР BEY</p>
-              <h2 id="selection-title">Твой день. Твой характер.</h2>
-              <p>У каждого момента — своё звучание.</p>
+              <p class="eyebrow">02 / BEY EDIT</p>
+              <h2 id="selection-title">Выбор BEY</h2>
+              <p>Четыре аромата, с которых стоит начать знакомство.</p>
             </div>
-            <span class="section-note">АРОМАТ КАК ЧАСТЬ ТВОЕГО СТИЛЯ</span>
+            <span class="section-note">ДЕМОПОДБОРКА / 01</span>
           </div>
-          <div class="mood-grid">
-            <a
-              class="mood-card mood-fresh reveal"
-              href="#catalog"
-              data-pick="fresh"
-              ><div class="material-image" data-material="fresh"></div>
-              <span class="mood-index">01 / НА КАЖДЫЙ ДЕНЬ</span>
-              <div class="mood-content">
-                <h3>Лёгкость<br />быть собой.</h3>
-                <p>Цитрусы, прохлада и чистые ноты.</p>
-                <span class="card-action">Открыть свежие</span>
-              </div></a
+          <div class="product-grid selection-grid">
+            <!-- selection:start -->
+            <article
+              class="product-card featured-card reveal"
+              data-product="hacivat"
+              data-categories="woody fresh"
+              data-accent="olive"
             >
-            <a
-              class="mood-card mood-intense reveal"
-              href="#catalog"
-              data-pick="intense"
-              ><div class="material-image" data-material="intense"></div>
-              <span class="mood-index">02 / ОСОБЕННЫЙ МОМЕНТ</span>
-              <div class="mood-content">
-                <h3>Когда слова<br />не нужны.</h3>
-                <p>Глубина, тепло и выразительный шлейф.</p>
-                <span class="card-action">Открыть интенсивные</span>
-              </div></a
+              <div class="product-visual">
+                <span class="product-index" aria-hidden="true"
+                  >01 / BEY EDIT</span
+                ><img
+                  src="/assets/products/hacivat.webp"
+                  alt="Флакон NISHANE Hacivat"
+                  width="800"
+                  height="800"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+              <div class="product-copy">
+                <p class="product-brand">NISHANE</p>
+                <h3>Hacivat</h3>
+                <p class="product-notes">Ананас · кедр · дубовый мох</p>
+                <div class="product-tags">
+                  <span>Древесный</span><span>Свежий</span>
+                </div>
+              </div>
+            </article>
+            <article
+              class="product-card featured-card reveal"
+              data-product="madurai"
+              data-categories="floral woody leather spicy"
+              data-accent="amber"
             >
-            <a class="mood-card mood-discover reveal" href="#about"
-              ><img
-                src="/assets/bey-ritual.webp"
-                alt="Небольшой флакон парфюма в руке"
-                loading="lazy"
-                width="900"
-                height="600"
-              /><span class="mood-index">03 / ЗНАКОМСТВО С BEY</span>
-              <div class="mood-content">
-                <h3>Маленький флакон.<br />Большая история.</h3>
-                <p>Открой для себя формат распива.</p>
-                <span class="card-action">О бренде и формате</span>
-              </div></a
+              <div class="product-visual">
+                <span class="product-index" aria-hidden="true"
+                  >02 / BEY EDIT</span
+                ><img
+                  src="/assets/products/madurai.webp"
+                  alt="Флакон MEMO PARIS Madurai"
+                  width="800"
+                  height="800"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+              <div class="product-copy">
+                <p class="product-brand">MEMO PARIS</p>
+                <h3>Madurai</h3>
+                <p class="product-notes">Жасмин · персик · сандал</p>
+                <div class="product-tags">
+                  <span>Цветочный</span><span>Древесный</span>
+                </div>
+              </div>
+            </article>
+            <article
+              class="product-card featured-card reveal"
+              data-product="vetiver"
+              data-categories="woody fresh spicy floral"
+              data-accent="olive"
+            >
+              <div class="product-visual">
+                <span class="product-index" aria-hidden="true"
+                  >03 / BEY EDIT</span
+                ><img
+                  src="/assets/products/vetiver.webp"
+                  alt="Флакон CREED Wild Vetiver"
+                  width="800"
+                  height="800"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+              <div class="product-copy">
+                <p class="product-brand">CREED</p>
+                <h3>Wild Vetiver</h3>
+                <p class="product-notes">Ягоды тимур · роза · ветивер</p>
+                <div class="product-tags">
+                  <span>Древесный</span><span>Свежий</span>
+                </div>
+              </div>
+            </article>
+            <article
+              class="product-card featured-card reveal"
+              data-product="symphony"
+              data-categories="fresh spicy"
+              data-accent="rose"
+            >
+              <div class="product-visual">
+                <span class="product-index" aria-hidden="true"
+                  >04 / BEY EDIT</span
+                ><img
+                  src="/assets/products/symphony.webp"
+                  alt="Флакон LOUIS VUITTON Symphony"
+                  width="800"
+                  height="800"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+              <div class="product-copy">
+                <p class="product-brand">LOUIS VUITTON</p>
+                <h3>Symphony</h3>
+                <p class="product-notes">Грейпфрут · бергамот · имбирь</p>
+                <div class="product-tags">
+                  <span>Свежий</span><span>Пряный</span>
+                </div>
+              </div>
+            </article>
+            <!-- selection:end -->
+          </div>
+          <a class="text-link" href="#catalog" data-reset-catalog
+            >Вся коллекция <span aria-hidden="true">↗</span></a
+          >
+        </div>
+      </section>
+      <section
+        class="reviews section"
+        id="reviews"
+        aria-labelledby="reviews-title"
+      >
+        <div class="container">
+          <div class="section-heading reveal">
+            <div>
+              <p class="eyebrow">03 / АРОМАТЫ В КАДРЕ</p>
+              <h2 id="reviews-title">Рекомендации от Альиша</h2>
+              <p>Взгляд владельца BEY: обзоры, детали и личные впечатления.</p>
+            </div>
+            <span class="instagram-label"
+              ><svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.4"
+                aria-hidden="true"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="5" />
+                <circle cx="12" cy="12" r="4" />
+                <circle
+                  cx="17.5"
+                  cy="6.5"
+                  r=".8"
+                  fill="currentColor"
+                  stroke="none"
+                />
+              </svg>
+              INSTAGRAM / REELS</span
             >
           </div>
+          <div class="review-grid">
+            <article class="review-card review-ritual reveal">
+              <span class="review-badge">СКОРО</span>
+              <div class="reel-mark" aria-hidden="true">
+                <svg viewBox="0 0 32 32">
+                  <rect x="5" y="5" width="22" height="22" rx="5" />
+                  <path d="M5 12h22M11 5l4 7M20 5l4 7M14 17l6 3-6 3z" />
+                </svg>
+              </div>
+              <div class="review-copy">
+                <span>01 / ЛИЧНЫЙ ВЗГЛЯД</span>
+                <h3>Обзоры ароматов</h3>
+                <p>Место для видео Альиша</p>
+              </div>
+            </article>
+            <article class="review-card review-bottle reveal">
+              <span class="review-badge">СКОРО</span>
+              <div class="reel-mark" aria-hidden="true">
+                <svg viewBox="0 0 32 32">
+                  <rect x="5" y="5" width="22" height="22" rx="5" />
+                  <path d="M5 12h22M11 5l4 7M20 5l4 7M14 17l6 3-6 3z" />
+                </svg>
+              </div>
+              <div class="review-copy">
+                <span>02 / ТВОЁ ЗВУЧАНИЕ</span>
+                <h3>Как выбрать свой</h3>
+                <p>Место для видео Альиша</p>
+              </div>
+            </article>
+            <article class="review-card review-notes reveal">
+              <span class="review-badge">СКОРО</span>
+              <div class="reel-mark" aria-hidden="true">
+                <svg viewBox="0 0 32 32">
+                  <rect x="5" y="5" width="22" height="22" rx="5" />
+                  <path d="M5 12h22M11 5l4 7M20 5l4 7M14 17l6 3-6 3z" />
+                </svg>
+              </div>
+              <div class="review-copy">
+                <span>03 / ВНИМАНИЕ К ДЕТАЛЯМ</span>
+                <h3>Парфюм в деталях</h3>
+                <p>Место для видео Альиша</p>
+              </div>
+            </article>
+          </div>
+          <p class="catalog-footnote">
+            Здесь появятся Instagram-обзоры Альиша. Пока — превью раздела, без
+            опубликованных видео.
+          </p>
         </div>
       </section>
       <section class="about section" id="about" aria-labelledby="about-title">
@@ -305,13 +685,14 @@
             >
           </div>
           <div class="about-copy">
-            <p class="eyebrow">03 / О МАГАЗИНЕ</p>
+            <p class="eyebrow">04 / О МАГАЗИНЕ</p>
             <h2 id="about-title">
               Твой аромат.<br /><span>Твой маленький ритуал.</span>
             </h2>
             <p>
-              BEY Perfume — мужская парфюмерия на распив. Знакомство с большим
-              миром ароматов начинается с небольшого флакона.
+              BEY Perfume — парфюмерия на распив с акцентом на мужские ароматы.
+              Знакомство с большим миром ароматов начинается с небольшого
+              флакона.
             </p>
             <div class="about-detail">
               <span>01</span>
