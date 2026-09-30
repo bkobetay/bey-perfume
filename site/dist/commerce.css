@@ -896,3 +896,91 @@ select:focus-visible {
 .phone-field input:focus-visible {
   outline: none;
 }
+.review-poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -2;
+}
+.review-card.has-video::after {
+  background: linear-gradient(
+    0deg,
+    #080b08f5 0%,
+    #080b0880 32%,
+    transparent 70%,
+    #080b0840
+  );
+}
+.review-play {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+}
+.review-play:focus-visible {
+  outline-offset: -4px;
+}
+.has-video .reel-mark {
+  border-radius: 50%;
+  transition: transform 0.25s;
+}
+.has-video:hover .reel-mark {
+  transform: translate(-50%, -50%) scale(1.08);
+}
+.video-open {
+  overflow: hidden;
+}
+.video-dialog {
+  width: min(520px, calc(100% - 24px));
+  max-height: calc(100dvh - 24px);
+  padding: 18px;
+  color: var(--text);
+  background: #151813;
+  border: 1px solid #ccb48d35;
+  border-radius: 14px;
+}
+.video-dialog::backdrop {
+  background: #050705d9;
+  backdrop-filter: blur(6px);
+}
+.video-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 15px;
+}
+.video-heading .eyebrow {
+  font-size: 8px;
+  margin: 0 0 8px;
+}
+.video-heading h2 {
+  font-size: 19px;
+  font-weight: 500;
+  margin: 0;
+}
+.video-heading button {
+  flex-shrink: 0;
+}
+.video-dialog video {
+  display: block;
+  width: 100%;
+  max-height: calc(100dvh - 150px);
+  background: #000;
+  border-radius: 8px;
+  object-fit: contain;
+}
+.video-error {
+  font-size: 12px;
+  line-height: 1.7;
+}
+.video-error a {
+  text-decoration: underline;
+}
+@media (prefers-reduced-motion: reduce) {
+  .has-video .reel-mark {
+    transition: none;
+  }
+}

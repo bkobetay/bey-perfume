@@ -1,5 +1,6 @@
 import http from "node:http";
-import { readFile } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
+import { createReadStream } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { resolve, sep, extname } from "node:path";
 import { createAPI } from "../server/api.mjs";
@@ -24,6 +25,7 @@ const types = {
   ".png": "image/png",
   ".svg": "image/svg+xml",
   ".ttf": "font/ttf",
+  ".mp4": "video/mp4",
 };
 const server = http.createServer(async (request, response) => {
   response.setHeader("X-Content-Type-Options", "nosniff");
@@ -105,6 +107,50 @@ const server = http.createServer(async (request, response) => {
     }
     if (!types[extname(path)]) {
       response.writeHead(404).end("Not found");
+      return;
+    }
+    if (extname(path) === ".mp4") {
+      const { size } = await stat(path);
+      let start = 0,
+        end = size - 1;
+      const range =
+        request.method === "GET" ? request.headers.range : undefined;
+      if (range) {
+        const match = /^bytes=(\d*)-(\d*)$/.exec(range);
+        if (!match || (!match[1] && !match[2])) {
+          response.writeHead(416, { "Content-Range": `bytes */${size}` }).end();
+          return;
+        }
+        if (!match[1]) start = Math.max(0, size - Number(match[2]));
+        else {
+          start = Number(match[1]);
+          if (match[2]) end = Math.min(size - 1, Number(match[2]));
+        }
+        if (
+          !Number.isSafeInteger(start) ||
+          !Number.isSafeInteger(end) ||
+          start > end ||
+          start >= size
+        ) {
+          response.writeHead(416, { "Content-Range": `bytes */${size}` }).end();
+          return;
+        }
+      }
+      response.writeHead(range ? 206 : 200, {
+        "Content-Type": "video/mp4",
+        "Accept-Ranges": "bytes",
+        "Content-Length": end - start + 1,
+        "Cache-Control": "no-store",
+        ...(range ? { "Content-Range": `bytes ${start}-${end}/${size}` } : {}),
+      });
+      if (request.method === "HEAD") {
+        response.end();
+        return;
+      }
+      const stream = createReadStream(path, { start, end });
+      stream.on("error", () => response.destroy());
+      response.on("close", () => stream.destroy());
+      stream.pipe(response);
       return;
     }
     let contents = await readFile(path);

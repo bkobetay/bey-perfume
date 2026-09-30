@@ -1,23 +1,32 @@
 [
   {
-    "id": "first-look",
-    "title": "Обзоры ароматов",
-    "topic": "Личный взгляд",
+    "id": "alish-01",
+    "title": "Обзор ALISH — 01",
+    "topic": "Об аромате",
     "visual": "ritual",
-    "url": null
+    "url": null,
+    "video": "/assets/reviews/alish-01.mp4",
+    "poster": "/assets/reviews/alish-01.webp",
+    "duration": "0:45"
   },
   {
-    "id": "your-scent",
-    "title": "Как выбрать свой",
-    "topic": "Твоё звучание",
+    "id": "alish-02",
+    "title": "Обзор ALISH — 02",
+    "topic": "Об аромате",
     "visual": "bottle",
-    "url": null
+    "url": null,
+    "video": "/assets/reviews/alish-02.mp4",
+    "poster": "/assets/reviews/alish-02.webp",
+    "duration": "1:09"
   },
   {
-    "id": "details",
-    "title": "Парфюм в деталях",
-    "topic": "Внимание к деталям",
+    "id": "alish-03",
+    "title": "Обзор ALISH — 03",
+    "topic": "Об аромате",
     "visual": "notes",
-    "url": null
+    "url": null,
+    "video": "/assets/reviews/alish-03.mp4",
+    "poster": "/assets/reviews/alish-03.webp",
+    "duration": "0:28"
   }
 ]
