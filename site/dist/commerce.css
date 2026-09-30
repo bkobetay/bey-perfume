@@ -1180,3 +1180,22 @@ select:focus-visible {
 .video-controls {
   z-index: 2;
 }
+.product-availability {
+  font-size: 11px;
+  color: #acbc9b;
+  grid-column: 1 / -1;
+}
+.product-card[data-available="false"] .product-availability {
+  color: #c1aa95;
+}
+.product-card[data-available="false"] .add-cart {
+  opacity: 0.6;
+}
+.cart-stock-warning {
+  color: #e8bc9a;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.cart-stock-warning:empty {
+  display: none;
+}

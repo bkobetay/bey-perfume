@@ -64,7 +64,7 @@ function card(product, index, featured = false) {
             .map((category) => `<span>${labels[category]}</span>`)
             .join("")
         : "<span>Знакомство скоро</span>"
-    }</div><div class="purchase-controls"><label>Объём<select class="volume-select" aria-label="Объём ${name}">${product.variants.map((v) => `<option value="${v.ml}">${v.ml} мл · ${v.price.toLocaleString("ru-RU")} ₸</option>`).join("")}</select></label><button class="add-cart" type="button" data-add="${escape(product.id)}" aria-label="Добавить ${name} в корзину" disabled>В корзину <span aria-hidden="true">+</span></button><small>Демонстрационная цена</small></div></div>
+    }</div><div class="purchase-controls"><label>Объём<select class="volume-select" aria-label="Объём ${name}">${product.variants.map((v) => `<option value="${v.ml}">${v.ml} мл · ${v.price.toLocaleString("ru-RU")} ₸</option>`).join("")}</select></label><button class="add-cart" type="button" data-add="${escape(product.id)}" aria-label="Добавить ${name} в корзину" disabled>В корзину <span aria-hidden="true">+</span></button><span class="product-availability" role="status">Проверяем наличие…</span><small>Демонстрационная цена</small></div></div>
   </article>`;
 }
 const replace = (html, name, value) => {

@@ -24,6 +24,8 @@
     pageCount = 1,
     request = 0;
   let activeStatus = "active";
+  let section = "orders";
+  let stockRequest = 0;
   const tabLabels = {
     active: "В работе",
     new: "Новые",
@@ -88,6 +90,9 @@
   updateTabs();
   function loginState() {
     request++;
+    stockRequest++;
+    $("#inventory-list").replaceChildren();
+    $("#inventory-history").replaceChildren();
     $("#dashboard").hidden = true;
     $(".admin-login").hidden = false;
     $("#orders-list").replaceChildren();
@@ -182,6 +187,48 @@ ${kazakhItems}
       el("strong", "", money(order.total)),
     );
     article.append(total);
+    const stockHint = el("p", "field-hint order-stock-state");
+    const returnButton = el(
+      "button",
+      "button button-glass",
+      "Вернуть объём на склад",
+    );
+    returnButton.type = "button";
+    const stockText = () => {
+      stockHint.textContent = {
+        pending: "Объём ещё не списан.",
+        deducted:
+          "Объём списан. При отмене возврат выполняется вручную после фактического возврата товара.",
+        returned: "Объём возвращён на склад.",
+        legacy:
+          "Заказ создан до учёта склада. В начальном остатке учитывайте его вручную.",
+      }[order.inventory_state];
+      returnButton.hidden =
+        order.status !== "cancelled" || order.inventory_state !== "deducted";
+    };
+    stockText();
+    returnButton.onclick = async () => {
+      if (
+        !discardConfirmed() ||
+        !confirm(
+          "Объём из этого заказа фактически вернулся на склад? Вернуть его в доступный остаток?",
+        )
+      )
+        return;
+      returnButton.disabled = true;
+      try {
+        await api("orders/" + order.id + "/return-stock", {
+          method: "POST",
+          body: JSON.stringify({ version: order.version }),
+        });
+        await load();
+      } catch (error) {
+        stockHint.textContent = error.message;
+      } finally {
+        returnButton.disabled = false;
+      }
+    };
+    article.append(stockHint, returnButton);
     const form = el("form", "order-edit");
     const statusLabel = el("label", "", "Статус заказа");
     const select = el("select");
@@ -194,6 +241,28 @@ ${kazakhItems}
       select.append(option);
     }
     statusLabel.append(select);
+    const paymentLabel = el("label", "payment-check");
+    const payment = el("input");
+    payment.type = "checkbox";
+    payment.name = "paymentConfirmed";
+    paymentLabel.append(
+      payment,
+      el(
+        "span",
+        "",
+        "Оплата проверена. Подтверждаю списание объёма со склада.",
+      ),
+    );
+    const syncPayment = () => {
+      const needed =
+        ["pending", "returned"].includes(order.inventory_state) &&
+        ["confirmed", "preparing", "ready", "completed"].includes(select.value);
+      paymentLabel.hidden = !needed;
+      payment.required = needed;
+      if (!needed) payment.checked = false;
+    };
+    select.addEventListener("change", syncPayment);
+    syncPayment();
     const noteLabel = el("label", "", "Заметка продавца");
     const note = el("textarea");
     note.name = "note";
@@ -206,7 +275,7 @@ ${kazakhItems}
     button.type = "submit";
     const feedback = el("p", "save-feedback");
     feedback.setAttribute("role", "status");
-    form.append(statusLabel, noteLabel, button, feedback);
+    form.append(statusLabel, paymentLabel, noteLabel, button, feedback);
     form.addEventListener("input", () => {
       form.dataset.dirty = "true";
     });
@@ -221,9 +290,12 @@ ${kazakhItems}
             status: select.value,
             note: note.value,
             version: order.version,
+            paymentConfirmed: payment.checked,
           }),
         });
         order = result.order;
+        stockText();
+        syncPayment();
         badge.textContent = statuses[order.status];
         badge.dataset.status = order.status;
         note.value = order.note;
@@ -272,6 +344,8 @@ ${kazakhItems}
   }
   async function load() {
     const turn = ++request;
+    $("#orders-list").inert = true;
+    $("#orders-list").setAttribute("aria-busy", "true");
     $("#admin-message").textContent = "Загружаем заказы…";
     try {
       const params = new URLSearchParams({
@@ -301,14 +375,205 @@ ${kazakhItems}
     } catch (error) {
       if (turn === request || $("#dashboard").hidden)
         $("#admin-message").textContent = error.message;
+    } finally {
+      if (turn === request) {
+        $("#orders-list").inert = false;
+        $("#orders-list").setAttribute("aria-busy", "false");
+      }
     }
   }
+  const ml = (value) =>
+    new Intl.NumberFormat("ru-KZ", { maximumFractionDigits: 1 }).format(value) +
+    " мл";
+  async function loadInventory() {
+    const turn = ++stockRequest;
+    $("#inventory-list").inert = true;
+    $("#inventory-summary").textContent = "Загружаем остатки…";
+    try {
+      const data = await api("inventory");
+      if (turn !== stockRequest || $("#dashboard").hidden) return;
+      $("#inventory-summary").textContent =
+        data.products.length +
+        " ароматов · Нет в наличии: " +
+        data.products.filter(
+          (p) => !p.variants.some((v) => v.ml <= p.availableMl),
+        ).length;
+      $("#inventory-list").replaceChildren(
+        ...data.products.map((product) => {
+          const article = el("article", "inventory-card");
+          article.dataset.stockProduct = product.id;
+          const heading = el("div", "inventory-heading");
+          const title = el("div");
+          title.append(
+            el("p", "product-brand", product.brand),
+            el("h3", "", product.name),
+          );
+          heading.append(
+            title,
+            el("strong", "stock-amount", ml(product.availableMl)),
+          );
+          article.append(
+            heading,
+            el(
+              "p",
+              "stock-availability",
+              product.variants.some((v) => v.ml <= product.availableMl)
+                ? "В наличии"
+                : "Нет в наличии для заказа",
+            ),
+          );
+          const form = el("form", "stock-edit");
+          const actionLabel = el("label", "", "Операция");
+          const action = el("select");
+          action.name = "kind";
+          action.setAttribute("aria-label", "Операция");
+          for (const [value, title] of [
+            ["add", "Поступление"],
+            ["remove", "Списание"],
+            ["set", "Установить остаток"],
+          ]) {
+            const option = el("option", "", title);
+            option.value = value;
+            action.append(option);
+          }
+          actionLabel.append(action);
+          const amountLabel = el("label", "", "Объём, мл");
+          const amount = el("input");
+          amount.name = "ml";
+          amount.type = "number";
+          amount.min = "0.1";
+          amount.max = "1000000";
+          amount.step = "0.1";
+          amount.required = true;
+          amount.inputMode = "decimal";
+          amountLabel.append(amount);
+          action.onchange = () => {
+            amount.min = action.value === "set" ? "0" : "0.1";
+          };
+          const reasonLabel = el("label", "stock-reason", "Комментарий");
+          const reason = el("input");
+          reason.name = "reason";
+          reason.maxLength = 300;
+          reason.required = true;
+          reason.placeholder = "Например: поступление нового флакона";
+          reasonLabel.append(reason);
+          const button = el(
+            "button",
+            "button button-amber",
+            "Сохранить остаток",
+          );
+          button.type = "submit";
+          const feedback = el("p", "save-feedback");
+          feedback.setAttribute("role", "status");
+          form.append(actionLabel, amountLabel, reasonLabel, button, feedback);
+          let requestKey = crypto.randomUUID();
+          form.oninput = () => {
+            form.dataset.dirty = "true";
+            requestKey = crypto.randomUUID();
+          };
+          form.onsubmit = async (event) => {
+            event.preventDefault();
+            const payload = {
+              kind: action.value,
+              ml: Number(amount.value),
+              reason: reason.value,
+              version: product.stockVersion,
+              requestKey,
+            };
+            const inputs = [...form.querySelectorAll("button, input, select")];
+            inputs.forEach((e) => (e.disabled = true));
+            feedback.textContent = "Сохраняем…";
+            try {
+              await api("inventory/" + product.id, {
+                method: "PATCH",
+                body: JSON.stringify(payload),
+              });
+              form.dataset.dirty = "false";
+              if (!document.querySelector('[data-dirty="true"]'))
+                await loadInventory();
+              else {
+                feedback.textContent =
+                  "Сохранено. Обновите склад после остальных правок.";
+                form.dataset.saved = "true";
+              }
+            } catch (error) {
+              feedback.textContent = error.message;
+            } finally {
+              if (form.dataset.saved !== "true")
+                inputs.forEach((e) => (e.disabled = false));
+            }
+          };
+          article.append(form);
+          return article;
+        }),
+      );
+      const names = new Map(
+        data.products.map((p) => [p.id, p.brand + " " + p.name]),
+      );
+      const kinds = {
+        initial: "Начальный остаток",
+        add: "Поступление",
+        remove: "Списание",
+        set: "Корректировка",
+        order: "Заказ",
+        return: "Возврат",
+      };
+      $("#inventory-history").replaceChildren(
+        ...data.movements.map((m) => {
+          const row = el("article", "stock-movement");
+          const text = el("div");
+          text.append(
+            el("strong", "", names.get(m.product_id) || m.product_id),
+            el("p", "", kinds[m.kind] + " · " + m.reason),
+            el(
+              "small",
+              "field-hint",
+              date(m.created_at) + (m.order_id ? " · " + m.order_id : ""),
+            ),
+          );
+          const balance = el("div", "movement-amount");
+          balance.append(
+            el(
+              "strong",
+              "",
+              (m.delta_units > 0 ? "+" : "") + ml(m.delta_units / 10),
+            ),
+            el("small", "", "Остаток: " + ml(m.balance_units / 10)),
+          );
+          row.append(text, balance);
+          return row;
+        }),
+      );
+    } catch (error) {
+      $("#inventory-summary").textContent = error.message;
+    } finally {
+      if (turn === stockRequest) $("#inventory-list").inert = false;
+    }
+  }
+  for (const view of ["orders", "inventory"])
+    $("#show-" + view).onclick = () => {
+      if (!discardConfirmed()) return;
+      document
+        .querySelectorAll('[data-dirty="true"]')
+        .forEach((form) => (form.dataset.dirty = "false"));
+      section = view;
+      $("#orders-panel").hidden = view !== "orders";
+      $("#inventory-panel").hidden = view !== "inventory";
+      $("#show-orders").setAttribute("aria-pressed", String(view === "orders"));
+      $("#show-inventory").setAttribute(
+        "aria-pressed",
+        String(view === "inventory"),
+      );
+      if (view === "inventory") loadInventory();
+      else load();
+    };
+  $("#refresh-inventory").onclick = () => {
+    if (discardConfirmed()) loadInventory();
+  };
   function discardConfirmed() {
     return (
       !document.querySelector('[data-dirty="true"]') ||
-      confirm(
-        "Есть несохранённая заметка или статус. Обновить список без сохранения?",
-      )
+      confirm("Есть несохранённые изменения. Обновить список без сохранения?")
     );
   }
   $("#login-form").onsubmit = async (event) => {
@@ -327,6 +592,7 @@ ${kazakhItems}
       form.elements.password.value = "";
       page = 1;
       await load();
+      if (section === "inventory") await loadInventory();
     } catch (error) {
       $("#admin-message").textContent = error.message;
     } finally {
@@ -388,11 +654,12 @@ ${kazakhItems}
       document.hidden ||
       $("#dashboard").hidden ||
       document.querySelector('[data-dirty="true"]') ||
-      document.querySelector(".order-edit :disabled") ||
-      document.activeElement?.closest(".order-edit, .admin-tools")
+      document.querySelector(".order-edit :disabled, .stock-edit :disabled") ||
+      document.activeElement?.closest(".order-edit, .admin-tools, .stock-edit")
     )
       return;
-    load();
+    if (section === "inventory") loadInventory();
+    else load();
   }, 20000);
   load();
 })();

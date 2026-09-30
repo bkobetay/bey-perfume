@@ -60,3 +60,149 @@
     grid-column: auto;
   }
 }
+.seller-sections {
+  display: flex;
+  gap: 12px;
+  margin: 12px 0 32px;
+}
+.seller-sections [aria-pressed="true"] {
+  border-color: #ccb48d;
+  background: #ccb48d1c;
+  color: #eadac0;
+}
+#inventory-panel h2 {
+  font-size: clamp(24px, 3vw, 36px);
+  font-weight: 400;
+}
+#inventory-panel .admin-title .field-hint {
+  max-width: 650px;
+}
+#inventory-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin: 24px 0 40px;
+}
+.inventory-card {
+  padding: 24px;
+  border: 1px solid #ffffff20;
+  border-radius: 18px;
+  background: linear-gradient(145deg, #ffffff05, #ffffff01);
+}
+.inventory-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.inventory-heading h3 {
+  font-size: 23px;
+  font-weight: 400;
+  margin: 4px 0;
+}
+.stock-amount {
+  color: #d6be91;
+  font-size: 26px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+.stock-availability {
+  color: #abb89b;
+  font-size: 12px;
+  margin: 12px 0 22px;
+}
+.stock-edit {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.stock-edit label {
+  display: grid;
+  gap: 8px;
+  color: #c3c7b6;
+  font-size: 12px;
+}
+.stock-edit input,
+.stock-edit select {
+  width: 100%;
+  min-width: 0;
+  padding: 13px 12px;
+  border: 1px solid #ffffff25;
+  background: #ffffff03;
+  color: #eee;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 15px;
+}
+.stock-edit option {
+  background: #191b17;
+}
+.stock-reason,
+.stock-edit .save-feedback {
+  grid-column: 1 / -1;
+}
+.stock-edit .button {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+.stock-movement {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  border-top: 1px solid #ffffff15;
+  padding: 18px 0;
+  font-size: 13px;
+}
+.stock-movement p {
+  margin: 6px 0;
+  color: #b1baa5;
+}
+.stock-movement strong {
+  font-weight: 500;
+}
+.movement-amount {
+  display: grid;
+  text-align: right;
+  gap: 6px;
+  align-content: start;
+  white-space: nowrap;
+}
+.movement-amount strong {
+  color: #d6be91;
+  font-size: 18px;
+}
+.payment-check {
+  display: flex !important;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid #ccb48d50;
+  border-radius: 8px;
+}
+.payment-check input {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  accent-color: #ccb48d;
+}
+.payment-check[hidden] {
+  display: none !important;
+}
+@media (max-width: 760px) {
+  #inventory-list {
+    grid-template-columns: 1fr;
+  }
+  .inventory-card {
+    padding: 18px;
+  }
+  .stock-amount {
+    font-size: 23px;
+  }
+  .stock-movement {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .movement-amount {
+    text-align: left;
+  }
+}

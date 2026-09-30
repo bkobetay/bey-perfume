@@ -1,4 +1,14 @@
 import {
+  initializeInventory,
+  inventoryProducts,
+  checkStock,
+  deductOrder,
+  paidStatuses,
+  units,
+  moveStock,
+  requirements,
+} from "./inventory.mjs";
+import {
   customerNameError,
   normalizeCustomerName,
 } from "../dist/name-validation.js";
@@ -15,6 +25,7 @@ const fail = (status, message) => {
 const hashPassword = promisify(scrypt);
 export function createAPI(products, directory = privateDir) {
   const db = openStore(directory);
+  initializeInventory(db, products);
   const limits = new Map();
   function limit(key, max, ms) {
     const now = Date.now();
@@ -127,7 +138,9 @@ export function createAPI(products, directory = privateDir) {
           return send(res, 200, {
             demoPrices: true,
             currency: "KZT",
-            products,
+            products: inventoryProducts(db, products).map(
+              ({ stockVersion, stockUpdatedAt, ...product }) => product,
+            ),
           });
         if (req.method !== "GET") {
           if (
@@ -195,21 +208,23 @@ export function createAPI(products, directory = privateDir) {
             fail(400, "Неверный ключ заявки.");
           const validated = validateOrder(data);
           const fingerprint = digest(JSON.stringify(validated));
-          const prior = db
-            .prepare("SELECT * FROM orders WHERE request_key = ?")
-            .get(data.requestKey);
-          if (prior) {
-            if (prior.fingerprint !== fingerprint)
-              fail(
-                409,
-                "Эта заявка уже принята с другим составом. Откройте корзину заново.",
-              );
-            return send(res, 200, { id: prior.id, total: prior.total });
-          }
           const id = `BEY-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${randomBytes(5).toString("hex").toUpperCase()}`;
           const now = new Date().toISOString();
           db.exec("BEGIN IMMEDIATE");
           try {
+            const prior = db
+              .prepare("SELECT * FROM orders WHERE request_key = ?")
+              .get(data.requestKey);
+            if (prior) {
+              if (prior.fingerprint !== fingerprint)
+                fail(
+                  409,
+                  "Эта заявка уже принята с другим составом. Откройте корзину заново.",
+                );
+              db.exec("COMMIT");
+              return send(res, 200, { id: prior.id, total: prior.total });
+            }
+            checkStock(db, validated.items);
             db.prepare(
               "INSERT INTO orders (id, request_key, fingerprint, name, phone, items, total, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
             ).run(
@@ -300,6 +315,134 @@ export function createAPI(products, directory = privateDir) {
               statuses,
             });
           }
+          if (req.method === "GET" && path === "/api/admin/inventory") {
+            return send(res, 200, {
+              products: inventoryProducts(db, products),
+              movements: db
+                .prepare(
+                  "SELECT * FROM inventory_movements ORDER BY id DESC LIMIT 50",
+                )
+                .all(),
+            });
+          }
+          const stockMatch = /^\/api\/admin\/inventory\/([a-z0-9-]+)$/.exec(
+            path,
+          );
+          if (stockMatch && req.method === "PATCH") {
+            const data = await body(req);
+            if (!products.some((p) => p.id === stockMatch[1]))
+              fail(404, "Аромат не найден.");
+            if (
+              !["add", "remove", "set"].includes(data.kind) ||
+              !Number.isInteger(data.version) ||
+              typeof data.reason !== "string" ||
+              !data.reason.trim() ||
+              data.reason.length > 300 ||
+              typeof data.requestKey !== "string" ||
+              !/^[a-f0-9-]{36}$/.test(data.requestKey)
+            )
+              fail(400, "Укажите операцию, объём и причину (до 300 символов).");
+            const amount = units(data.ml);
+            if (!amount && data.kind !== "set")
+              fail(
+                400,
+                "Для поступления или списания объём должен быть больше нуля.",
+              );
+            const fingerprint = digest(
+              JSON.stringify([
+                stockMatch[1],
+                data.kind,
+                amount,
+                data.reason.trim(),
+                data.version,
+              ]),
+            );
+            db.exec("BEGIN IMMEDIATE");
+            try {
+              const prior = db
+                .prepare(
+                  "SELECT fingerprint FROM inventory_requests WHERE request_key = ?",
+                )
+                .get(data.requestKey);
+              if (prior && prior.fingerprint !== fingerprint)
+                fail(409, "Ключ операции уже использован. Обновите склад.");
+              if (!prior) {
+                const current = db
+                  .prepare("SELECT * FROM inventory WHERE product_id = ?")
+                  .get(stockMatch[1]);
+                if (current.version !== data.version)
+                  fail(
+                    409,
+                    "Остаток изменился. Обновите склад перед сохранением.",
+                  );
+                const delta =
+                  data.kind === "set"
+                    ? amount - current.quantity_units
+                    : data.kind === "remove"
+                      ? -amount
+                      : amount;
+                moveStock(
+                  db,
+                  stockMatch[1],
+                  delta,
+                  data.kind,
+                  data.reason.trim(),
+                );
+                db.prepare("INSERT INTO inventory_requests VALUES (?, ?)").run(
+                  data.requestKey,
+                  fingerprint,
+                );
+              }
+              db.exec("COMMIT");
+            } catch (error) {
+              db.exec("ROLLBACK");
+              throw error;
+            }
+            return send(res, 200, { ok: true });
+          }
+          const returnMatch =
+            /^\/api\/admin\/orders\/(BEY-\d{8}-[A-F0-9]{10})\/return-stock$/.exec(
+              path,
+            );
+          if (returnMatch && req.method === "POST") {
+            const data = await body(req);
+            db.exec("BEGIN IMMEDIATE");
+            try {
+              const order = db
+                .prepare("SELECT * FROM orders WHERE id = ?")
+                .get(returnMatch[1]);
+              if (!order) fail(404, "Заказ не найден.");
+              if (order.version !== data.version)
+                fail(409, "Заказ изменился. Обновите список.");
+              if (
+                order.status !== "cancelled" ||
+                order.inventory_state !== "deducted"
+              )
+                fail(
+                  409,
+                  "Возврат доступен только для отменённого заказа со списанным объёмом.",
+                );
+              for (const [id, { amount }] of requirements(
+                JSON.parse(order.items),
+              ))
+                moveStock(
+                  db,
+                  id,
+                  amount,
+                  "return",
+                  "Продавец подтвердил фактический возврат",
+                  order.id,
+                );
+              db.prepare(
+                "UPDATE orders SET inventory_state = 'returned', version = version + 1, updated_at = ? WHERE id = ?",
+              ).run(new Date().toISOString(), order.id);
+              db.exec("COMMIT");
+            } catch (error) {
+              db.exec("ROLLBACK");
+              throw error;
+            }
+            return send(res, 200, { ok: true });
+          }
           const match = /^\/api\/admin\/orders\/(BEY-\d{8}-[A-F0-9]{10})$/.exec(
             path,
           );
@@ -321,6 +464,8 @@ export function createAPI(products, directory = privateDir) {
               if (!current) fail(404, "Заказ не найден.");
               if (current.version !== data.version)
                 fail(409, "Заказ изменён в другой вкладке. Обновите список.");
+              if (paidStatuses.has(data.status))
+                deductOrder(db, current, data.paymentConfirmed);
               db.prepare(
                 "UPDATE orders SET status = ?, note = ?, version = version + 1, updated_at = ? WHERE id = ?",
               ).run(data.status, data.note.trim(), now, match[1]);

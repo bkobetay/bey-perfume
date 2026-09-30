@@ -26,6 +26,40 @@ export function openStore(directory = privateDir) {
       status TEXT NOT NULL, at TEXT NOT NULL
     );
     CREATE TABLE IF NOT EXISTS sessions (token_hash TEXT PRIMARY KEY, expires INTEGER NOT NULL);`);
+  db.exec("BEGIN IMMEDIATE");
+  try {
+    if (
+      !db
+        .prepare("PRAGMA table_info(orders)")
+        .all()
+        .some((column) => column.name === "inventory_state")
+    ) {
+      db.exec(
+        "ALTER TABLE orders ADD COLUMN inventory_state TEXT NOT NULL DEFAULT 'pending'",
+      );
+      // Existing fulfilled/confirmed orders predate stock tracking; never debit them retroactively.
+      db.exec(
+        "UPDATE orders SET inventory_state = 'legacy' WHERE status != 'new'",
+      );
+    }
+    db.exec(`CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+      CREATE TABLE IF NOT EXISTS inventory (
+        product_id TEXT PRIMARY KEY, quantity_units INTEGER NOT NULL CHECK(quantity_units >= 0 AND quantity_units <= 10000000),
+        version INTEGER NOT NULL DEFAULT 1, updated_at TEXT NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS inventory_movements (
+        id INTEGER PRIMARY KEY, product_id TEXT NOT NULL REFERENCES inventory(product_id),
+        delta_units INTEGER NOT NULL, balance_units INTEGER NOT NULL, kind TEXT NOT NULL,
+        reason TEXT NOT NULL, order_id TEXT REFERENCES orders(id), created_at TEXT NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS inventory_requests (request_key TEXT PRIMARY KEY, fingerprint TEXT NOT NULL);
+      CREATE INDEX IF NOT EXISTS inventory_movement_product ON inventory_movements(product_id, id);`);
+    db.exec("COMMIT");
+  } catch (error) {
+    db.exec("ROLLBACK");
+    db.close();
+    throw error;
+  }
   return db;
 }
 export const statuses = {

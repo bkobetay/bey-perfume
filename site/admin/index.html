@@ -46,54 +46,103 @@
       <section id="dashboard" hidden>
         <div class="admin-title">
           <div>
-            <p class="eyebrow">BEY / ЗАКАЗЫ</p>
-            <h1>Каждая заявка важна.</h1>
-            <p>Свяжись с клиентом, подтверди заказ и отметь следующий шаг.</p>
+            <p class="eyebrow">BEY / КАБИНЕТ</p>
+            <h1>Заказы и склад.</h1>
+            <p>Проверяй оплату, подтверждай заказы и управляй остатками.</p>
           </div>
           <button id="logout" type="button" class="button button-glass">
             Выйти
           </button>
         </div>
-        <div class="order-stats" aria-label="Сводка заказов"></div>
-        <div
-          class="order-tabs"
-          role="tablist"
-          aria-label="Статусы заказов"
-        ></div>
-        <p class="field-hint">
-          Отменённые заказы сохраняются во вкладке «Корзина». Их можно вернуть в
-          работу.
-        </p>
-        <div class="admin-tools">
-          <label
-            >Найти заказ<input
-              id="order-search"
-              type="search"
-              placeholder="Код, имя или телефон"
-              maxlength="80" /></label
-          ><button
-            id="refresh-orders"
+        <nav class="seller-sections" aria-label="Раздел кабинета">
+          <button
             type="button"
             class="button button-glass"
+            id="show-orders"
+            aria-pressed="true"
+            aria-controls="orders-panel"
           >
-            Обновить
+            Заказы</button
+          ><button
+            type="button"
+            class="button button-glass"
+            id="show-inventory"
+            aria-pressed="false"
+            aria-controls="inventory-panel"
+          >
+            Склад
           </button>
-        </div>
-        <p id="orders-caption" class="field-hint" aria-live="polite"></p>
-        <div
-          id="orders-list"
-          role="tabpanel"
-          tabindex="0"
-          aria-labelledby="order-tab-active"
-        ></div>
-        <div class="admin-pagination">
-          <button type="button" id="orders-prev" class="button button-glass">
-            Назад</button
-          ><span id="orders-page"></span
-          ><button type="button" id="orders-next" class="button button-glass">
-            Далее
-          </button>
-        </div>
+        </nav>
+        <section id="orders-panel">
+          <div class="order-stats" aria-label="Сводка заказов"></div>
+          <div
+            class="order-tabs"
+            role="tablist"
+            aria-label="Статусы заказов"
+          ></div>
+          <p class="field-hint">
+            Отменённые заказы сохраняются во вкладке «Корзина». Их можно вернуть
+            в работу.
+          </p>
+          <div class="admin-tools">
+            <label
+              >Найти заказ<input
+                id="order-search"
+                type="search"
+                placeholder="Код, имя или телефон"
+                maxlength="80" /></label
+            ><button
+              id="refresh-orders"
+              type="button"
+              class="button button-glass"
+            >
+              Обновить
+            </button>
+          </div>
+          <p id="orders-caption" class="field-hint" aria-live="polite"></p>
+          <div
+            id="orders-list"
+            role="tabpanel"
+            tabindex="0"
+            aria-labelledby="order-tab-active"
+          ></div>
+          <div class="admin-pagination">
+            <button type="button" id="orders-prev" class="button button-glass">
+              Назад</button
+            ><span id="orders-page"></span
+            ><button type="button" id="orders-next" class="button button-glass">
+              Далее
+            </button>
+          </div>
+        </section>
+        <section id="inventory-panel" hidden aria-labelledby="inventory-title">
+          <div class="admin-title">
+            <div>
+              <p class="eyebrow">BEY / СКЛАД</p>
+              <h2 id="inventory-title">Каждый миллилитр на счету.</h2>
+              <p class="field-hint">
+                Демо-остатки: изначально по 100 мл. Внесите фактические объёмы
+                перед продажами. Подтверждайте заказ только после проверки
+                оплаты.
+              </p>
+            </div>
+            <button
+              type="button"
+              id="refresh-inventory"
+              class="button button-glass"
+            >
+              Обновить склад
+            </button>
+          </div>
+          <p id="inventory-summary" class="field-hint" role="status"></p>
+          <div id="inventory-list"></div>
+          <h2 class="movements-title">История склада</h2>
+          <p class="field-hint">
+            Последние 50 операций: поступления, корректировки, заказы и
+            возвраты.
+          </p>
+          <div id="inventory-history"></div>
+        </section>
       </section>
       <p id="admin-message" role="status" aria-live="polite"></p>
       <noscript>Для управления заказами включите JavaScript.</noscript>

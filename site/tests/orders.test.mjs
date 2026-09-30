@@ -270,6 +270,7 @@ test("orders, authentication, persistence and security boundaries", async (t) =>
   assert.equal(list.orders[0].fingerprint, undefined);
   const updated = await call("/api/admin/orders/" + id, "PATCH", {
     status: "confirmed",
+    paymentConfirmed: true,
     note: "Заберёт завтра",
     version: 1,
   });

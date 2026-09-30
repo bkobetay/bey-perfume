@@ -18,7 +18,7 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
   if (!Array.isArray(basket)) basket = [];
   const dialog = el("dialog", "cart-dialog");
   dialog.setAttribute("aria-labelledby", "cart-title");
-  dialog.innerHTML = `<div class="cart-heading"><div><p class="eyebrow">ТВОЯ КОЛЛЕКЦИЯ</p><h2 id="cart-title">Корзина</h2></div><button type="button" class="icon-close" aria-label="Закрыть корзину">×</button></div><div class="cart-body"><p class="demo-notice">Демоверсия · цены предварительные. Онлайн-оплаты пока нет.</p><div class="cart-items"></div><div class="cart-empty" hidden><span aria-hidden="true">BEY</span><h3>Начни с одного аромата</h3><p>Выбери флакон и объём в каталоге.</p><a class="button button-amber" href="/catalog.html">Открыть каталог</a></div><form class="checkout-form"><div class="cart-summary"><span>Сумма заявки</span><strong class="cart-total"></strong></div><h3>Как с тобой связаться?</h3><label>Твоё имя<input name="name" autocomplete="name" minlength="2" maxlength="80" placeholder="Например, Айдана" aria-describedby="name-hint name-error" required /></label><p class="field-hint" id="name-hint">Введите ваше настоящее имя, чтобы продавец знал, как к вам обратиться.</p><p class="name-error" id="name-error" role="status" hidden></p><label>Номер телефона<span class="phone-field"><span class="phone-prefix" aria-hidden="true">+7</span><input name="phone" type="tel" aria-label="Номер телефона" aria-describedby="phone-hint" autocomplete="tel-national" inputmode="numeric" maxlength="12" pattern="[0-9]{3} [0-9]{3} [0-9]{4}" placeholder="700 000 0000" required /></span></label><p class="field-hint" id="phone-hint">Код +7 уже указан. Введи 10 цифр номера. Продавец свяжется с тобой и уточнит наличие, стоимость и получение.</p><label class="contact-consent"><input type="checkbox" name="consent" required /><span>Разрешаю связаться со мной по этой заявке.</span></label><button class="button button-amber submit-order" type="submit">Оставить заявку</button></form><p class="checkout-message" role="status" aria-live="polite"></p><div class="order-success" hidden tabindex="-1"><span class="success-symbol" aria-hidden="true">✓</span><p class="eyebrow">ЗАЯВКА СОХРАНЕНА</p><h3>Твой аромат уже ближе.</h3><p>Продавец свяжется с тобой для подтверждения.</p><p class="receipt-code"></p><p class="receipt-total"></p><button type="button" class="button button-glass continue-shopping">Продолжить выбор</button></div></div>`;
+  dialog.innerHTML = `<div class="cart-heading"><div><p class="eyebrow">ТВОЯ КОЛЛЕКЦИЯ</p><h2 id="cart-title">Корзина</h2></div><button type="button" class="icon-close" aria-label="Закрыть корзину">×</button></div><div class="cart-body"><p class="demo-notice">Демоверсия · цены предварительные. Онлайн-оплаты пока нет.</p><div class="cart-items"></div><p class="cart-stock-warning" role="status"></p><div class="cart-empty" hidden><span aria-hidden="true">BEY</span><h3>Начни с одного аромата</h3><p>Выбери флакон и объём в каталоге.</p><a class="button button-amber" href="/catalog.html">Открыть каталог</a></div><form class="checkout-form"><div class="cart-summary"><span>Сумма заявки</span><strong class="cart-total"></strong></div><h3>Как с тобой связаться?</h3><label>Твоё имя<input name="name" autocomplete="name" minlength="2" maxlength="80" placeholder="Например, Айдана" aria-describedby="name-hint name-error" required /></label><p class="field-hint" id="name-hint">Введите ваше настоящее имя, чтобы продавец знал, как к вам обратиться.</p><p class="name-error" id="name-error" role="status" hidden></p><label>Номер телефона<span class="phone-field"><span class="phone-prefix" aria-hidden="true">+7</span><input name="phone" type="tel" aria-label="Номер телефона" aria-describedby="phone-hint" autocomplete="tel-national" inputmode="numeric" maxlength="12" pattern="[0-9]{3} [0-9]{3} [0-9]{4}" placeholder="700 000 0000" required /></span></label><p class="field-hint" id="phone-hint">Код +7 уже указан. Введи 10 цифр номера. Продавец свяжется с тобой и уточнит наличие, стоимость и получение.</p><label class="contact-consent"><input type="checkbox" name="consent" required /><span>Разрешаю связаться со мной по этой заявке.</span></label><button class="button button-amber submit-order" type="submit">Оставить заявку</button></form><p class="checkout-message" role="status" aria-live="polite"></p><div class="order-success" hidden tabindex="-1"><span class="success-symbol" aria-hidden="true">✓</span><p class="eyebrow">ЗАЯВКА СОХРАНЕНА</p><h3>Твой аромат уже ближе.</h3><p>Продавец свяжется с тобой для подтверждения.</p><p class="receipt-code"></p><p class="receipt-total"></p><button type="button" class="button button-glass continue-shopping">Продолжить выбор</button></div></div>`;
   document.body.append(dialog);
   const form = dialog.querySelector("form"),
     list = dialog.querySelector(".cart-items"),
@@ -52,6 +52,65 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
     render();
     message.textContent = "";
   }
+  const usedMl = (id) =>
+    basket
+      .filter((i) => i.productId === id)
+      .reduce((sum, i) => sum + i.ml * i.quantity, 0);
+  function stockProblem() {
+    for (const p of products)
+      if (usedMl(p.id) > p.availableMl)
+        return (
+          "Недостаточно «" +
+          p.name +
+          "»: в корзине " +
+          usedMl(p.id) +
+          " мл, доступно " +
+          p.availableMl +
+          " мл. Уменьши количество или удали позицию."
+        );
+    return "";
+  }
+  function updateAvailability() {
+    document.querySelectorAll("[data-add]").forEach((button) => {
+      const p = products.find((p) => p.id === button.dataset.add);
+      if (!p) return;
+      const card = button.closest(".product-card");
+      const select = card.querySelector(".volume-select");
+      let available = false;
+      for (const option of select.options) {
+        option.disabled = Number(option.value) > p.availableMl;
+        if (!option.disabled) available = true;
+      }
+      if (available && select.selectedOptions[0]?.disabled)
+        select.value = [...select.options].find((o) => !o.disabled).value;
+      select.disabled = !available;
+      const canAdd =
+        available && usedMl(p.id) + Number(select.value) <= p.availableMl;
+      button.disabled = !canAdd;
+      button.textContent = !available
+        ? "Нет в наличии"
+        : !canAdd
+          ? "Недостаточно объёма"
+          : "В корзину +";
+      card.dataset.available = String(available);
+      const label = card.querySelector(".product-availability");
+      if (label) label.textContent = available ? "В наличии" : "Нет в наличии";
+    });
+  }
+  async function refreshAvailability() {
+    if (busy || document.hidden) return;
+    try {
+      const response = await fetch("/api/products", { cache: "no-store" });
+      if (!response.ok) return;
+      const data = await response.json();
+      if (busy) return;
+      products = data.products;
+      updateAvailability();
+      if (success.hidden) render();
+    } catch {
+      /* Checkout still checks availability on the server. */
+    }
+  }
   function render() {
     document
       .querySelectorAll(".cart-count")
@@ -83,13 +142,15 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
       minus.setAttribute("aria-label", `Уменьшить ${p.name} ${item.ml} мл`);
       plus.setAttribute("aria-label", `Увеличить ${p.name} ${item.ml} мл`);
       minus.disabled = item.quantity <= 1;
-      plus.disabled = item.quantity >= 20;
+      plus.disabled =
+        item.quantity >= 20 || usedMl(p.id) + item.ml > p.availableMl;
       minus.onclick = () => {
         item.quantity--;
         changed();
         restoreControl(index, false);
       };
       plus.onclick = () => {
+        if (usedMl(p.id) + item.ml > p.availableMl) return;
         item.quantity++;
         changed();
         restoreControl(index, true);
@@ -116,6 +177,9 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
     form.hidden = !basket.length;
     dialog.querySelector(".cart-empty").hidden = !!basket.length;
     dialog.querySelector(".cart-total").textContent = money(total());
+    dialog.querySelector(".cart-stock-warning").textContent = stockProblem();
+    form.querySelector(".submit-order").disabled = !!stockProblem() || busy;
+    updateAvailability();
   }
   function restoreControl(index, plus) {
     const buttons = list.children[index]?.querySelectorAll(
@@ -133,6 +197,7 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
     render();
     dialog.showModal();
     document.body.classList.add("cart-open");
+    refreshAvailability();
   }
   function close() {
     if (busy) return;
@@ -265,6 +330,10 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     if (busy || !basket.length) return;
+    if (stockProblem()) {
+      message.textContent = stockProblem();
+      return;
+    }
     if (!validateName(true)) {
       nameInput.reportValidity();
       nameInput.focus();
@@ -322,6 +391,7 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
         .querySelectorAll("button, input")
         .forEach((e) => (e.disabled = false));
       if (success.hidden) render();
+      refreshAvailability();
     }
   });
   // A changed contact is a new request; a retry of unchanged data retains its key.
@@ -358,13 +428,21 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
         .querySelectorAll(".cart-toggle")
         .forEach((button) => (button.disabled = false));
       document.querySelectorAll("[data-add]").forEach((button) => {
-        button.disabled = false;
+        button
+          .closest(".product-card")
+          .querySelector(".volume-select")
+          .addEventListener("change", updateAvailability);
         button.onclick = () => {
           const productId = button.dataset.add;
           const ml = Number(
             button.closest(".product-card").querySelector(".volume-select")
               .value,
           );
+          const product = products.find((p) => p.id === productId);
+          if (!product || usedMl(productId) + ml > product.availableMl) {
+            notify("Недостаточно объёма в наличии.");
+            return;
+          }
           const existing = basket.find(
             (i) => i.productId === productId && i.ml === ml,
           );
@@ -382,6 +460,12 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
             `${products.find((p) => p.id === productId).name}, ${ml} мл — в корзине`,
           );
         };
+      });
+      updateAvailability();
+      setInterval(refreshAvailability, 20000);
+      window.addEventListener("focus", refreshAvailability);
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) refreshAvailability();
       });
     })
     .catch(() => {
