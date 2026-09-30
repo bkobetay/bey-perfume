@@ -984,3 +984,12 @@ select:focus-visible {
     transition: none;
   }
 }
+.name-error {
+  margin: -3px 0 16px;
+  color: #edb2a3;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.checkout-form input[aria-invalid="true"] {
+  border-color: #cf8270;
+}

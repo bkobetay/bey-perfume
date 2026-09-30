@@ -1,3 +1,4 @@
+import { customerNameError, normalizeCustomerName } from "/name-validation.js";
 (() => {
   const money = (n) => new Intl.NumberFormat("ru-KZ").format(n) + " ₸";
   const el = (tag, className, text) => {
@@ -17,7 +18,7 @@
   if (!Array.isArray(basket)) basket = [];
   const dialog = el("dialog", "cart-dialog");
   dialog.setAttribute("aria-labelledby", "cart-title");
-  dialog.innerHTML = `<div class="cart-heading"><div><p class="eyebrow">ТВОЯ КОЛЛЕКЦИЯ</p><h2 id="cart-title">Корзина</h2></div><button type="button" class="icon-close" aria-label="Закрыть корзину">×</button></div><div class="cart-body"><p class="demo-notice">Демоверсия · цены предварительные. Онлайн-оплаты пока нет.</p><div class="cart-items"></div><div class="cart-empty" hidden><span aria-hidden="true">BEY</span><h3>Начни с одного аромата</h3><p>Выбери флакон и объём в каталоге.</p><a class="button button-amber" href="/catalog.html">Открыть каталог</a></div><form class="checkout-form"><div class="cart-summary"><span>Сумма заявки</span><strong class="cart-total"></strong></div><h3>Как с тобой связаться?</h3><label>Твоё имя<input name="name" autocomplete="name" minlength="2" maxlength="80" placeholder="Имя" required /></label><label>Номер телефона<span class="phone-field"><span class="phone-prefix" aria-hidden="true">+7</span><input name="phone" type="tel" aria-label="Номер телефона" aria-describedby="phone-hint" autocomplete="tel-national" inputmode="numeric" maxlength="12" pattern="[0-9]{3} [0-9]{3} [0-9]{4}" placeholder="700 000 0000" required /></span></label><p class="field-hint" id="phone-hint">Код +7 уже указан. Введи 10 цифр номера. Продавец свяжется с тобой и уточнит наличие, стоимость и получение.</p><label class="contact-consent"><input type="checkbox" name="consent" required /><span>Разрешаю связаться со мной по этой заявке.</span></label><button class="button button-amber submit-order" type="submit">Оставить заявку</button></form><p class="checkout-message" role="status" aria-live="polite"></p><div class="order-success" hidden tabindex="-1"><span class="success-symbol" aria-hidden="true">✓</span><p class="eyebrow">ЗАЯВКА СОХРАНЕНА</p><h3>Твой аромат уже ближе.</h3><p>Продавец свяжется с тобой для подтверждения.</p><p class="receipt-code"></p><p class="receipt-total"></p><button type="button" class="button button-glass continue-shopping">Продолжить выбор</button></div></div>`;
+  dialog.innerHTML = `<div class="cart-heading"><div><p class="eyebrow">ТВОЯ КОЛЛЕКЦИЯ</p><h2 id="cart-title">Корзина</h2></div><button type="button" class="icon-close" aria-label="Закрыть корзину">×</button></div><div class="cart-body"><p class="demo-notice">Демоверсия · цены предварительные. Онлайн-оплаты пока нет.</p><div class="cart-items"></div><div class="cart-empty" hidden><span aria-hidden="true">BEY</span><h3>Начни с одного аромата</h3><p>Выбери флакон и объём в каталоге.</p><a class="button button-amber" href="/catalog.html">Открыть каталог</a></div><form class="checkout-form"><div class="cart-summary"><span>Сумма заявки</span><strong class="cart-total"></strong></div><h3>Как с тобой связаться?</h3><label>Твоё имя<input name="name" autocomplete="name" minlength="2" maxlength="80" placeholder="Например, Айдана" aria-describedby="name-hint name-error" required /></label><p class="field-hint" id="name-hint">Введите ваше настоящее имя, чтобы продавец знал, как к вам обратиться.</p><p class="name-error" id="name-error" role="status" hidden></p><label>Номер телефона<span class="phone-field"><span class="phone-prefix" aria-hidden="true">+7</span><input name="phone" type="tel" aria-label="Номер телефона" aria-describedby="phone-hint" autocomplete="tel-national" inputmode="numeric" maxlength="12" pattern="[0-9]{3} [0-9]{3} [0-9]{4}" placeholder="700 000 0000" required /></span></label><p class="field-hint" id="phone-hint">Код +7 уже указан. Введи 10 цифр номера. Продавец свяжется с тобой и уточнит наличие, стоимость и получение.</p><label class="contact-consent"><input type="checkbox" name="consent" required /><span>Разрешаю связаться со мной по этой заявке.</span></label><button class="button button-amber submit-order" type="submit">Оставить заявку</button></form><p class="checkout-message" role="status" aria-live="polite"></p><div class="order-success" hidden tabindex="-1"><span class="success-symbol" aria-hidden="true">✓</span><p class="eyebrow">ЗАЯВКА СОХРАНЕНА</p><h3>Твой аромат уже ближе.</h3><p>Продавец свяжется с тобой для подтверждения.</p><p class="receipt-code"></p><p class="receipt-total"></p><button type="button" class="button button-glass continue-shopping">Продолжить выбор</button></div></div>`;
   document.body.append(dialog);
   const form = dialog.querySelector("form"),
     list = dialog.querySelector(".cart-items"),
@@ -162,6 +163,30 @@
     button.disabled = true;
     button.addEventListener("click", open);
   });
+  const nameInput = form.elements.name;
+  const nameFeedback = dialog.querySelector("#name-error");
+  let nameTouched = false;
+  function validateName(show = false) {
+    const error = customerNameError(nameInput.value);
+    nameInput.setCustomValidity(error);
+    nameInput.setAttribute("aria-invalid", String(!!error && show));
+    nameFeedback.textContent = show ? error : "";
+    nameFeedback.hidden = !show || !error;
+    return !error;
+  }
+  // Reveal an error on submit, so blur does not move the next click target.
+  nameInput.addEventListener("input", () => validateName(nameTouched));
+  nameInput.addEventListener("invalid", () => {
+    nameTouched = true;
+    validateName(true);
+  });
+  form.addEventListener("reset", () => {
+    nameTouched = false;
+    nameInput.setCustomValidity("");
+    nameInput.removeAttribute("aria-invalid");
+    nameFeedback.hidden = true;
+    nameFeedback.textContent = "";
+  });
   const phoneInput = form.elements.phone;
   const digitsOnly = (value) => value.replace(/\D/g, "");
   const nationalNumber = (value) => {
@@ -239,7 +264,13 @@
   });
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (busy || !basket.length || !form.reportValidity()) return;
+    if (busy || !basket.length) return;
+    if (!validateName(true)) {
+      nameInput.reportValidity();
+      nameInput.focus();
+      return;
+    }
+    if (!form.reportValidity()) return;
     const data = new FormData(form);
     const national = digitsOnly(String(data.get("phone")));
     if (national.length !== 10) {
@@ -259,7 +290,7 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           requestKey,
-          name: data.get("name"),
+          name: normalizeCustomerName(data.get("name")),
           phone,
           items: basket,
           expectedTotal: total(),

@@ -1,3 +1,7 @@
+import {
+  customerNameError,
+  normalizeCustomerName,
+} from "../dist/name-validation.js";
 import { readFile } from "node:fs/promises";
 import { randomBytes, createHash, scrypt, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
@@ -62,13 +66,8 @@ export function createAPI(products, directory = privateDir) {
     return digest(token);
   }
   function validateOrder(data) {
-    if (
-      typeof data.name !== "string" ||
-      data.name.trim().length < 2 ||
-      data.name.trim().length > 80 ||
-      /[\x00-\x1f<>]/.test(data.name)
-    )
-      fail(400, "Укажите имя: от 2 до 80 символов.");
+    const nameError = customerNameError(data.name);
+    if (nameError) fail(400, nameError);
     if (
       typeof data.phone !== "string" ||
       data.phone.length > 30 ||
@@ -112,7 +111,12 @@ export function createAPI(products, directory = privateDir) {
     const total = items.reduce((sum, item) => sum + item.subtotal, 0);
     if (data.expectedTotal !== total)
       fail(409, "Стоимость изменилась. Обновите страницу и проверьте сумму.");
-    return { name: data.name.trim(), phone: "+" + digits, items, total };
+    return {
+      name: normalizeCustomerName(data.name),
+      phone: "+" + digits,
+      items,
+      total,
+    };
   }
   return {
     db,

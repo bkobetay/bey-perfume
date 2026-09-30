@@ -174,6 +174,12 @@ test("orders, authentication, persistence and security boundaries", async (t) =>
       .status,
     409,
   );
+  for (const name of ["аовлыдфж", "Имя123", "аааааа"]) {
+    assert.equal(
+      (await call("/api/orders", "POST", { ...payload, name })).status,
+      400,
+    );
+  }
   for (const phone of [
     "+7700000000",
     "+770000000000",
@@ -333,7 +339,7 @@ test("orders, authentication, persistence and security boundaries", async (t) =>
         await call("/api/orders", "POST", {
           ...payload,
           requestKey: randomUUID(),
-          name: "Тест " + i,
+          name: "Покупатель " + String.fromCharCode(1040 + i),
         })
       ).status,
       201,
