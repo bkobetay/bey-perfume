@@ -13,7 +13,7 @@
   dialog.className = "video-dialog";
   dialog.setAttribute("aria-labelledby", "video-title");
   dialog.innerHTML = `<div class="video-heading"><div><p class="eyebrow">BEY / ALISH</p><h2 id="video-title"></h2></div><button type="button" class="icon-close" aria-label="Закрыть видео">×</button></div>
-    <div class="video-stage"><video playsinline preload="none" tabindex="0" aria-label="Видеообзор ALISH. Пробел — пауза, стрелки — перемотка"></video>
+    <div class="video-stage"><canvas class="video-ambience" width="180" height="320" aria-hidden="true"></canvas><video playsinline preload="none" tabindex="0" aria-label="Видеообзор ALISH. Пробел — пауза, стрелки — перемотка"></video>
     <div class="video-controls" role="group" aria-label="Управление видео">
       <input class="video-seek" type="range" min="0" max="100" step="0.1" value="0" aria-label="Позиция воспроизведения" disabled>
       <div class="video-control-row">
@@ -34,6 +34,49 @@
   const play = dialog.querySelector('[data-action="play"]');
   const mute = dialog.querySelector('[data-action="mute"]');
   const full = dialog.querySelector('[data-action="fullscreen"]');
+  // Reuse the decoded foreground frame: no second video or audio stream.
+  const ambience = dialog.querySelector(".video-ambience");
+  const context = ambience.getContext("2d", { alpha: false });
+  let frameCallback = null;
+  let lastPaint = 0;
+  const paintAmbience = () => {
+    if (!context || video.readyState < 2 || !dialog.open) return;
+    context.drawImage(video, 0, 0, ambience.width, ambience.height);
+  };
+  const stopAmbience = () => {
+    if (frameCallback === null) return;
+    if (video.cancelVideoFrameCallback)
+      video.cancelVideoFrameCallback(frameCallback);
+    else cancelAnimationFrame(frameCallback);
+    frameCallback = null;
+  };
+  const animateAmbience = (now = 0) => {
+    frameCallback = null;
+    if (!dialog.open || document.hidden) return;
+    // A soft backdrop needs only 15 fps; video playback keeps its original fps.
+    if (now - lastPaint >= 66) {
+      paintAmbience();
+      lastPaint = now;
+    }
+    if (!video.paused && !video.ended)
+      frameCallback = video.requestVideoFrameCallback
+        ? video.requestVideoFrameCallback(animateAmbience)
+        : requestAnimationFrame(animateAmbience);
+  };
+  video.addEventListener("playing", () => {
+    stopAmbience();
+    animateAmbience();
+  });
+  for (const event of ["loadeddata", "seeked", "pause", "ended"])
+    video.addEventListener(event, paintAmbience);
+  video.addEventListener("pause", stopAmbience);
+  document.addEventListener("visibilitychange", () => {
+    stopAmbience();
+    if (!document.hidden) {
+      paintAmbience();
+      animateAmbience();
+    }
+  });
   let opener;
   const time = (value) => {
     const seconds = Number.isFinite(value) ? Math.floor(value) : 0;
@@ -181,6 +224,8 @@
       dialog.close();
   });
   dialog.addEventListener("close", () => {
+    stopAmbience();
+    context?.clearRect(0, 0, ambience.width, ambience.height);
     video.pause();
     video.removeAttribute("src");
     video.load();
