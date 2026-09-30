@@ -7,6 +7,10 @@ import {
 test("accepts diverse real-name formats while rejecting obvious invalid entries", () => {
   for (const name of [
     "Байнур",
+    "Варвара",
+    "Сара",
+    "Алла",
+    "Джордж",
     "Айдана",
     "Әйгерім",
     "Нұрсұлтан",
@@ -24,6 +28,10 @@ test("accepts diverse real-name formats while rejecting obvious invalid entries"
     null,
     "аовлыдфж",
     "АОВЛЫДФЖ",
+    "аывфаыв",
+    "ЫФВАЫВФ",
+    "asdfasdf",
+    "абабаб",
     "12345",
     "Имя123",
     "qwerty",

@@ -5,7 +5,7 @@
     "topic": "Об аромате",
     "visual": "ritual",
     "url": null,
-    "video": "/assets/reviews/alish-01.mp4",
+    "video": "/assets/reviews/alish-01-web.mp4",
     "poster": "/assets/reviews/alish-01.webp",
     "duration": "0:45"
   },
@@ -15,7 +15,7 @@
     "topic": "Об аромате",
     "visual": "bottle",
     "url": null,
-    "video": "/assets/reviews/alish-02.mp4",
+    "video": "/assets/reviews/alish-02-web.mp4",
     "poster": "/assets/reviews/alish-02.webp",
     "duration": "1:09"
   },
@@ -25,7 +25,7 @@
     "topic": "Об аромате",
     "visual": "notes",
     "url": null,
-    "video": "/assets/reviews/alish-03.mp4",
+    "video": "/assets/reviews/alish-03-web.mp4",
     "poster": "/assets/reviews/alish-03.webp",
     "duration": "0:28"
   }

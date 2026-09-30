@@ -174,7 +174,7 @@ test("orders, authentication, persistence and security boundaries", async (t) =>
       .status,
     409,
   );
-  for (const name of ["аовлыдфж", "Имя123", "аааааа"]) {
+  for (const name of ["аовлыдфж", "аывфаыв", "Имя123", "аааааа"]) {
     assert.equal(
       (await call("/api/orders", "POST", { ...payload, name })).status,
       400,

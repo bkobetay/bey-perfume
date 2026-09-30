@@ -1,4 +1,4 @@
-// Format and obvious spam checks, not a dictionary of permitted people's names.
+// Format and conservative keyboard-spam checks; these cannot verify identity.
 export function normalizeCustomerName(value) {
   return typeof value === "string"
     ? value.normalize("NFC").trim().replace(/\s+/gu, " ")
@@ -22,9 +22,33 @@ export function customerNameError(value) {
     "qwerty",
     "qwertyuiop",
   ]);
+  // Detect families of keyboard mashing, including shuffled home-row letters.
+  // Restrict this heuristic to longer tokens and do not impose a name dictionary.
+  const clusters = [
+    "фыва",
+    "олдж",
+    "йцук",
+    "ячсм",
+    "asdf",
+    "jkl",
+    "qwer",
+    "zxcv",
+  ];
+  const keyboardMash = (token) =>
+    token.length >= 6 &&
+    clusters.some(
+      (cluster) =>
+        [...token].every((letter) => cluster.includes(letter)) &&
+        new Set(token).size >= 3,
+    );
+  const repeatedFragment = (token) => /^(\p{L}{2,3})\1{2,}$/u.test(token);
   if (
     tokens.some(
-      (token) => obviousSpam.has(token) || /(\p{L})\1{3,}/u.test(token),
+      (token) =>
+        obviousSpam.has(token) ||
+        /(\p{L})\1{3,}/u.test(token) ||
+        keyboardMash(token) ||
+        repeatedFragment(token),
     )
   )
     return hint;

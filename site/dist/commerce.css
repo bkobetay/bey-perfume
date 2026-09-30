@@ -993,3 +993,171 @@ select:focus-visible {
 .checkout-form input[aria-invalid="true"] {
   border-color: #cf8270;
 }
+
+/* Glass controls stay visible and reachable on touch and keyboard. */
+.video-dialog {
+  background: linear-gradient(145deg, #20241ef5, #10130ff7);
+  box-shadow: 0 24px 100px #0008;
+}
+.video-stage {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #050605;
+}
+.video-stage video {
+  max-height: calc(100dvh - 220px);
+  border-radius: 0;
+  margin: auto;
+}
+.video-controls {
+  position: relative;
+  margin: 0 10px 10px;
+  padding: 12px 12px 6px;
+  background: linear-gradient(120deg, #ffffff13, #ffffff08);
+  border: 1px solid #ffffff20;
+  border-radius: 14px;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: 0 8px 28px #0004;
+}
+.video-seek {
+  display: block;
+  width: 100%;
+  height: 20px;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+  accent-color: #dbc398;
+  appearance: none;
+  background: transparent;
+}
+.video-seek::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 5px;
+  background: linear-gradient(
+    to right,
+    #dbc398 var(--progress, 0%),
+    #ffffff35 var(--progress, 0%)
+  );
+}
+.video-seek::-webkit-slider-thumb {
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  margin-top: -4.5px;
+  border-radius: 50%;
+  background: #f2debb;
+  box-shadow: 0 0 10px #dbc39855;
+}
+.video-seek::-moz-range-track {
+  height: 3px;
+  background: #ffffff35;
+}
+.video-seek::-moz-range-progress {
+  height: 3px;
+  background: #dbc398;
+}
+.video-seek::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: 0;
+  background: #f2debb;
+}
+.video-control-row {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+.video-control-row button {
+  position: relative;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 9px;
+  color: #ecece6;
+  cursor: pointer;
+  transition:
+    background 0.18s,
+    color 0.18s;
+}
+.video-control-row button:hover {
+  background: #ffffff14;
+  color: #f2debb;
+}
+.video-control-row svg {
+  width: 20px;
+  height: 20px;
+}
+.video-control-row button span {
+  position: absolute;
+  font-size: 8px;
+  top: 19px;
+  left: 16px;
+}
+.video-time {
+  flex: 1;
+  font: 11px/1.4 sans-serif;
+  font-variant-numeric: tabular-nums;
+  color: #d4d6cc;
+  white-space: nowrap;
+  padding: 0 4px;
+}
+.video-status {
+  font-size: 12px;
+  color: #d8c7aa;
+  margin: 10px 0 0;
+}
+.video-error button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 4px;
+}
+.video-stage:fullscreen {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-radius: 0;
+}
+.video-stage:fullscreen video {
+  flex: 1;
+  min-height: 0;
+  max-height: calc(100dvh - 105px);
+}
+.video-stage:fullscreen .video-controls {
+  width: min(680px, calc(100% - 24px));
+  box-sizing: border-box;
+  margin: 12px auto;
+}
+@media (max-width: 420px) {
+  .video-dialog {
+    padding: 12px;
+  }
+  .video-controls {
+    margin: 0 5px 6px;
+    padding: 8px 6px 3px;
+  }
+  .video-control-row button {
+    flex-basis: 34px;
+    width: 34px;
+  }
+  .video-control-row button span {
+    left: 13px;
+  }
+  .video-time {
+    font-size: 10px;
+    padding: 0 2px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .video-control-row button {
+    transition: none;
+  }
+}
