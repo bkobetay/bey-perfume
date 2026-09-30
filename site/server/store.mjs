@@ -13,7 +13,7 @@ export function openStore(directory = privateDir) {
   const filename = resolve(directory, "orders.sqlite");
   const db = new DatabaseSync(filename);
   chmodSync(filename, 0o600);
-  db.exec(`PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON; PRAGMA busy_timeout=5000;
+  db.exec(`PRAGMA busy_timeout=5000; PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;
     CREATE TABLE IF NOT EXISTS orders (
       id TEXT PRIMARY KEY, request_key TEXT UNIQUE NOT NULL, fingerprint TEXT NOT NULL,
       name TEXT NOT NULL, phone TEXT NOT NULL, items TEXT NOT NULL, total INTEGER NOT NULL,
