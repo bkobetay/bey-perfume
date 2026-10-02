@@ -109,7 +109,7 @@ test("stock: atomic confirmations, manual returns, concurrency, idempotency and 
     );
   assert.equal(
     (await inventory()).movements.length,
-    8,
+    products.length,
     "initialization never duplicates opening balances",
   );
   assert.equal((await current(p.id)).availableMl, 100);
@@ -355,7 +355,7 @@ test("existing orders migrate without retrospective stock deduction", async (t) 
   assert.equal(
     api.db.prepare("SELECT SUM(quantity_units) AS total FROM inventory").get()
       .total,
-    8000,
+    products.length * 1000,
   );
   api.db.close();
 });

@@ -1,5 +1,32 @@
 [
   {
+    "id": "aventus",
+    "brand": "CREED",
+    "name": "Aventus",
+    "notes": "Бергамот · ананас · берёза",
+    "categories": [
+      "woody",
+      "fresh"
+    ],
+    "image": "aventus.webp",
+    "featured": true,
+    "accent": "ink",
+    "variants": [
+      {
+        "ml": 3,
+        "price": 3300
+      },
+      {
+        "ml": 5,
+        "price": 5500
+      },
+      {
+        "ml": 10,
+        "price": 11000
+      }
+    ]
+  },
+  {
     "id": "hacivat",
     "brand": "NISHANE",
     "name": "Hacivat",
@@ -9,7 +36,7 @@
       "fresh"
     ],
     "image": "hacivat.webp",
-    "featured": true,
+    "featured": false,
     "accent": "olive",
     "variants": [
       {
@@ -216,5 +243,88 @@
         "price": 9500
       }
     ]
+  },
+  {
+    "id": "jadore",
+    "brand": "DIOR",
+    "name": "J’adore",
+    "notes": "Иланг-иланг · роза · жасмин",
+    "categories": [
+      "floral"
+    ],
+    "image": "jadore.webp",
+    "featured": false,
+    "accent": "amber",
+    "variants": [
+      {
+        "ml": 3,
+        "price": 2400
+      },
+      {
+        "ml": 5,
+        "price": 4000
+      },
+      {
+        "ml": 10,
+        "price": 8000
+      }
+    ],
+    "edition": "Eau de Parfum"
+  },
+  {
+    "id": "chance-eau-tendre",
+    "brand": "CHANEL",
+    "name": "Chance Eau Tendre",
+    "notes": "Грейпфрут · жасмин · роза",
+    "categories": [
+      "fresh",
+      "floral"
+    ],
+    "image": "chance-eau-tendre.webp",
+    "featured": false,
+    "accent": "rose",
+    "variants": [
+      {
+        "ml": 3,
+        "price": 2550
+      },
+      {
+        "ml": 5,
+        "price": 4250
+      },
+      {
+        "ml": 10,
+        "price": 8500
+      }
+    ],
+    "edition": "Eau de Parfum"
+  },
+  {
+    "id": "libre",
+    "brand": "YVES SAINT LAURENT",
+    "name": "Libre",
+    "notes": "Лаванда · цветок апельсина · ваниль",
+    "categories": [
+      "floral",
+      "oriental"
+    ],
+    "image": "libre.webp",
+    "featured": false,
+    "accent": "amber",
+    "variants": [
+      {
+        "ml": 3,
+        "price": 2250
+      },
+      {
+        "ml": 5,
+        "price": 3750
+      },
+      {
+        "ml": 10,
+        "price": 7500
+      }
+    ],
+    "edition": "Eau de Parfum"
   }
 ]
