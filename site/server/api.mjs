@@ -208,7 +208,7 @@ export function createAPI(products, directory = privateDir) {
             fail(400, "Неверный ключ заявки.");
           const validated = validateOrder(data);
           const fingerprint = digest(JSON.stringify(validated));
-          const id = `BEY-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${randomBytes(5).toString("hex").toUpperCase()}`;
+          const id = `TS-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${randomBytes(5).toString("hex").toUpperCase()}`;
           const now = new Date().toISOString();
           db.exec("BEGIN IMMEDIATE");
           try {
@@ -401,7 +401,7 @@ export function createAPI(products, directory = privateDir) {
             return send(res, 200, { ok: true });
           }
           const returnMatch =
-            /^\/api\/admin\/orders\/(BEY-\d{8}-[A-F0-9]{10})\/return-stock$/.exec(
+            /^\/api\/admin\/orders\/((?:TS|BEY)-\d{8}-[A-F0-9]{10})\/return-stock$/.exec(
               path,
             );
           if (returnMatch && req.method === "POST") {
@@ -443,7 +443,7 @@ export function createAPI(products, directory = privateDir) {
             }
             return send(res, 200, { ok: true });
           }
-          const match = /^\/api\/admin\/orders\/(BEY-\d{8}-[A-F0-9]{10})$/.exec(
+          const match = /^\/api\/admin\/orders\/((?:TS|BEY)-\d{8}-[A-F0-9]{10})$/.exec(
             path,
           );
           if (match && req.method === "PATCH") {

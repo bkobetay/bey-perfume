@@ -205,7 +205,7 @@ body:focus {
 .hero-art {
   position: absolute;
   inset: -10px 0 0 28%;
-  background: #171816 url("/assets/bey-hero.webp") center/cover;
+  background: #171816 url("/assets/ts-hero.webp") center/cover;
   mask-image: linear-gradient(to right, transparent, #000 23%);
   opacity: 0.95;
   animation: hero-image 1.6s var(--ease) both;
@@ -1498,10 +1498,10 @@ h2 + p {
   transition: transform 1s var(--ease);
 }
 .review-ritual {
-  --review-image: url("/assets/bey-ritual.webp");
+  --review-image: url("/assets/ts-ritual.webp");
 }
 .review-bottle {
-  --review-image: url("/assets/bey-hero.webp");
+  --review-image: url("/assets/ts-hero.webp");
 }
 .review-notes {
   --review-image: url("/assets/scent-materials.webp");
@@ -1963,7 +1963,7 @@ h2 + p {
   margin-left: auto;
 }
 .footer-main .back-top {
-  margin: 0 15px 0 0;
+  margin: 0 15px 0 auto;
 }
 .breadcrumbs {
   display: flex;

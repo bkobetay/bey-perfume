@@ -10,6 +10,7 @@
 }
 .cart-toggle {
   position: relative;
+  margin-left: auto;
   flex: 0 0 42px;
   width: 42px;
   height: 42px;

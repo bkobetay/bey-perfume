@@ -12,7 +12,7 @@
   const dialog = document.createElement("dialog");
   dialog.className = "video-dialog";
   dialog.setAttribute("aria-labelledby", "video-title");
-  dialog.innerHTML = `<div class="video-heading"><div><p class="eyebrow">BEY / ALISH</p><h2 id="video-title"></h2></div><button type="button" class="icon-close" aria-label="Закрыть видео">×</button></div>
+  dialog.innerHTML = `<div class="video-heading"><div><p class="eyebrow">TS / ALISH</p><h2 id="video-title"></h2></div><button type="button" class="icon-close" aria-label="Закрыть видео">×</button></div>
     <div class="video-stage"><canvas class="video-ambience" width="180" height="320" aria-hidden="true"></canvas><video playsinline preload="none" tabindex="0" aria-label="Видеообзор ALISH. Пробел — пауза, стрелки — перемотка"></video>
     <div class="video-controls" role="group" aria-label="Управление видео">
       <input class="video-seek" type="range" min="0" max="100" step="0.1" value="0" aria-label="Позиция воспроизведения" disabled>

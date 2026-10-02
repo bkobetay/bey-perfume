@@ -300,6 +300,27 @@ test("stock: atomic confirmations, manual returns, concurrency, idempotency and 
       (m) => m.kind === "return" && m.order_id === id,
     ),
   );
+
+  // Orders issued before the rebrand must still support status changes and returns.
+  const legacyId = "BEY-20260930-0123456789";
+  const legacyItems = JSON.stringify([
+    { productId: p.id, name: "КОЛЛЕКЦИЯ BEY Mawashi", ml: 3, quantity: 1, price: 2100, subtotal: 2100 },
+  ]);
+  api.db.prepare(
+    "INSERT INTO orders (id, request_key, fingerprint, name, phone, items, total, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+  ).run(legacyId, randomUUID(), "legacy-fingerprint", "Айдана", "+77001234567", legacyItems, 2100, "2026-09-30", "2026-09-30");
+  assert.equal((await getOrder(legacyId)).items[0].name, "КОЛЛЕКЦИЯ TS Mawashi");
+  assert.equal(api.db.prepare("SELECT items FROM orders WHERE id = ?").get(legacyId).items, legacyItems);
+  await adjust(p.id, "set", 3);
+  assert.equal((await confirm(legacyId)).status, 200);
+  assert.equal((await current(p.id)).availableMl, 0);
+  assert.equal((await call("/api/admin/orders/" + legacyId, "PATCH", {
+    status: "cancelled", note: "", version: (await getOrder(legacyId)).version,
+  })).status, 200);
+  assert.equal((await call("/api/admin/orders/" + legacyId + "/return-stock", "POST", {
+    version: (await getOrder(legacyId)).version,
+  })).status, 200);
+  assert.equal((await current(p.id)).availableMl, 3);
 });
 
 test("existing orders migrate without retrospective stock deduction", async (t) => {

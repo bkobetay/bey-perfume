@@ -28,11 +28,11 @@ const privatePath = (name) =>
 const blocked = files.filter(privatePath);
 if (blocked.length) {
   console.error(
-    "[BEY] Push blocked: private files are committed. Remove them from Git before uploading:\n" +
+    "[TS] Push blocked: private files are committed. Remove them from Git before uploading:\n" +
       blocked.join("\n"),
   );
   process.exit(1);
 }
 console.log(
-  "[BEY] No private data paths in the committed tree or unpushed history.",
+  "[TS] No private data paths in the committed tree or unpushed history.",
 );

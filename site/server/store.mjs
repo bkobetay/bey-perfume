@@ -73,6 +73,10 @@ export const statuses = {
 export function presentOrder(row) {
   if (!row) return null;
   const { request_key, fingerprint, ...order } = row;
-  order.items = JSON.parse(order.items);
+  // Keep historical order snapshots intact; show the current collection label.
+  order.items = JSON.parse(order.items).map((item) => ({
+    ...item,
+    name: item.name.replace(/^КОЛЛЕКЦИЯ BEY /, "КОЛЛЕКЦИЯ TS "),
+  }));
   return order;
 }
