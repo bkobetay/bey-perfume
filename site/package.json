@@ -9,7 +9,6 @@
     "catalog": "node scripts/catalog.mjs",
     "admin:setup": "node scripts/setup-admin.mjs",
     "test": "node --test tests/*.test.mjs",
-    "reviews": "node scripts/reviews.mjs",
     "orders:backup": "node scripts/backup-orders.mjs",
     "admin": "node scripts/serve.mjs --admin"
   },

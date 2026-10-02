@@ -5,7 +5,7 @@
   );
   const surfaces = [
     ...document.querySelectorAll(
-      ".hero, .product-card, .review-card, .about-image, .button-amber",
+      ".hero, .product-card, .about-image, .button-amber",
     ),
   ];
   const controllers = [];
