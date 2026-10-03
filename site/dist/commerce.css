@@ -16,14 +16,14 @@
   height: 42px;
   display: grid;
   place-items: center;
-  border: 1px solid #28d4c640;
-  background: #28d4c60a;
+  border: 1px solid #ccb48d40;
+  background: #ccb48d0a;
   color: var(--accent);
   border-radius: 50%;
   transition: background 0.25s;
 }
 .cart-toggle:hover {
-  background: #28d4c620;
+  background: #ccb48d20;
 }
 .cart-toggle svg {
   width: 23px;
@@ -36,7 +36,7 @@
   right: -5px;
   top: -5px;
   background: var(--accent);
-  color: #171e1d;
+  color: #181a16;
   font-size: 10px;
   line-height: 19px;
   min-width: 19px;
@@ -77,8 +77,8 @@ select option {
   justify-content: space-between;
   align-items: center;
   color: var(--accent);
-  border: 1px solid #28d4c645;
-  background: #28d4c608;
+  border: 1px solid #ccb48d45;
+  background: #ccb48d08;
   border-radius: 7px;
   min-height: 43px;
   padding: 9px 12px;
@@ -89,7 +89,7 @@ select option {
 }
 .add-cart:hover {
   background: var(--accent);
-  color: #171e1d;
+  color: #181a16;
 }
 .add-cart span {
   font-size: 21px;
@@ -121,7 +121,7 @@ select {
   max-height: 100dvh;
   max-width: 100%;
   border: 0;
-  border-left: 1px solid #28d4c625;
+  border-left: 1px solid #ccb48d25;
   color: var(--text);
   background: #151813;
   box-shadow: -30px 0 100px #0007;
@@ -178,10 +178,10 @@ select {
 }
 .demo-notice {
   padding: 12px 15px;
-  border: 1px solid #28d4c626;
+  border: 1px solid #ccb48d26;
   border-radius: 8px;
   color: #c3b699;
-  background: #28d4c606;
+  background: #ccb48d06;
   font-size: 11px;
   line-height: 1.7;
   margin: 0 0 13px;
@@ -380,7 +380,7 @@ select:focus-visible {
   width: 70px;
   height: 70px;
   border-radius: 50%;
-  border: 1px solid #28d4c670;
+  border: 1px solid #ccb48d70;
   color: var(--accent);
   font-size: 28px;
   margin: 0 auto 30px;
@@ -848,6 +848,6 @@ select:focus-visible {
 
 .cart-item-art .cart-placeholder {
   padding: 5px;
-  background: #171c1d;
+  background: #171816;
   mix-blend-mode: normal;
 }

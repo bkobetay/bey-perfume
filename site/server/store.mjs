@@ -76,7 +76,10 @@ export function presentOrder(row) {
   // Keep historical order snapshots intact; show the current collection label.
   order.items = JSON.parse(order.items).map((item) => ({
     ...item,
-    name: item.name.replace(/^КОЛЛЕКЦИЯ (?:BEY|TS) /, "КОЛЛЕКЦИЯ LAGUNA "),
+    name: item.name.replace(
+      /^КОЛЛЕКЦИЯ (?:BEY|TS|LAGUNA) /,
+      "КОЛЛЕКЦИЯ PERFUME STUDIO ",
+    ),
   }));
   return order;
 }

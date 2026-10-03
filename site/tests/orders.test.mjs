@@ -256,7 +256,7 @@ test("orders, authentication, persistence and security boundaries", async (t) =>
   ]);
   assert.deepEqual(results.map((r) => r.status).sort(), [200, 201]);
   const id = results[0].value.id;
-  assert.match(id, /^LAGUNA-\d{8}-[A-F0-9]{10}$/);
+  assert.match(id, /^PS-\d{8}-[A-F0-9]{10}$/);
   assert.equal(id, results[1].value.id);
   assert.equal(
     (await call("/api/orders", "POST", { ...payload, name: "Другое имя" }))

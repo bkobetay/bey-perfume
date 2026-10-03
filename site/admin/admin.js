@@ -123,7 +123,7 @@
           `${index + 1}. ${item.name}\nКөлемі: ${item.ml} мл · Саны: ${item.quantity}\nБір данасының бағасы: ${money(item.price)} · Сомасы: ${money(item.subtotal)}`,
       )
       .join("\n\n");
-    return `Здравствуйте, ${order.name}! Это LAGUNA.
+    return `Здравствуйте, ${order.name}! Это Perfume Studio.
 
 Код заказа: ${order.id}
 Имя клиента: ${order.name}
@@ -135,7 +135,7 @@ ${russianItems}
 
 ──────────
 
-Сәлеметсіз бе, ${order.name}! Бұл — LAGUNA.
+Сәлеметсіз бе, ${order.name}! Бұл — Perfume Studio.
 
 Тапсырыс коды: ${order.id}
 Клиенттің аты: ${order.name}

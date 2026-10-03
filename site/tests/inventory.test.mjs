@@ -302,7 +302,7 @@ test("stock: atomic confirmations, manual returns, concurrency, idempotency and 
   );
 
   // Orders issued before the rebrand must still support status changes and returns.
-  for (const prefix of ["BEY", "TS"]) {
+  for (const prefix of ["BEY", "TS", "LAGUNA"]) {
     const legacyId = `${prefix}-20260930-0123456789`;
     const legacyItems = JSON.stringify([
       {
@@ -331,7 +331,7 @@ test("stock: atomic confirmations, manual returns, concurrency, idempotency and 
       );
     assert.equal(
       (await getOrder(legacyId)).items[0].name,
-      "КОЛЛЕКЦИЯ LAGUNA Mawashi",
+      "КОЛЛЕКЦИЯ PERFUME STUDIO Mawashi",
     );
     assert.equal(
       api.db.prepare("SELECT items FROM orders WHERE id = ?").get(legacyId)
