@@ -13,4 +13,4 @@
 
 > Use case: text-localization. Edit target: supplied dark perfume homepage photograph. Replace only the bottle text "VOXPARFUM.KZ" with exactly "aromania.kz" in elegant cream lowercase letters. Keep bottle shape, position at right, black rocks, warm amber reflections, large dark negative space at left and 1536x1024 composition unchanged. No additional words or watermark.
 
-Сценарий `site/scripts/record-demo.mjs` обновлён для Aromania. При запуске готовый MP4 сохраняется в `artifacts/aromania-demo/Aromania-demo.mp4`. На этом этапе новая запись не запрашивалась. Рабочий сервер остаётся локальным.
+Сценарий `site/scripts/record-demo.mjs` обновлён для Aromania. При запуске готовый MP4 сохраняется в `artifacts/aromania-demo/Aromania-demo.mp4`. Запись создана: 65,67 секунды, H.264 High/yuv420p, 1440 × 988, 30 кадров/с, русские подписи, без аудио. Полное декодирование FFmpeg и просмотр контрольных кадров прошли. Видео и временные демонстрационные данные исключены из Git. Рабочий сервер остаётся локальным.
