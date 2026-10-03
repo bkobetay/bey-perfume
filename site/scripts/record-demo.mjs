@@ -15,9 +15,9 @@ assert.ok(
   ffmpeg,
   "Set DEMO_FFMPEG to an FFmpeg executable with libx264 and drawtext.",
 );
-const output = resolve(root, "artifacts/voxparfum-demo");
+const output = resolve(root, "artifacts/aromania-demo");
 await mkdir(output, { recursive: true });
-const privateDir = await mkdtemp(join(tmpdir(), "voxparfum-recording-"));
+const privateDir = await mkdtemp(join(tmpdir(), "aromania-recording-"));
 const port = process.env.DEMO_PORT || "4187";
 const adminPort = process.env.DEMO_ADMIN_PORT || "4188";
 const shopURL = `http://127.0.0.1:${port}`;
@@ -163,7 +163,7 @@ try {
         .map((img) => img.decode()),
     );
   });
-  cue("VOXPARFUM.KZ · Нишевая парфюмерия");
+  cue("AROMANIA.KZ · Нишевая парфюмерия");
   await at(3);
   await point(page.getByRole("link", { name: "Открыть каталог", exact: true }));
   await shot("01-home");
@@ -213,7 +213,7 @@ try {
     page.getByRole("button", { name: "Оставить заявку", exact: true }),
   );
   await page.locator(".order-success:visible").waitFor();
-  assert.match(await page.locator(".receipt-code").innerText(), /^VOX-/);
+  assert.match(await page.locator(".receipt-code").innerText(), /^ARO-/);
   cue("Заявка создана — клиент получает номер заказа");
   await shot("04-receipt");
   await at(38);
@@ -277,7 +277,7 @@ try {
   await shot("07-replenished");
   await at(61);
   await page.goto(shopURL);
-  cue("VOXPARFUM.KZ · Витрина, заказы и склад вместе");
+  cue("AROMANIA.KZ · Витрина, заказы и склад вместе");
   await page.mouse.move(1300, 700, { steps: 15 });
   await at(66);
   assert.deepEqual(errors, []);
@@ -303,7 +303,7 @@ try {
   filters.push("fade=t=in:st=0:d=0.5", "fade=t=out:st=65:d=1");
   const filterFile = join(output, "captions.filter");
   await writeFile(filterFile, filters.join(","));
-  const mp4 = join(output, "Voxparfum-demo.mp4");
+  const mp4 = join(output, "Aromania-demo.mp4");
   await command(ffmpeg, [
     "-y",
     "-i",

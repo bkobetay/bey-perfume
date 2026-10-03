@@ -28,11 +28,11 @@ const privatePath = (name) =>
 const blocked = files.filter(privatePath);
 if (blocked.length) {
   console.error(
-    "[voxparfum.kz] Push blocked: private files are committed. Remove them from Git before uploading:\n" +
+    "[aromania.kz] Push blocked: private files are committed. Remove them from Git before uploading:\n" +
       blocked.join("\n"),
   );
   process.exit(1);
 }
 console.log(
-  "[voxparfum.kz] No private data paths in the committed tree or unpushed history.",
+  "[aromania.kz] No private data paths in the committed tree or unpushed history.",
 );
