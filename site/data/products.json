@@ -1,5 +1,90 @@
 [
   {
+    "id": "ombre-leather",
+    "brand": "TOM FORD",
+    "name": "Ombré Leather",
+    "notes": "Кожа · кардамон · жасмин",
+    "categories": [
+      "leather",
+      "spicy",
+      "floral"
+    ],
+    "image": "ombre-leather.webp",
+    "featured": true,
+    "accent": "ink",
+    "edition": "Eau de Parfum",
+    "variants": [
+      {
+        "ml": 3,
+        "price": 2700
+      },
+      {
+        "ml": 5,
+        "price": 4500
+      },
+      {
+        "ml": 10,
+        "price": 9000
+      }
+    ]
+  },
+  {
+    "id": "black-phantom",
+    "brand": "KILIAN PARIS",
+    "name": "Black Phantom",
+    "notes": "Ром · кофе · сандал",
+    "categories": [
+      "woody",
+      "oriental"
+    ],
+    "image": "black-phantom.webp",
+    "featured": true,
+    "accent": "ink",
+    "edition": "Memento Mori",
+    "variants": [
+      {
+        "ml": 3,
+        "price": 4200
+      },
+      {
+        "ml": 5,
+        "price": 7000
+      },
+      {
+        "ml": 10,
+        "price": 14000
+      }
+    ]
+  },
+  {
+    "id": "elysium",
+    "brand": "ROJA",
+    "name": "Elysium Pour Homme",
+    "notes": "Грейпфрут · кедр · мускус",
+    "categories": [
+      "fresh",
+      "woody"
+    ],
+    "image": "elysium.webp",
+    "featured": true,
+    "accent": "olive",
+    "edition": "Eau de Parfum",
+    "variants": [
+      {
+        "ml": 3,
+        "price": 3900
+      },
+      {
+        "ml": 5,
+        "price": 6500
+      },
+      {
+        "ml": 10,
+        "price": 13000
+      }
+    ]
+  },
+  {
     "id": "aventus",
     "brand": "CREED",
     "name": "Aventus",
@@ -65,7 +150,7 @@
       "spicy"
     ],
     "image": "madurai.webp",
-    "featured": true,
+    "featured": false,
     "accent": "amber",
     "variants": [
       {
@@ -84,7 +169,7 @@
   },
   {
     "id": "mawashi",
-    "brand": "КОЛЛЕКЦИЯ PERFUME STUDIO",
+    "brand": "КОЛЛЕКЦИЯ PERFUMELAND",
     "name": "Mawashi",
     "notes": "Характер аромата уточняется",
     "categories": [],
@@ -118,7 +203,7 @@
       "floral"
     ],
     "image": "vetiver.webp",
-    "featured": true,
+    "featured": false,
     "accent": "olive",
     "variants": [
       {
@@ -166,7 +251,7 @@
   },
   {
     "id": "montacabo",
-    "brand": "КОЛЛЕКЦИЯ PERFUME STUDIO",
+    "brand": "КОЛЛЕКЦИЯ PERFUMELAND",
     "name": "Montacabo",
     "notes": "Характер аромата уточняется",
     "categories": [],
@@ -198,7 +283,7 @@
       "spicy"
     ],
     "image": "symphony.webp",
-    "featured": true,
+    "featured": false,
     "accent": "rose",
     "variants": [
       {

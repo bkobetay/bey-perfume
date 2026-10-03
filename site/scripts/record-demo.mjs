@@ -15,9 +15,9 @@ assert.ok(
   ffmpeg,
   "Set DEMO_FFMPEG to an FFmpeg executable with libx264 and drawtext.",
 );
-const output = resolve(root, "artifacts/perfume-studio-demo");
+const output = resolve(root, "artifacts/perfumeland-demo");
 await mkdir(output, { recursive: true });
-const privateDir = await mkdtemp(join(tmpdir(), "perfume-studio-recording-"));
+const privateDir = await mkdtemp(join(tmpdir(), "perfumeland-recording-"));
 const port = process.env.DEMO_PORT || "4187";
 const adminPort = process.env.DEMO_ADMIN_PORT || "4188";
 const shopURL = `http://127.0.0.1:${port}`;
@@ -163,7 +163,7 @@ try {
         .map((img) => img.decode()),
     );
   });
-  cue("PERFUME STUDIO · Разливная парфюмерия");
+  cue("PERFUMELAND · Разливная парфюмерия");
   await at(3);
   await point(page.getByRole("link", { name: "Открыть каталог", exact: true }));
   await shot("01-home");
@@ -175,18 +175,18 @@ try {
       element.scrollIntoView({ behavior: "smooth", block: "start" }),
     );
   await wait(1400);
-  await point(page.locator('.selection-grid [data-product="aventus"]'));
+  await point(page.locator('.selection-grid [data-product="ombre-leather"]'));
   await at(12);
   await page.goto(`${shopURL}/catalog.html`);
   cue("Каталог: фильтры по нотам и быстрый поиск");
   await wait(800);
-  await click(page.getByRole("tab", { name: "Свежие", exact: true }));
+  await click(page.getByRole("tab", { name: "Кожаные", exact: true }));
   await at(16);
   const search = page.getByLabel("Поиск аромата", { exact: true });
   await click(search);
-  await search.pressSequentially("Aventus", { delay: 90 });
+  await search.pressSequentially("Ombré", { delay: 90 });
   await wait(600);
-  const card = page.locator('[data-product="aventus"]');
+  const card = page.locator('[data-product="ombre-leather"]');
   await card.scrollIntoViewIfNeeded();
   await shot("02-catalog");
   await at(20);
@@ -213,7 +213,7 @@ try {
     page.getByRole("button", { name: "Оставить заявку", exact: true }),
   );
   await page.locator(".order-success:visible").waitFor();
-  assert.match(await page.locator(".receipt-code").innerText(), /^PS-/);
+  assert.match(await page.locator(".receipt-code").innerText(), /^PL-/);
   cue("Заявка создана — клиент получает номер заказа");
   await shot("04-receipt");
   await at(38);
@@ -249,7 +249,9 @@ try {
   await at(50);
   cue("Склад обновляется автоматически: 100 мл − 10 мл = 90 мл");
   await click(page.getByRole("button", { name: "Склад", exact: true }));
-  const stock = page.locator('.inventory-card[data-stock-product="aventus"]');
+  const stock = page.locator(
+    '.inventory-card[data-stock-product="ombre-leather"]',
+  );
   await stock.waitFor();
   assert.equal(await stock.locator(".stock-amount").innerText(), "90 мл");
   await stock.evaluate((element) =>
@@ -268,13 +270,14 @@ try {
   await click(stock.getByRole("button", { name: "Сохранить остаток" }));
   await page.waitForFunction(
     () =>
-      document.querySelector('[data-stock-product="aventus"] .stock-amount')
-        ?.textContent === "140 мл",
+      document.querySelector(
+        '[data-stock-product="ombre-leather"] .stock-amount',
+      )?.textContent === "140 мл",
   );
   await shot("07-replenished");
   await at(61);
   await page.goto(shopURL);
-  cue("PERFUME STUDIO · Витрина, заказы и склад вместе");
+  cue("PERFUMELAND · Витрина, заказы и склад вместе");
   await page.mouse.move(1300, 700, { steps: 15 });
   await at(66);
   assert.deepEqual(errors, []);
@@ -300,7 +303,7 @@ try {
   filters.push("fade=t=in:st=0:d=0.5", "fade=t=out:st=65:d=1");
   const filterFile = join(output, "captions.filter");
   await writeFile(filterFile, filters.join(","));
-  const mp4 = join(output, "Perfume-Studio-demo.mp4");
+  const mp4 = join(output, "Perfumeland-demo.mp4");
   await command(ffmpeg, [
     "-y",
     "-i",

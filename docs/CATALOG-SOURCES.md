@@ -46,3 +46,21 @@ Mawashi и Montacabo сохранены ровно по списку польз�
 Hacivat сохранён в полном каталоге; его место в подборке на главной занял Aventus. Цены всех позиций демонстрационные, не взяты из прайс-листа магазина. Остатки четырёх новых позиций для локального показа — по 100 мл, по ранее выбранной пользователем настройке демо. Реальные цены и наличие продавец должен подтвердить перед запуском продаж.
 
 3 октября 2026: витрина переименована в LAGUNA; ассортимент, источники и демонстрационные цены версии TS сохранены.
+
+## 3 октября 2026 — подборка Perfumeland
+
+Добавлены три аромата, четвёртым на главной оставлен Creed Aventus. Ноты сверены с официальными страницами; категории фильтров — редакционная группировка демокаталога.
+
+| Аромат | Страница бренда | Ноты в карточке |
+| --- | --- | --- |
+| Tom Ford Ombré Leather EDP | [Tom Ford Beauty](https://www.tomfordbeauty.com/products/ombre-leather-eau-de-parfum) | Кожа · кардамон · жасмин |
+| Kilian Black Phantom — Memento Mori | [Kilian Paris](https://www.bykilian.com/product/19797/50809/perfume/black-phantom--memento-mori/the-cellars) | Ром · кофе · сандал |
+| Roja Elysium Pour Homme EDP | [Roja](https://www.rojaparfums.com/products/elysium-homme-edp) | Грейпфрут · кедр · мускус |
+
+Прямые источники фотографий:
+
+- Ombré Leather: https://cdn.shopify.com/s/files/1/0761/9690/5173/files/tf_sku_T5Y201_2000x2000_0.png?v=1791014503
+- Black Phantom: https://www.bykilian.com/media/images/products/833x968/kl_sku_N3EH01_833x968_0.jpg — фотография 50 мл из официальной подборки [The Iconics](https://www.bykilian.com/best-sellers).
+- Elysium: https://cdn.shopify.com/s/files/1/0554/4702/7869/files/elysium-pour-homme-eau-de-parfum-roja-parfums-100ml-edp-105527.jpg?v=1760365223
+
+Сохранены локальные WebP 800 × 800. Изменены только размер, формат и поля. Демо-цены за 3/5/10 мл: Ombré Leather — 2700/4500/9000 ₸, Black Phantom — 4200/7000/14000 ₸, Elysium — 3900/6500/13000 ₸. Они не взяты с сайта бренда или из прайс-листа магазина.
