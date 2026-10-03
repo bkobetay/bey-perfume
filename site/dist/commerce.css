@@ -16,14 +16,14 @@
   height: 42px;
   display: grid;
   place-items: center;
-  border: 1px solid #ccb48d40;
-  background: #ccb48d0a;
-  color: var(--gold);
+  border: 1px solid #28d4c640;
+  background: #28d4c60a;
+  color: var(--accent);
   border-radius: 50%;
   transition: background 0.25s;
 }
 .cart-toggle:hover {
-  background: #ccb48d20;
+  background: #28d4c620;
 }
 .cart-toggle svg {
   width: 23px;
@@ -35,8 +35,8 @@
   position: absolute;
   right: -5px;
   top: -5px;
-  background: var(--gold);
-  color: #181a16;
+  background: var(--accent);
+  color: #171e1d;
   font-size: 10px;
   line-height: 19px;
   min-width: 19px;
@@ -76,9 +76,9 @@ select option {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: var(--gold);
-  border: 1px solid #ccb48d45;
-  background: #ccb48d08;
+  color: var(--accent);
+  border: 1px solid #28d4c645;
+  background: #28d4c608;
   border-radius: 7px;
   min-height: 43px;
   padding: 9px 12px;
@@ -88,8 +88,8 @@ select option {
     color 0.25s;
 }
 .add-cart:hover {
-  background: var(--gold);
-  color: #181a16;
+  background: var(--accent);
+  color: #171e1d;
 }
 .add-cart span {
   font-size: 21px;
@@ -121,7 +121,7 @@ select {
   max-height: 100dvh;
   max-width: 100%;
   border: 0;
-  border-left: 1px solid #ccb48d25;
+  border-left: 1px solid #28d4c625;
   color: var(--text);
   background: #151813;
   box-shadow: -30px 0 100px #0007;
@@ -178,10 +178,10 @@ select {
 }
 .demo-notice {
   padding: 12px 15px;
-  border: 1px solid #ccb48d26;
+  border: 1px solid #28d4c626;
   border-radius: 8px;
   color: #c3b699;
-  background: #ccb48d06;
+  background: #28d4c606;
   font-size: 11px;
   line-height: 1.7;
   margin: 0 0 13px;
@@ -279,7 +279,7 @@ select {
 }
 .cart-summary strong {
   font-size: 24px;
-  color: var(--gold);
+  color: var(--accent);
   font-weight: 500;
 }
 .checkout-form h3 {
@@ -317,7 +317,7 @@ select {
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
-  outline: 1px solid var(--gold);
+  outline: 1px solid var(--accent);
   outline-offset: 2px;
 }
 .field-hint {
@@ -333,7 +333,7 @@ select:focus-visible {
   line-height: 1.6;
 }
 .contact-consent input {
-  accent-color: var(--gold);
+  accent-color: var(--accent);
   width: 17px;
   height: 17px;
   margin: 2px 0 0;
@@ -353,11 +353,11 @@ select:focus-visible {
   text-align: center;
   padding-block: 65px;
 }
-.cart-empty > span {
-  font:
-    54px Georgia,
-    serif;
-  color: var(--gold);
+.cart-empty-logo {
+  display: block;
+  width: min(200px, 100%);
+  height: auto;
+  margin-inline: auto;
 }
 .cart-empty h3 {
   font-size: 22px;
@@ -380,8 +380,8 @@ select:focus-visible {
   width: 70px;
   height: 70px;
   border-radius: 50%;
-  border: 1px solid #ccb48d70;
-  color: var(--gold);
+  border: 1px solid #28d4c670;
+  color: var(--accent);
   font-size: 28px;
   margin: 0 auto 30px;
 }
@@ -397,7 +397,7 @@ select:focus-visible {
   line-height: 1.8;
 }
 .order-success .receipt-code {
-  color: var(--gold);
+  color: var(--accent);
   overflow-wrap: anywhere;
 }
 .continue-shopping {
@@ -504,7 +504,7 @@ select:focus-visible {
 .order-stats strong {
   font-weight: 400;
   font-size: 34px;
-  color: var(--gold);
+  color: var(--accent);
 }
 .admin-tools {
   display: grid;
@@ -602,7 +602,7 @@ select:focus-visible {
 }
 .order-total strong {
   font-size: 22px;
-  color: var(--gold);
+  color: var(--accent);
   font-weight: 500;
 }
 .order-edit {
@@ -654,8 +654,8 @@ select:focus-visible {
     padding-inline: 9px;
     font-size: 11px;
   }
-  .header .brand > span {
-    font-size: 35px;
+  .header .brand-wordmark {
+    width: 136px;
   }
   .header .brand small {
     font-size: 7px;
@@ -798,7 +798,7 @@ select:focus-visible {
 .phone-prefix {
   flex-shrink: 0;
   padding: 0 14px;
-  color: var(--gold);
+  color: var(--accent);
   font-size: 16px;
   border-right: 1px solid #ffffff20;
 }
@@ -809,7 +809,7 @@ select:focus-visible {
   letter-spacing: 0.5px;
 }
 .phone-field:focus-within {
-  outline: 1px solid var(--gold);
+  outline: 1px solid var(--accent);
   outline-offset: 2px;
 }
 .phone-field input:focus-visible {
@@ -844,4 +844,10 @@ select:focus-visible {
 }
 .cart-stock-warning:empty {
   display: none;
+}
+
+.cart-item-art .cart-placeholder {
+  padding: 5px;
+  background: #171c1d;
+  mix-blend-mode: normal;
 }

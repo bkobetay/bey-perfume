@@ -23,9 +23,9 @@
   background: #ffffff09;
 }
 .order-tab[aria-selected="true"] {
-  color: #eadac0;
-  border-color: #ccb48d75;
-  background: #ccb48d15;
+  color: #b8f1e8;
+  border-color: #28d4c675;
+  background: #28d4c615;
 }
 .tab-count {
   display: grid;
@@ -66,9 +66,9 @@
   margin: 12px 0 32px;
 }
 .seller-sections [aria-pressed="true"] {
-  border-color: #ccb48d;
-  background: #ccb48d1c;
-  color: #eadac0;
+  border-color: #28d4c6;
+  background: #28d4c61c;
+  color: #b8f1e8;
 }
 #inventory-panel h2 {
   font-size: clamp(24px, 3vw, 36px);
@@ -176,14 +176,14 @@
   align-items: flex-start;
   gap: 10px;
   padding: 14px;
-  border: 1px solid #ccb48d50;
+  border: 1px solid #28d4c650;
   border-radius: 8px;
 }
 .payment-check input {
   width: 18px;
   height: 18px;
   flex-shrink: 0;
-  accent-color: #ccb48d;
+  accent-color: #28d4c6;
 }
 .payment-check[hidden] {
   display: none !important;

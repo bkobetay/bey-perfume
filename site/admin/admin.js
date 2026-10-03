@@ -123,7 +123,7 @@
           `${index + 1}. ${item.name}\nКөлемі: ${item.ml} мл · Саны: ${item.quantity}\nБір данасының бағасы: ${money(item.price)} · Сомасы: ${money(item.subtotal)}`,
       )
       .join("\n\n");
-    return `Здравствуйте, ${order.name}! Это TS Perfume.
+    return `Здравствуйте, ${order.name}! Это LAGUNA.
 
 Код заказа: ${order.id}
 Имя клиента: ${order.name}
@@ -135,7 +135,7 @@ ${russianItems}
 
 ──────────
 
-Сәлеметсіз бе, ${order.name}! Бұл — TS Perfume.
+Сәлеметсіз бе, ${order.name}! Бұл — LAGUNA.
 
 Тапсырыс коды: ${order.id}
 Клиенттің аты: ${order.name}
@@ -271,7 +271,7 @@ ${kazakhItems}
     note.value = order.note;
     note.placeholder = "Например: заберёт завтра после 18:00";
     noteLabel.append(note);
-    const button = el("button", "button button-amber", "Сохранить");
+    const button = el("button", "button button-accent", "Сохранить");
     button.type = "submit";
     const feedback = el("p", "save-feedback");
     feedback.setAttribute("role", "status");
@@ -459,7 +459,7 @@ ${kazakhItems}
           reasonLabel.append(reason);
           const button = el(
             "button",
-            "button button-amber",
+            "button button-accent",
             "Сохранить остаток",
           );
           button.type = "submit";
