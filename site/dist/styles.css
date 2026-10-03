@@ -204,7 +204,7 @@ body:focus {
 .hero-art {
   position: absolute;
   inset: -10px 0 0 28%;
-  background: #171816 url("/assets/parfburo-hero.webp") center/cover;
+  background: #171816 url("/assets/voxparfum-hero.webp") center/cover;
   mask-image: linear-gradient(to right, transparent, #000 23%);
   opacity: 0.95;
   animation: hero-image 1.6s var(--ease) both;
@@ -2094,7 +2094,7 @@ h2 + p {
   }
 }
 
-/* Parfburo's wider wordmark stays legible on narrow screens. */
+/* voxparfum.kz's wider wordmark stays legible on narrow screens. */
 .image-signature {
   font-family: Manrope, sans-serif;
   font-weight: 400;
