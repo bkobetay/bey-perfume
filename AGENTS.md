@@ -1,4 +1,4 @@
-# Perfumeland: workflow
+# Parfburo: workflow
 
 The user wants remote Git history, not just local saves. This instruction supersedes older notes saying not to push.
 

@@ -15,10 +15,6 @@
     "edition": "Eau de Parfum",
     "variants": [
       {
-        "ml": 3,
-        "price": 2700
-      },
-      {
         "ml": 5,
         "price": 4500
       },
@@ -42,10 +38,6 @@
     "accent": "ink",
     "edition": "Memento Mori",
     "variants": [
-      {
-        "ml": 3,
-        "price": 4200
-      },
       {
         "ml": 5,
         "price": 7000
@@ -71,10 +63,6 @@
     "edition": "Eau de Parfum",
     "variants": [
       {
-        "ml": 3,
-        "price": 3900
-      },
-      {
         "ml": 5,
         "price": 6500
       },
@@ -98,10 +86,6 @@
     "accent": "ink",
     "variants": [
       {
-        "ml": 3,
-        "price": 3300
-      },
-      {
         "ml": 5,
         "price": 5500
       },
@@ -124,10 +108,6 @@
     "featured": false,
     "accent": "olive",
     "variants": [
-      {
-        "ml": 3,
-        "price": 2700
-      },
       {
         "ml": 5,
         "price": 4500
@@ -154,10 +134,6 @@
     "accent": "amber",
     "variants": [
       {
-        "ml": 3,
-        "price": 3000
-      },
-      {
         "ml": 5,
         "price": 5000
       },
@@ -169,7 +145,7 @@
   },
   {
     "id": "mawashi",
-    "brand": "КОЛЛЕКЦИЯ PERFUMELAND",
+    "brand": "КОЛЛЕКЦИЯ PARFBURO",
     "name": "Mawashi",
     "notes": "Характер аромата уточняется",
     "categories": [],
@@ -177,10 +153,6 @@
     "featured": false,
     "accent": "ink",
     "variants": [
-      {
-        "ml": 3,
-        "price": 2100
-      },
       {
         "ml": 5,
         "price": 3500
@@ -207,10 +179,6 @@
     "accent": "olive",
     "variants": [
       {
-        "ml": 3,
-        "price": 3300
-      },
-      {
         "ml": 5,
         "price": 5500
       },
@@ -236,10 +204,6 @@
     "accent": "ivory",
     "variants": [
       {
-        "ml": 3,
-        "price": 1800
-      },
-      {
         "ml": 5,
         "price": 3000
       },
@@ -251,7 +215,7 @@
   },
   {
     "id": "montacabo",
-    "brand": "КОЛЛЕКЦИЯ PERFUMELAND",
+    "brand": "КОЛЛЕКЦИЯ PARFBURO",
     "name": "Montacabo",
     "notes": "Характер аромата уточняется",
     "categories": [],
@@ -259,10 +223,6 @@
     "featured": false,
     "accent": "ink",
     "variants": [
-      {
-        "ml": 3,
-        "price": 2250
-      },
       {
         "ml": 5,
         "price": 3750
@@ -286,10 +246,6 @@
     "featured": false,
     "accent": "rose",
     "variants": [
-      {
-        "ml": 3,
-        "price": 4800
-      },
       {
         "ml": 5,
         "price": 8000
@@ -316,10 +272,6 @@
     "edition": "This is Not GABA",
     "variants": [
       {
-        "ml": 3,
-        "price": 2850
-      },
-      {
         "ml": 5,
         "price": 4750
       },
@@ -341,10 +293,6 @@
     "featured": false,
     "accent": "amber",
     "variants": [
-      {
-        "ml": 3,
-        "price": 2400
-      },
       {
         "ml": 5,
         "price": 4000
@@ -370,10 +318,6 @@
     "accent": "rose",
     "variants": [
       {
-        "ml": 3,
-        "price": 2550
-      },
-      {
         "ml": 5,
         "price": 4250
       },
@@ -397,10 +341,6 @@
     "featured": false,
     "accent": "amber",
     "variants": [
-      {
-        "ml": 3,
-        "price": 2250
-      },
       {
         "ml": 5,
         "price": 3750

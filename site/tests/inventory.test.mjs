@@ -180,13 +180,13 @@ test("stock: atomic confirmations, manual returns, concurrency, idempotency and 
     ),
   );
   assert.deepEqual(both.map((r) => r.status).sort(), [200, 409]);
-  await adjust(p.id, "set", 20);
-  const placed = await order([...items(p.id, 3, 2), ...items(p.id, 5, 2)]);
+  await adjust(p.id, "set", 24);
+  const placed = await order([...items(p.id, 5, 2), ...items(p.id, 10, 1)]);
   assert.equal(placed.status, 201);
   const id = placed.data.id;
   assert.equal(
     (await current(p.id)).availableMl,
-    20,
+    24,
     "new orders do not reserve stock",
   );
   assert.equal(
@@ -250,7 +250,7 @@ test("stock: atomic confirmations, manual returns, concurrency, idempotency and 
     ).status,
     200,
   );
-  assert.equal((await current(p.id)).availableMl, 20);
+  assert.equal((await current(p.id)).availableMl, 24);
   assert.equal(
     (
       await call(
@@ -261,7 +261,7 @@ test("stock: atomic confirmations, manual returns, concurrency, idempotency and 
     ).status,
     409,
   );
-  assert.equal((await current(p.id)).availableMl, 20, "double return blocked");
+  assert.equal((await current(p.id)).availableMl, 24, "double return blocked");
   assert.equal((await confirm(id)).status, 200);
   assert.equal(
     (await current(p.id)).availableMl,
@@ -302,12 +302,12 @@ test("stock: atomic confirmations, manual returns, concurrency, idempotency and 
   );
 
   // Orders issued before the rebrand must still support status changes and returns.
-  for (const prefix of ["BEY", "TS", "LAGUNA", "PS"]) {
+  for (const prefix of ["BEY", "TS", "LAGUNA", "PS", "PL"]) {
     const legacyId = `${prefix}-20260930-0123456789`;
     const legacyItems = JSON.stringify([
       {
         productId: p.id,
-        name: `КОЛЛЕКЦИЯ ${prefix === "PS" ? "PERFUME STUDIO" : prefix} Mawashi`,
+        name: `КОЛЛЕКЦИЯ ${prefix === "PS" ? "PERFUME STUDIO" : prefix === "PL" ? "PERFUMELAND" : prefix} Mawashi`,
         ml: 3,
         quantity: 1,
         price: 2100,
@@ -331,7 +331,7 @@ test("stock: atomic confirmations, manual returns, concurrency, idempotency and 
       );
     assert.equal(
       (await getOrder(legacyId)).items[0].name,
-      "КОЛЛЕКЦИЯ PERFUMELAND Mawashi",
+      "КОЛЛЕКЦИЯ PARFBURO Mawashi",
     );
     assert.equal(
       api.db.prepare("SELECT items FROM orders WHERE id = ?").get(legacyId)

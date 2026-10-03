@@ -162,6 +162,7 @@ test("orders, authentication, persistence and security boundaries", async (t) =>
   const products = (await call("/api/products")).value.products;
   const product = products[0],
     variant = product.variants[0];
+  assert.ok(products.every((p) => p.variants.every((v) => v.ml >= 5)));
   const payload = {
     requestKey: randomUUID(),
     name: "Тестовый покупатель",
@@ -203,6 +204,16 @@ test("orders, authentication, persistence and security boundaries", async (t) =>
       })
     ).status,
     400,
+  );
+  assert.equal(
+    (
+      await call("/api/orders", "POST", {
+        ...payload,
+        items: [{ productId: product.id, ml: 3, quantity: 1 }],
+      })
+    ).status,
+    400,
+    "New orders must reject the retired 3 ml volume",
   );
   assert.equal(
     (
@@ -256,7 +267,7 @@ test("orders, authentication, persistence and security boundaries", async (t) =>
   ]);
   assert.deepEqual(results.map((r) => r.status).sort(), [200, 201]);
   const id = results[0].value.id;
-  assert.match(id, /^PL-\d{8}-[A-F0-9]{10}$/);
+  assert.match(id, /^PB-\d{8}-[A-F0-9]{10}$/);
   assert.equal(id, results[1].value.id);
   assert.equal(
     (await call("/api/orders", "POST", { ...payload, name: "Другое имя" }))

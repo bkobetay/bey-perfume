@@ -102,11 +102,15 @@ export function createAPI(products, directory = privateDir) {
       const variant = product?.variants.find((v) => v.ml === item.ml);
       if (
         !variant ||
+        item.ml < 5 ||
         !Number.isInteger(item.quantity) ||
         item.quantity < 1 ||
         item.quantity > 20
       )
-        fail(400, "Проверьте аромат, объём и количество (1–20).");
+        fail(
+          400,
+          "Распив доступен от 5 мл. Проверьте аромат, объём и количество (1–20).",
+        );
       const key = `${product.id}:${variant.ml}`;
       if (keys.has(key)) fail(400, "Повторяющаяся позиция.");
       keys.add(key);
@@ -208,7 +212,7 @@ export function createAPI(products, directory = privateDir) {
             fail(400, "Неверный ключ заявки.");
           const validated = validateOrder(data);
           const fingerprint = digest(JSON.stringify(validated));
-          const id = `PL-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${randomBytes(5).toString("hex").toUpperCase()}`;
+          const id = `PB-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${randomBytes(5).toString("hex").toUpperCase()}`;
           const now = new Date().toISOString();
           db.exec("BEGIN IMMEDIATE");
           try {
@@ -401,7 +405,7 @@ export function createAPI(products, directory = privateDir) {
             return send(res, 200, { ok: true });
           }
           const returnMatch =
-            /^\/api\/admin\/orders\/((?:PL|PS|LAGUNA|TS|BEY)-\d{8}-[A-F0-9]{10})\/return-stock$/.exec(
+            /^\/api\/admin\/orders\/((?:PB|PL|PS|LAGUNA|TS|BEY)-\d{8}-[A-F0-9]{10})\/return-stock$/.exec(
               path,
             );
           if (returnMatch && req.method === "POST") {
@@ -444,7 +448,7 @@ export function createAPI(products, directory = privateDir) {
             return send(res, 200, { ok: true });
           }
           const match =
-            /^\/api\/admin\/orders\/((?:PL|PS|LAGUNA|TS|BEY)-\d{8}-[A-F0-9]{10})$/.exec(
+            /^\/api\/admin\/orders\/((?:PB|PL|PS|LAGUNA|TS|BEY)-\d{8}-[A-F0-9]{10})$/.exec(
               path,
             );
           if (match && req.method === "PATCH") {
