@@ -204,7 +204,7 @@ body:focus {
 .hero-art {
   position: absolute;
   inset: -10px 0 0 28%;
-  background: #171816 url("/assets/aromania-hero.webp") center/cover;
+  background: #171816 url("/assets/niche-avenue-hero.webp") center/cover;
   mask-image: linear-gradient(to right, transparent, #000 23%);
   opacity: 0.95;
   animation: hero-image 1.6s var(--ease) both;
@@ -2094,7 +2094,7 @@ h2 + p {
   }
 }
 
-/* aromania.kz's wider wordmark stays legible on narrow screens. */
+/* Niche Avenue's wider wordmark stays legible on narrow screens. */
 .image-signature {
   font-family: Manrope, sans-serif;
   font-weight: 400;
@@ -2114,15 +2114,15 @@ h2 + p {
   }
 }
 
-/* Aromania: cream typography and the warm brown from the supplied brand mark. */
+/* Niche Avenue: cream typography and the warm orange from the supplied brand mark. */
 .header .brand-wordmark,
 .footer .brand-wordmark {
-  filter: drop-shadow(0 0 12px rgba(117, 71, 55, 0.18));
+  filter: drop-shadow(0 0 12px rgba(231, 124, 24, 0.18));
 }
 .header .brand small {
-  color: #e1cdb5;
+  color: #f2d6b9;
 }
 .nav-link.active {
-  background: rgba(117, 71, 55, 0.25);
-  border-color: rgba(194, 149, 123, 0.24);
+  background: rgba(231, 124, 24, 0.25);
+  border-color: rgba(241, 139, 50, 0.24);
 }

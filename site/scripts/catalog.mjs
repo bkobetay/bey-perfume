@@ -54,9 +54,9 @@ function card(product, index, featured = false) {
   const name = escape(product.name);
   const visual = product.image
     ? `<img src="/assets/products/${escape(product.image)}" alt="Флакон ${escape(product.brand)} ${name}${product.edition ? ` — ${escape(product.edition)}` : ""}" width="800" height="800" loading="lazy" decoding="async" />`
-    : `<div class="demo-bottle" aria-hidden="true"><div class="bottle-cap"></div><div class="bottle-body"><div class="bottle-label"><small>aromania.kz</small><span>${name}</span><i>SCENT COLLECTION</i></div></div></div><span class="visual-disclaimer">Демо-визуал</span>`;
+    : `<div class="demo-bottle" aria-hidden="true"><div class="bottle-cap"></div><div class="bottle-body"><div class="bottle-label"><small>Niche Avenue</small><span>${name}</span><i>SCENT COLLECTION</i></div></div></div><span class="visual-disclaimer">Демо-визуал</span>`;
   return `<article class="product-card${featured ? " featured-card reveal" : ""}" data-product="${escape(product.id)}" data-categories="${product.categories.join(" ")}" data-accent="${product.accent}">
-    <div class="product-visual"><span class="product-index" aria-hidden="true">${String(index + 1).padStart(2, "0")}${featured ? " / AROMANIA.KZ EDIT" : ""}</span>${visual}</div>
+    <div class="product-visual"><span class="product-index" aria-hidden="true">${String(index + 1).padStart(2, "0")}${featured ? " / NICHE AVENUE EDIT" : ""}</span>${visual}</div>
     <div class="product-copy"><p class="product-brand">${escape(product.brand)}</p><h3>${name}</h3><p class="product-notes">${escape(product.notes)}</p><div class="product-tags">${
       product.categories.length
         ? product.categories

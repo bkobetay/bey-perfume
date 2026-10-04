@@ -86,7 +86,7 @@ const server = http.createServer(async (request, response) => {
         "/styles.css",
         "/commerce.css",
         "/assets/favicon.svg",
-        "/assets/aromania-logo.svg",
+        "/assets/niche-avenue-logo.svg",
         "/assets/fonts/manrope-regular.ttf",
         "/assets/fonts/manrope-semibold.ttf",
       ].includes(pathname)
@@ -181,7 +181,7 @@ server.on("error", (error) => {
 });
 server.listen(port, "127.0.0.1", () =>
   console.log(
-    `aromania.kz ${admin ? "Seller (local only)" : "Perfume"}: http://127.0.0.1:${port}`,
+    `Niche Avenue ${admin ? "Seller (local only)" : "Perfume"}: http://127.0.0.1:${port}`,
   ),
 );
 for (const signal of ["SIGTERM", "SIGINT"])

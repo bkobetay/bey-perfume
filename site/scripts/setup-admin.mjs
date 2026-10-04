@@ -29,7 +29,7 @@ try {
   });
   await writeFile(
     resolve(privateDir, "admin-access.txt"),
-    `aromania.kz — локальный кабинет\nАдрес: http://127.0.0.1:${Number(process.env.ADMIN_PORT || 4174)}/\nЛогин: admin\nПароль: ${password}\n\nХраните этот файл только у себя. Он исключён из Git.\n`,
+    `Niche Avenue — локальный кабинет\nАдрес: http://127.0.0.1:${Number(process.env.ADMIN_PORT || 4174)}/\nЛогин: admin\nПароль: ${password}\n\nХраните этот файл только у себя. Он исключён из Git.\n`,
     { flag: "wx", mode: 0o600 },
   );
   console.log(

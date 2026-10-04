@@ -3,25 +3,25 @@
 set -u
 
 if [ "${BEY_SKIP_AUTO_PUSH:-0}" = "1" ]; then
-  printf '%s\n' '[aromania.kz] Auto-push skipped explicitly; the commit is saved locally.' >&2
+  printf '%s\n' '[Niche Avenue] Auto-push skipped explicitly; the commit is saved locally.' >&2
   exit 0
 fi
 
 branch=$(git symbolic-ref --quiet --short HEAD) || {
-  printf '%s\n' '[aromania.kz] Detached HEAD: commit saved locally; no branch was pushed.' >&2
+  printf '%s\n' '[Niche Avenue] Detached HEAD: commit saved locally; no branch was pushed.' >&2
   exit 0
 }
 remote=$(git config --get "branch.$branch.remote") || remote=
 merge_ref=$(git config --get "branch.$branch.merge") || merge_ref=
 if [ -z "$remote" ] || [ -z "$merge_ref" ]; then
-  printf '%s\n' '[aromania.kz] No upstream configured. Set it with git push -u before using auto-push.' >&2
+  printf '%s\n' '[Niche Avenue] No upstream configured. Set it with git push -u before using auto-push.' >&2
   exit 0
 fi
 
-printf '%s\n' "[aromania.kz] Pushing $branch to $remote/$merge_ref..." >&2
+printf '%s\n' "[Niche Avenue] Pushing $branch to $remote/$merge_ref..." >&2
 if ! GIT_TERMINAL_PROMPT=0 git push --follow-tags "$remote" "HEAD:$merge_ref"; then
-  printf '%s\n' '[aromania.kz] PUSH FAILED. The commit is safe locally but is NOT saved on GitHub.' \
-    '[aromania.kz] Fix authentication, connection or divergence, then run git push --follow-tags.' >&2
+  printf '%s\n' '[Niche Avenue] PUSH FAILED. The commit is safe locally but is NOT saved on GitHub.' \
+    '[Niche Avenue] Fix authentication, connection or divergence, then run git push --follow-tags.' >&2
 fi
 # A push failure must not suggest that the successful local commit was lost.
 exit 0

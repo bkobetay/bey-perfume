@@ -302,12 +302,21 @@ test("stock: atomic confirmations, manual returns, concurrency, idempotency and 
   );
 
   // Orders issued before the rebrand must still support status changes and returns.
-  for (const prefix of ["BEY", "TS", "LAGUNA", "PS", "PL", "PB", "VOX"]) {
+  for (const prefix of [
+    "BEY",
+    "TS",
+    "LAGUNA",
+    "PS",
+    "PL",
+    "PB",
+    "VOX",
+    "ARO",
+  ]) {
     const legacyId = `${prefix}-20260930-0123456789`;
     const legacyItems = JSON.stringify([
       {
         productId: p.id,
-        name: `КОЛЛЕКЦИЯ ${prefix === "PS" ? "PERFUME STUDIO" : prefix === "PL" ? "PERFUMELAND" : prefix === "PB" ? "PARFBURO" : prefix === "VOX" ? "VOXPARFUM.KZ" : prefix} Mawashi`,
+        name: `КОЛЛЕКЦИЯ ${prefix === "PS" ? "PERFUME STUDIO" : prefix === "PL" ? "PERFUMELAND" : prefix === "PB" ? "PARFBURO" : prefix === "VOX" ? "VOXPARFUM.KZ" : prefix === "ARO" ? "AROMANIA.KZ" : prefix} Mawashi`,
         ml: 3,
         quantity: 1,
         price: 2100,
@@ -331,7 +340,7 @@ test("stock: atomic confirmations, manual returns, concurrency, idempotency and 
       );
     assert.equal(
       (await getOrder(legacyId)).items[0].name,
-      "КОЛЛЕКЦИЯ AROMANIA.KZ Mawashi",
+      "КОЛЛЕКЦИЯ NICHE AVENUE Mawashi",
     );
     assert.equal(
       api.db.prepare("SELECT items FROM orders WHERE id = ?").get(legacyId)
