@@ -1,7 +1,14 @@
 // Records an isolated demo. Never reads the live private directory.
 import assert from "node:assert/strict";
 import { spawn, spawnSync } from "node:child_process";
-import { mkdtemp, readFile, writeFile, mkdir, rm } from "node:fs/promises";
+import {
+  mkdtemp,
+  readFile,
+  writeFile,
+  mkdir,
+  rm,
+  stat,
+} from "node:fs/promises";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { dirname, resolve, join } from "node:path";
@@ -15,7 +22,10 @@ assert.ok(
   ffmpeg,
   "Set DEMO_FFMPEG to an FFmpeg executable with libx264 and drawtext.",
 );
-const output = resolve(root, "artifacts/niche-avenue-demo");
+const output = resolve(
+  root,
+  process.env.DEMO_OUTPUT_DIR || "artifacts/niche-avenue-demo",
+);
 await mkdir(output, { recursive: true });
 const privateDir = await mkdtemp(join(tmpdir(), "niche-avenue-recording-"));
 const port = process.env.DEMO_PORT || "4187";
@@ -290,7 +300,7 @@ try {
   // Add a dedicated caption band below the viewport; never obscure the UI.
   const font = join(root, "site/dist/assets/fonts/manrope-regular.ttf");
   const filters = [
-    "pad=iw:ih+88:0:0:color=0x101110",
+    "pad=iw:ih+88:0:0:color=0x060b14",
     `drawtext=fontfile='${font}':text='ДЕМОВЕРСИЯ · демонстрационные данные':fontsize=15:fontcolor=0x9f9f94:x=(w-tw)/2:y=h-25`,
   ];
   for (let index = 0; index < cues.length; index++) {
@@ -317,9 +327,13 @@ try {
     "-c:v",
     "libx264",
     "-preset",
-    "medium",
+    "slow",
     "-crf",
-    "21",
+    "18",
+    "-maxrate",
+    "1500k",
+    "-bufsize",
+    "3000k",
     "-pix_fmt",
     "yuv420p",
     "-movflags",
@@ -328,6 +342,12 @@ try {
     mp4,
   ]);
   await command(ffmpeg, ["-v", "error", "-i", mp4, "-f", "null", "-"]);
+  const { size } = await stat(mp4);
+  assert.ok(
+    size < 16_000_000,
+    "Demo exceeds the conservative 16 MB sharing budget.",
+  );
+  console.log(`Sharing size: ${(size / 1_000_000).toFixed(2)} MB`);
   console.log(`Video verified: ${mp4}`);
 } finally {
   await browser?.close();
