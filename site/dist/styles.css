@@ -204,7 +204,7 @@ body:focus {
 .hero-art {
   position: absolute;
   inset: -10px 0 0 28%;
-  background: #0a1220 url("/assets/velora-parfum-hero.webp") center/cover;
+  background: #0a1220 url("/assets/ego-hero.webp") center/cover;
   mask-image: linear-gradient(to right, transparent, #000 23%);
   opacity: 0.95;
   animation: hero-image 1.6s var(--ease) both;
@@ -2094,7 +2094,7 @@ h2 + p {
   }
 }
 
-/* Velora Parfum's wider wordmark stays legible on narrow screens. */
+/* EGO's wider wordmark stays legible on narrow screens. */
 .image-signature {
   font-family: Manrope, sans-serif;
   font-weight: 400;
@@ -2114,10 +2114,18 @@ h2 + p {
   }
 }
 
-/* Velora Parfum: warm gold accents around the serif wordmark. */
+/* EGO: a compact monoline wordmark with the atomizer inside G. */
+.brand-wordmark {
+  width: 124px;
+}
+@media (max-width: 600px) {
+  .brand-wordmark {
+    width: 112px;
+  }
+}
 .header .brand-wordmark,
 .footer .brand-wordmark {
-  filter: drop-shadow(0 0 12px rgba(204, 180, 141, 0.18));
+  filter: drop-shadow(0 0 10px rgba(246, 243, 239, 0.1));
 }
 .header .brand small {
   color: #f2d6b9;
