@@ -318,12 +318,13 @@ test("stock: atomic confirmations, manual returns, concurrency, idempotency and 
     "AP",
     "VP",
     "EGO",
+    "CP",
   ]) {
     const legacyId = `${prefix}-20260930-0123456789`;
     const legacyItems = JSON.stringify([
       {
         productId: p.id,
-        name: `КОЛЛЕКЦИЯ ${prefix === "PS" ? "PERFUME STUDIO" : prefix === "PL" ? "PERFUMELAND" : prefix === "PB" ? "PARFBURO" : prefix === "VOX" ? "VOXPARFUM.KZ" : prefix === "ARO" ? "AROMANIA.KZ" : prefix === "NA" ? "NICHE AVENUE" : prefix === "FP" ? "FLORA PERFUME" : prefix === "RP" ? "RATAY PERFUME" : prefix === "LIB" ? "LIBERTÉ" : prefix === "AP" ? "ALIDEN PARFUM" : prefix === "VP" ? "VELORA PARFUM" : prefix} Mawashi`,
+        name: `КОЛЛЕКЦИЯ ${prefix === "PS" ? "PERFUME STUDIO" : prefix === "PL" ? "PERFUMELAND" : prefix === "PB" ? "PARFBURO" : prefix === "VOX" ? "VOXPARFUM.KZ" : prefix === "ARO" ? "AROMANIA.KZ" : prefix === "NA" ? "NICHE AVENUE" : prefix === "FP" ? "FLORA PERFUME" : prefix === "RP" ? "RATAY PERFUME" : prefix === "LIB" ? "LIBERTÉ" : prefix === "AP" ? "ALIDEN PARFUM" : prefix === "VP" ? "VELORA PARFUM" : prefix === "CP" ? "CHARM PERFUME" : prefix} Mawashi`,
         ml: 3,
         quantity: 1,
         price: 2100,
@@ -347,7 +348,7 @@ test("stock: atomic confirmations, manual returns, concurrency, idempotency and 
       );
     assert.equal(
       (await getOrder(legacyId)).items[0].name,
-      "КОЛЛЕКЦИЯ CHARM PERFUME Mawashi",
+      "КОЛЛЕКЦИЯ CAPELLA PERFUME Mawashi",
     );
     assert.equal(
       api.db.prepare("SELECT items FROM orders WHERE id = ?").get(legacyId)
