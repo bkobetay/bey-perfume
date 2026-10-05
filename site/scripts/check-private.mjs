@@ -28,11 +28,11 @@ const privatePath = (name) =>
 const blocked = files.filter(privatePath);
 if (blocked.length) {
   console.error(
-    "[Aliden Parfum] Push blocked: private files are committed. Remove them from Git before uploading:\n" +
+    "[Velora Parfum] Push blocked: private files are committed. Remove them from Git before uploading:\n" +
       blocked.join("\n"),
   );
   process.exit(1);
 }
 console.log(
-  "[Aliden Parfum] No private data paths in the committed tree or unpushed history.",
+  "[Velora Parfum] No private data paths in the committed tree or unpushed history.",
 );

@@ -29,7 +29,7 @@ try {
   });
   await writeFile(
     resolve(privateDir, "admin-access.txt"),
-    `Aliden Parfum — локальный кабинет\nАдрес: http://127.0.0.1:${Number(process.env.ADMIN_PORT || 4174)}/\nЛогин: admin\nПароль: ${password}\n\nХраните этот файл только у себя. Он исключён из Git.\n`,
+    `Velora Parfum — локальный кабинет\nАдрес: http://127.0.0.1:${Number(process.env.ADMIN_PORT || 4174)}/\nЛогин: admin\nПароль: ${password}\n\nХраните этот файл только у себя. Он исключён из Git.\n`,
     { flag: "wx", mode: 0o600 },
   );
   console.log(
