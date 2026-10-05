@@ -204,7 +204,7 @@ body:focus {
 .hero-art {
   position: absolute;
   inset: -10px 0 0 28%;
-  background: #0a1220 url("/assets/seuip-kor-hero.webp") center/cover;
+  background: #0a1220 url("/assets/arafan-perfume-hero.webp") center/cover;
   mask-image: linear-gradient(to right, transparent, #000 23%);
   opacity: 0.95;
   animation: hero-image 1.6s var(--ease) both;
@@ -2094,7 +2094,7 @@ h2 + p {
   }
 }
 
-/* SEUIP KOR's wider wordmark stays legible on narrow screens. */
+/* ARAFAN PERFUME's wider wordmark stays legible on narrow screens. */
 .image-signature {
   font-family: Manrope, sans-serif;
   font-weight: 400;
@@ -2114,7 +2114,7 @@ h2 + p {
   }
 }
 
-/* Seuip kor: the generated circular logo keeps its proportions. */
+/* Arafan Perfume: the supplied circular logo keeps its proportions. */
 .brand-wordmark {
   width: 68px;
   border-radius: 50%;

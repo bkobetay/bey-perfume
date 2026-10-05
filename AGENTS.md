@@ -1,4 +1,4 @@
-# Seuip kor: workflow
+# Arafan Perfume: workflow
 
 The user wants remote Git history, not just local saves. This instruction supersedes older notes saying not to push.
 
