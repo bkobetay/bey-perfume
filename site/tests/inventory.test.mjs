@@ -317,6 +317,7 @@ test("stock: atomic confirmations, manual returns, concurrency, idempotency and 
     "LIB",
     "AP",
     "VP",
+    "EGO",
   ]) {
     const legacyId = `${prefix}-20260930-0123456789`;
     const legacyItems = JSON.stringify([
@@ -346,7 +347,7 @@ test("stock: atomic confirmations, manual returns, concurrency, idempotency and 
       );
     assert.equal(
       (await getOrder(legacyId)).items[0].name,
-      "КОЛЛЕКЦИЯ EGO Mawashi",
+      "КОЛЛЕКЦИЯ CHARM PERFUME Mawashi",
     );
     assert.equal(
       api.db.prepare("SELECT items FROM orders WHERE id = ?").get(legacyId)
