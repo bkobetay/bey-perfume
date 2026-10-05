@@ -24,10 +24,10 @@ assert.ok(
 );
 const output = resolve(
   root,
-  process.env.DEMO_OUTPUT_DIR || "artifacts/ratay-perfume-demo",
+  process.env.DEMO_OUTPUT_DIR || "artifacts/liberte-demo",
 );
 await mkdir(output, { recursive: true });
-const privateDir = await mkdtemp(join(tmpdir(), "ratay-perfume-recording-"));
+const privateDir = await mkdtemp(join(tmpdir(), "liberte-recording-"));
 const port = process.env.DEMO_PORT || "4187";
 const adminPort = process.env.DEMO_ADMIN_PORT || "4188";
 const shopURL = `http://127.0.0.1:${port}`;
@@ -173,7 +173,7 @@ try {
         .map((img) => img.decode()),
     );
   });
-  cue("RATAY PERFUME · Нишевая парфюмерия");
+  cue("LIBERTÉ · Нишевая парфюмерия");
   await at(3);
   await point(page.getByRole("link", { name: "Открыть каталог", exact: true }));
   await shot("01-home");
@@ -223,7 +223,7 @@ try {
     page.getByRole("button", { name: "Оставить заявку", exact: true }),
   );
   await page.locator(".order-success:visible").waitFor();
-  assert.match(await page.locator(".receipt-code").innerText(), /^RP-/);
+  assert.match(await page.locator(".receipt-code").innerText(), /^LIB-/);
   cue("Заявка создана — клиент получает номер заказа");
   await shot("04-receipt");
   await at(38);
@@ -287,7 +287,7 @@ try {
   await shot("07-replenished");
   await at(61);
   await page.goto(shopURL);
-  cue("RATAY PERFUME · Витрина, заказы и склад вместе");
+  cue("LIBERTÉ · Витрина, заказы и склад вместе");
   await page.mouse.move(1300, 700, { steps: 15 });
   await at(66);
   assert.deepEqual(errors, []);
@@ -313,7 +313,7 @@ try {
   filters.push("fade=t=in:st=0:d=0.5", "fade=t=out:st=65:d=1");
   const filterFile = join(output, "captions.filter");
   await writeFile(filterFile, filters.join(","));
-  const mp4 = join(output, "RATAY-Perfume-demo.mp4");
+  const mp4 = join(output, "Liberte-demo.mp4");
   await command(ffmpeg, [
     "-y",
     "-i",
