@@ -4,9 +4,9 @@ set -eu
 root=$(git rev-parse --show-toplevel)
 cd "$root"
 if ! git diff --quiet HEAD -- site; then
-  printf '%s\n' '[Capella Perfume] Commit the remaining site changes before push so checks cover the committed version.' >&2
+  printf '%s\n' '[Seuip kor] Commit the remaining site changes before push so checks cover the committed version.' >&2
   exit 1
 fi
 node site/scripts/check-private.mjs
-printf '%s\n' '[Capella Perfume] Checking JavaScript before push...'
+printf '%s\n' '[Seuip kor] Checking JavaScript before push...'
 npm --prefix site run check

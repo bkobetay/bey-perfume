@@ -24,10 +24,10 @@ assert.ok(
 );
 const output = resolve(
   root,
-  process.env.DEMO_OUTPUT_DIR || "artifacts/capella-perfume-demo",
+  process.env.DEMO_OUTPUT_DIR || "artifacts/seuip-kor-demo",
 );
 await mkdir(output, { recursive: true });
-const privateDir = await mkdtemp(join(tmpdir(), "capella-perfume-recording-"));
+const privateDir = await mkdtemp(join(tmpdir(), "seuip-kor-recording-"));
 const port = process.env.DEMO_PORT || "4187";
 const adminPort = process.env.DEMO_ADMIN_PORT || "4188";
 const shopURL = `http://127.0.0.1:${port}`;
@@ -234,7 +234,7 @@ try {
         .map((img) => img.decode()),
     );
   });
-  cue("CAPELLA PERFUME · Нишевая парфюмерия");
+  cue("SEUIP KOR · Нишевая парфюмерия");
   await at(3);
   await point(page.getByRole("link", { name: "Открыть каталог", exact: true }));
   await shot("01-home");
@@ -279,7 +279,7 @@ try {
     page.getByRole("button", { name: "Оставить заявку", exact: true }),
   );
   await page.locator(".order-success:visible").waitFor();
-  assert.match(await page.locator(".receipt-code").innerText(), /^CAP-/);
+  assert.match(await page.locator(".receipt-code").innerText(), /^SK-/);
   cue("Заявка создана — клиент получает номер заказа");
   await shot("04-receipt");
   await at(34);
@@ -337,7 +337,7 @@ try {
   );
   await shot("07-replenished");
   await at(57);
-  cue("CAPELLA PERFUME · Витрина, заказы и склад вместе");
+  cue("SEUIP KOR · Витрина, заказы и склад вместе");
   await move(1300, 700);
   await at(60);
   assert.deepEqual(errors, []);
@@ -367,7 +367,7 @@ try {
   filters.push("fade=t=in:st=0:d=0.5", "fade=t=out:st=59:d=1");
   const filterFile = join(output, "captions.filter");
   await writeFile(filterFile, filters.join(","));
-  const mp4 = join(output, "Capella-Perfume-15MB.mp4");
+  const mp4 = join(output, "Seuip-Kor-15MB.mp4");
   const encoding = [
     "-y",
     "-i",
