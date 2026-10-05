@@ -24,10 +24,10 @@ assert.ok(
 );
 const output = resolve(
   root,
-  process.env.DEMO_OUTPUT_DIR || "artifacts/liberte-demo",
+  process.env.DEMO_OUTPUT_DIR || "artifacts/aliden-parfum-demo",
 );
 await mkdir(output, { recursive: true });
-const privateDir = await mkdtemp(join(tmpdir(), "liberte-recording-"));
+const privateDir = await mkdtemp(join(tmpdir(), "aliden-parfum-recording-"));
 const port = process.env.DEMO_PORT || "4187";
 const adminPort = process.env.DEMO_ADMIN_PORT || "4188";
 const shopURL = `http://127.0.0.1:${port}`;
@@ -117,6 +117,16 @@ try {
   // A visible pointer makes the real browser interactions easier to follow.
   await context.addInitScript(() => {
     document.addEventListener("DOMContentLoaded", () => {
+      const curtain = document.createElement("div");
+      curtain.id = "demo-curtain";
+      curtain.style.cssText =
+        "position:fixed;inset:0;background:#060b14;opacity:1;pointer-events:none;z-index:2147483646;transition:opacity 650ms ease";
+      document.body.append(curtain);
+      document.fonts.ready.then(() =>
+        setTimeout(() => {
+          curtain.style.opacity = "0";
+        }, 250),
+      );
       const pointer = document.createElement("div");
       pointer.style.cssText =
         "position:fixed;left:-100px;top:-100px;width:18px;height:18px;border:2px solid #ecd6ae;border-radius:50%;background:#ccb48d35;pointer-events:none;z-index:2147483647;box-shadow:0 0 16px #ccb48d55;transform:translate(-50%,-50%)";
@@ -149,15 +159,66 @@ try {
     cues.push({ start: (Date.now() - started) / 1000, text });
     console.log(text);
   };
+  let cursor = { x: 1300, y: 750 };
+  const move = async (x, y) => {
+    const from = { ...cursor };
+    const start = Date.now();
+    for (let step = 1; step <= 36; step++) {
+      const t = step / 36;
+      const eased = t * t * (3 - 2 * t);
+      await page.mouse.move(
+        from.x + (x - from.x) * eased,
+        from.y + (y - from.y) * eased,
+      );
+      await wait(Math.max(0, start + step * 20 - Date.now()));
+    }
+    cursor = { x, y };
+  };
+  const scroll = async (locator) => {
+    await locator.evaluate(async (element) => {
+      const box = element.getBoundingClientRect();
+      if (box.top >= 100 && box.bottom <= innerHeight - 30) return;
+      const from = scrollY;
+      const to = Math.max(
+        0,
+        Math.min(
+          document.documentElement.scrollHeight - innerHeight,
+          from + box.top - 130,
+        ),
+      );
+      const start = performance.now();
+      await new Promise((resolve) => {
+        function frame(now) {
+          const t = Math.min(1, (now - start) / 1100);
+          window.scrollTo({
+            top: from + (to - from) * (t * t * (3 - 2 * t)),
+            behavior: "instant",
+          });
+          if (t < 1) requestAnimationFrame(frame);
+          else resolve();
+        }
+        requestAnimationFrame(frame);
+      });
+    });
+  };
+  const transition = async (action) => {
+    await page.evaluate(() => {
+      document.getElementById("demo-curtain").style.opacity = "1";
+    });
+    await wait(700);
+    await action();
+    await page.evaluate(() => {
+      document.getElementById("demo-curtain").style.opacity = "0";
+    });
+    await wait(850);
+  };
   const point = async (locator) => {
     const box = await locator.boundingBox();
     assert.ok(box);
-    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, {
-      steps: 22,
-    });
+    await move(box.x + box.width / 2, box.y + box.height / 2);
   };
   const click = async (locator) => {
-    await locator.scrollIntoViewIfNeeded();
+    await scroll(locator);
     await point(locator);
     await wait(220);
     await locator.click();
@@ -173,39 +234,34 @@ try {
         .map((img) => img.decode()),
     );
   });
-  cue("LIBERTÉ · Нишевая парфюмерия");
+  cue("ALIDEN PARFUM · Нишевая парфюмерия");
   await at(3);
   await point(page.getByRole("link", { name: "Открыть каталог", exact: true }));
   await shot("01-home");
-  await at(7);
+  await at(6);
   cue("Подборка ароматов — знакомство с коллекцией");
-  await page
-    .locator("#selection")
-    .evaluate((element) =>
-      element.scrollIntoView({ behavior: "smooth", block: "start" }),
-    );
-  await wait(1400);
+  await scroll(page.locator("#selection"));
   await point(page.locator('.selection-grid [data-product="ombre-leather"]'));
-  await at(12);
-  await page.goto(`${shopURL}/catalog.html`);
+  await at(10);
+  await transition(() => page.goto(`${shopURL}/catalog.html`));
   cue("Каталог: фильтры по нотам и быстрый поиск");
   await wait(800);
   await click(page.getByRole("tab", { name: "Кожаные", exact: true }));
-  await at(16);
+  await at(14);
   const search = page.getByLabel("Поиск аромата", { exact: true });
   await click(search);
   await search.pressSequentially("Ombré", { delay: 90 });
   await wait(600);
   const card = page.locator('[data-product="ombre-leather"]');
-  await card.scrollIntoViewIfNeeded();
+  await scroll(card);
   await shot("02-catalog");
-  await at(20);
+  await at(18);
   cue("Выбираем 10 мл — стоимость рассчитывается автоматически");
   await point(card.locator(".volume-select"));
   await card.locator(".volume-select").selectOption("10");
   await wait(700);
   await click(card.locator("[data-add]"));
-  await at(24);
+  await at(22);
   await click(
     page.getByRole("button", { name: "Открыть корзину", exact: true }),
   );
@@ -218,27 +274,22 @@ try {
     .pressSequentially("7000000000", { delay: 100 });
   await page.getByLabel("Разрешаю связаться").check();
   await shot("03-cart");
-  await at(33);
+  await at(30);
   await click(
     page.getByRole("button", { name: "Оставить заявку", exact: true }),
   );
   await page.locator(".order-success:visible").waitFor();
-  assert.match(await page.locator(".receipt-code").innerText(), /^LIB-/);
+  assert.match(await page.locator(".receipt-code").innerText(), /^AP-/);
   cue("Заявка создана — клиент получает номер заказа");
   await shot("04-receipt");
-  await at(38);
-  await page.goto(adminURL);
+  await at(34);
+  await transition(() => page.goto(adminURL));
   await page.locator("#dashboard:visible").waitFor();
   await page.locator(".order-card").waitFor();
   cue("Кабинет продавца: все детали заказа в одном месте");
-  await page
-    .locator(".order-card")
-    .evaluate((element) =>
-      element.scrollIntoView({ behavior: "smooth", block: "start" }),
-    );
-  await wait(1200);
+  await scroll(page.locator(".order-card"));
   await shot("05-seller");
-  await at(44);
+  await at(40);
   cue("Продавец проверяет оплату и подтверждает заказ");
   await page
     .getByLabel("Статус заказа", { exact: true })
@@ -246,7 +297,7 @@ try {
   const paid = page.getByLabel(
     "Оплата проверена. Подтверждаю списание объёма со склада.",
   );
-  await paid.scrollIntoViewIfNeeded();
+  await scroll(paid);
   await wait(800);
   await paid.check();
   await wait(700);
@@ -256,20 +307,20 @@ try {
       .querySelector(".order-stock-state")
       ?.textContent.startsWith("Объём списан"),
   );
-  await at(50);
+  await at(46);
   cue("Склад обновляется автоматически: 100 мл − 10 мл = 90 мл");
-  await click(page.getByRole("button", { name: "Склад", exact: true }));
+  await transition(() =>
+    page.getByRole("button", { name: "Склад", exact: true }).click(),
+  );
   const stock = page.locator(
     '.inventory-card[data-stock-product="ombre-leather"]',
   );
   await stock.waitFor();
   assert.equal(await stock.locator(".stock-amount").innerText(), "90 мл");
-  await stock.evaluate((element) =>
-    element.scrollIntoView({ behavior: "smooth", block: "center" }),
-  );
+  await scroll(stock);
   await wait(1000);
   await shot("06-stock");
-  await at(55);
+  await at(51);
   cue("Новое поступление? Продавец сам пополняет остатки");
   await stock.getByLabel("Операция", { exact: true }).selectOption("add");
   await stock.getByLabel("Объём, мл", { exact: true }).fill("50");
@@ -285,11 +336,10 @@ try {
       )?.textContent === "140 мл",
   );
   await shot("07-replenished");
-  await at(61);
-  await page.goto(shopURL);
-  cue("LIBERTÉ · Витрина, заказы и склад вместе");
-  await page.mouse.move(1300, 700, { steps: 15 });
-  await at(66);
+  await at(57);
+  cue("ALIDEN PARFUM · Витрина, заказы и склад вместе");
+  await move(1300, 700);
+  await at(60);
   assert.deepEqual(errors, []);
   const recording = page.video();
   await context.close();
@@ -300,6 +350,10 @@ try {
   // Add a dedicated caption band below the viewport; never obscure the UI.
   const font = join(root, "site/dist/assets/fonts/manrope-regular.ttf");
   const filters = [
+    "setpts=PTS-STARTPTS",
+    "fps=50",
+    "tpad=stop_mode=clone:stop_duration=2",
+    "trim=duration=60",
     "pad=iw:ih+88:0:0:color=0x060b14",
     `drawtext=fontfile='${font}':text='ДЕМОВЕРСИЯ · демонстрационные данные':fontsize=15:fontcolor=0x9f9f94:x=(w-tw)/2:y=h-25`,
   ];
@@ -310,35 +364,49 @@ try {
       `drawtext=fontfile='${font}':textfile='${caption}':fontsize=25:fontcolor=0xecd6ae:x=(w-tw)/2:y=h-68:enable='between(t,${index === 0 ? 0 : cues[index].start},${cues[index + 1]?.start || 68})'`,
     );
   }
-  filters.push("fade=t=in:st=0:d=0.5", "fade=t=out:st=65:d=1");
+  filters.push("fade=t=in:st=0:d=0.5", "fade=t=out:st=59:d=1");
   const filterFile = join(output, "captions.filter");
   await writeFile(filterFile, filters.join(","));
-  const mp4 = join(output, "Liberte-demo.mp4");
-  await command(ffmpeg, [
+  const mp4 = join(output, "Aliden-Parfum-15MB.mp4");
+  const encoding = [
     "-y",
     "-i",
     raw,
     "-filter_script:v",
     filterFile,
     "-t",
-    "66",
+    "60",
     "-r",
-    "30",
+    "50",
     "-c:v",
     "libx264",
     "-preset",
     "veryslow",
-    "-crf",
-    "12",
-    "-maxrate",
-    "1800k",
-    "-bufsize",
-    "3600k",
+    "-b:v",
+    "1950k",
     "-pix_fmt",
     "yuv420p",
+    "-an",
+  ];
+  const passlog = join(output, "quality-pass");
+  await command(ffmpeg, [
+    ...encoding,
+    "-pass",
+    "1",
+    "-passlogfile",
+    passlog,
+    "-f",
+    "null",
+    "/dev/null",
+  ]);
+  await command(ffmpeg, [
+    ...encoding,
+    "-pass",
+    "2",
+    "-passlogfile",
+    passlog,
     "-movflags",
     "+faststart",
-    "-an",
     mp4,
   ]);
   await command(ffmpeg, ["-v", "error", "-i", mp4, "-f", "null", "-"]);

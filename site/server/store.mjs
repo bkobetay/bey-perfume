@@ -77,8 +77,8 @@ export function presentOrder(row) {
   order.items = JSON.parse(order.items).map((item) => ({
     ...item,
     name: item.name.replace(
-      /^КОЛЛЕКЦИЯ (?:BEY|TS|LAGUNA|PERFUME STUDIO|PERFUMELAND|PARFBURO|VOXPARFUM\.KZ|AROMANIA\.KZ|NICHE AVENUE|FLORA PERFUME|RATAY PERFUME) /,
-      "КОЛЛЕКЦИЯ LIBERTÉ ",
+      /^КОЛЛЕКЦИЯ (?:BEY|TS|LAGUNA|PERFUME STUDIO|PERFUMELAND|PARFBURO|VOXPARFUM\.KZ|AROMANIA\.KZ|NICHE AVENUE|FLORA PERFUME|RATAY PERFUME|LIBERTÉ) /,
+      "КОЛЛЕКЦИЯ ALIDEN PARFUM ",
     ),
   }));
   return order;
