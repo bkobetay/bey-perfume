@@ -28,11 +28,11 @@ const privatePath = (name) =>
 const blocked = files.filter(privatePath);
 if (blocked.length) {
   console.error(
-    "[Arafan Perfume] Push blocked: private files are committed. Remove them from Git before uploading:\n" +
+    "[PARFGREEN] Push blocked: private files are committed. Remove them from Git before uploading:\n" +
       blocked.join("\n"),
   );
   process.exit(1);
 }
 console.log(
-  "[Arafan Perfume] No private data paths in the committed tree or unpushed history.",
+  "[PARFGREEN] No private data paths in the committed tree or unpushed history.",
 );
