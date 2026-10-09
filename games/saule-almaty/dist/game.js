@@ -3,7 +3,7 @@
 const $=id=>document.getElementById(id), canvas=$('world'), ctx=canvas.getContext('2d');
 const geography=window.SAULE_MAP;
 const W=geography.width,H=geography.height, keys=new Set(),held=new Set();
-const map=new Image(),sprite=new Image();map.src='assets/pixel-almaty-town.png';sprite.src='assets/saule-walk.png';
+const map=new Image(),sprite=new Image();map.src='assets/pixel-almaty-landmarks.png';sprite.src='assets/saule-walk.png';
 const initialStars=geography.stars;
 const places=geography.landmarks;
 let mode='intro',freeplay=false,stars=[],visits=new Set(),player,particles=[],clock=0,last=0,cw=0,ch=0,dpr=1,camera={x:geography.start[0],y:geography.start[1]},toastTimer;
@@ -12,7 +12,7 @@ let musicEnabled=true;
 function playMusic(){if(musicEnabled&&backgroundAudio.getAttribute('src'))backgroundAudio.play().catch(()=>{if(musicEnabled&&mode==='playing')notify('Нажми ♪, чтобы включить музыку.');});}
 function reset(){player={x:geography.start[0],y:geography.start[1],energy:100,moving:false,running:false,face:1,steps:0};stars=initialStars.map(([x,y],i)=>({x,y,i,taken:false}));visits.clear();particles=[];freeplay=false;clock=0;camera={x:geography.start[0],y:geography.start[1]};keys.clear();held.clear();updateUI()}
 function state(){return{mode,stars:stars.filter(s=>s.taken).length,totalStars:12,visited:places.filter(p=>visits.has(p.id)).map(p=>p.name),position:{x:Math.round(player.x),y:Math.round(player.y)},energy:Math.round(player.energy),freeplay}}
-function updateUI(){const n=stars.filter(s=>s.taken).length;$('score').textContent=n;$('objective').textContent=n<12?'Собери звёздочки по пути':visits.size<3?'Загляни во все три места':'Отличный день в Алматы!';for(const p of places)$(`place-${p.id}`).classList.toggle('visited',visits.has(p.id));$('energy').style.width=player.energy+'%'}
+function updateUI(){const n=stars.filter(s=>s.taken).length;$('score').textContent=n;$('objective').textContent=n<12?'Собери звёздочки по пути':visits.size<places.length?'Загляни во все места':'Отличный день в Алматы!';for(const p of places)$(`place-${p.id}`).classList.toggle('visited',visits.has(p.id));$('energy').style.width=player.energy+'%'}
 function notify(text){$('toast').textContent=text;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),3000)}
 function clearInput(){keys.clear();held.clear();for(const b of document.querySelectorAll('.held'))b.classList.remove('held')}
 function setMode(next){mode=next;clearInput();$('intro').hidden=mode!=='intro';$('paused').hidden=mode!=='paused';$('complete').hidden=mode!=='complete';$('pause').textContent=mode==='paused'?'▷':'Ⅱ';$('pause').setAttribute('aria-label',mode==='paused'?'Продолжить прогулку':'Поставить на паузу');if(mode==='playing'){playMusic();canvas.focus({preventScroll:true});}else if(mode==='paused'){backgroundAudio.pause();$('resume').focus({preventScroll:true});}else if(mode==='complete')$('freeplay').focus({preventScroll:true})}
@@ -24,7 +24,7 @@ function move(dt){const active=k=>keys.has(k)||held.has(k);let dx=(active('right
  for(const s of stars){if(!s.taken&&Math.hypot(s.x-player.x,s.y-player.y)<38){s.taken=true;burst(s.x,s.y,'#f7c94d');updateUI()}}
  let near=player.y<110?'Солнечная улица':player.y>900?'Тенистый бульвар':player.x<110||player.x>1400?'Липовая аллея':'Уютные дворики';for(const p of places){const dist=Math.hypot(p.x-player.x,p.y-player.y);if(dist<200)near=p.name;if(dist<55&&!visits.has(p.id)){visits.add(p.id);notify(p.message);burst(p.x,p.y,'#b798e3');updateUI()}}
  $('district').textContent=near;
- if(!freeplay&&visits.size===3&&stars.every(s=>s.taken)){setMode('complete');}
+ if(!freeplay&&visits.size===places.length&&stars.every(s=>s.taken)){setMode('complete');}
 }
 function burst(x,y,color){for(let i=0;i<12;i++)particles.push({x,y,vx:(Math.random()-.5)*160,vy:(Math.random()-.6)*160,life:.7,color})}
 function resize(){const r=canvas.getBoundingClientRect();cw=r.width;ch=r.height;dpr=Math.min(devicePixelRatio||1,2);canvas.width=Math.round(cw*dpr);canvas.height=Math.round(ch*dpr)}
