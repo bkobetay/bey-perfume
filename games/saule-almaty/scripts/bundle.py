@@ -26,7 +26,7 @@ def data_url(name):
 css = (root / 'style.css').read_text()
 css = re.sub(r"url\('([^']+)'\)", lambda m: "url('" + data_url(m[1]) + "')", css)
 game = (root / 'game.js').read_text()
-for name in ['assets/golden-square-map.png', 'assets/saule-walk.png']:
+for name in ['assets/pixel-almaty-town.png', 'assets/saule-walk.png']:
     game = game.replace("'" + name + "'", "'" + data_url(name) + "'")
 html = (root / 'index.html').read_text()
 html = re.sub(r'(<audio id="background-audio"[^>]*\bsrc=")([^"]+)(")', lambda m: m[1] + data_url(m[2]) + m[3], html)
@@ -43,14 +43,10 @@ filename = 'Сауле_Алматы.html'
 Стрелки или WASD — идти. Shift или пробел — бежать. Escape — пауза.
 На телефоне используй кнопки под картой.
 
-Собери 12 звёзд и найди памятник Цою, парк Кунаева и дом-музей Ауэзова.
+Собери 12 звёзд и найди кофейню, цветущий сквер и фонтан.
 После завершения можно продолжить прогулку.
 
-Карта использует реальные улицы и здания OpenStreetMap, © OpenStreetMap contributors, ODbL 1.0.
-https://www.openstreetmap.org/copyright
-Данные карты включены в HTML и доступны на условиях ODbL:
-https://opendatacommons.org/licenses/odbl/1-0/
-Карта — двумерная схема выбранного фрагмента центра Алматы и соседних кварталов.
+Пиксельный город — художественная игровая интерпретация Золотого квадрата Алматы.
 
 Игра работает без интернета.
 Подключённая музыка запускается с началом прогулки и играет по кругу.
