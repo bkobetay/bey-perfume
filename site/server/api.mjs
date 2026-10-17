@@ -212,7 +212,7 @@ export function createAPI(products, directory = privateDir) {
             fail(400, "Неверный ключ заявки.");
           const validated = validateOrder(data);
           const fingerprint = digest(JSON.stringify(validated));
-          const id = `PG-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${randomBytes(5).toString("hex").toUpperCase()}`;
+          const id = `BEY-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${randomBytes(5).toString("hex").toUpperCase()}`;
           const now = new Date().toISOString();
           db.exec("BEGIN IMMEDIATE");
           try {

@@ -1,21 +1,23 @@
-# Портфолио для фриланс-площадок
+# Bainur Kobetay: портфолио BEY Perfume
 
-Самостоятельный демонстрационный проект интернет-магазина нишевой парфюмерии. В кейсе показана текущая версия витрины PARFGREEN; это не заявление об официальном коммерческом заказе бренда. Цены, остатки и контакты на скриншотах тестовые. Публикации сайта и интеграции онлайн-оплаты нет.
+Автор: **Bainur Kobetay**.
+
+Самостоятельный демонстрационный проект интернет-магазина нишевой парфюмерии. В кейсе показана текущая версия витрины BEY Perfume; это не заявление об официальном коммерческом заказе бренда. Цены, остатки и контакты на скриншотах тестовые. Публикации сайта и интеграции онлайн-оплаты нет.
 
 ## Готовые материалы
 
 Локальные файлы, специально не включённые в Git:
 
-- `output/pdf/Perfume-Store-Portfolio-RU.pdf` - шестистраничный PDF: главная и мобильная версия, каталог, корзина, кабинет продавца, склад, реализация.
-- `output/portfolio/Portfolio-Cover.jpg` - обложка для галереи работ.
-- `output/portfolio/Portfolio-Descriptions-RU-EN.txt` - тексты ниже в удобном для копирования формате.
-- `output/portfolio/Freelance-Portfolio-Pack.zip` - PDF, обложка и описания одним архивом.
+- `output/pdf/Bainur-Kobetay-BEY-Perfume-Portfolio.pdf` - шестистраничный PDF: главная и мобильная версия, каталог, корзина, кабинет продавца, склад, реализация.
+- `output/portfolio/bey-perfume/Portfolio-Cover.jpg` - обложка для галереи работ.
+- `output/portfolio/bey-perfume/Portfolio-Descriptions-RU-EN.txt` - тексты ниже в удобном для копирования формате.
+- `output/portfolio/bey-perfume/Freelance-Portfolio-Pack.zip` - PDF, обложка и описания одним архивом.
 
 На форме из пользовательского скриншота лимит файла - 10 МБ. Для поля прикрепления подходит PDF; обложка предназначена для галереи. Если площадка принимает ссылки на исходный код, можно указать https://github.com/bkobetay/bey-perfume. Это репозиторий, а не опубликованный сайт; адрес 127.0.0.1 доступен только на локальном компьютере и для портфолио-ссылки не подходит.
 
 ## RU: название работы
 
-Интернет-магазин нишевой парфюмерии: каталог, заявки и кабинет продавца
+BEY Perfume - интернет-магазин нишевой парфюмерии: каталог, заявки и кабинет продавца
 
 ## RU: короткое описание
 
@@ -48,7 +50,7 @@
 
 ## EN: project title
 
-Niche Perfume Store: Product Catalog, Order Requests & Seller Dashboard
+BEY Perfume: Product Catalog, Order Requests & Seller Dashboard
 
 ## EN: short description
 
@@ -66,7 +68,7 @@ The seller dashboard provides password-based login, order search, status tabs, s
 
 Order, inventory, name-validation and private-file tests complement browser verification. Git history and checkpoint tags preserve rollback points.
 
-Result: a working local demonstration of the customer-to-seller workflow. This is an independent demonstration using PARFGREEN branding, not an official commissioned brand project. Prices, inventory and screenshot contacts are fictional/demo data. No commercial sales metrics, live payment integration or public deployment are claimed.
+Result: a working local demonstration of the customer-to-seller workflow. This is an independent demonstration using BEY Perfume branding, not an official commissioned brand project. Prices, inventory and screenshot contacts are fictional/demo data. No commercial sales metrics, live payment integration or public deployment are claimed.
 
 Stack: HTML, CSS, JavaScript, Node.js, SQLite, Git.
 
@@ -80,4 +82,4 @@ I build responsive catalog websites, order-request stores and dashboards for sma
 
 ## Границы публикации
 
-Материалы подготовлены для ручного размещения пользователем. Регистрация, заполнение анкеты, принятие соглашений и публикация на внешних площадках не выполнялись. Реальные заказы, телефоны, пароли, приватная база и ключи в PDF, обложку, архив и Git не включены. Автор не подписан без подтверждения имени.
+Материалы подготовлены для ручного размещения пользователем. Регистрация, заполнение анкеты, принятие соглашений и публикация на внешних площадках не выполнялись. Реальные заказы, телефоны, пароли, приватная база и ключи в PDF, обложку, архив и Git не включены. Автор: Bainur Kobetay. Имя подтверждено пользователем.

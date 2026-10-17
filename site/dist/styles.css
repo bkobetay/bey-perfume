@@ -204,7 +204,7 @@ body:focus {
 .hero-art {
   position: absolute;
   inset: -10px 0 0 28%;
-  background: #0a1220 url("/assets/parfgreen-hero.webp") center/cover;
+  background: #0a1220 url("/assets/bey-hero.webp") center/cover;
   mask-image: linear-gradient(to right, transparent, #000 23%);
   opacity: 0.95;
   animation: hero-image 1.6s var(--ease) both;
@@ -2094,7 +2094,7 @@ h2 + p {
   }
 }
 
-/* PARFGREEN's wider wordmark stays legible on narrow screens. */
+/* BEY Perfume wordmark and signature. */
 .image-signature {
   font-family: Manrope, sans-serif;
   font-weight: 400;
@@ -2114,14 +2114,14 @@ h2 + p {
   }
 }
 
-/* PARFGREEN: the supplied circular logo keeps its proportions. */
+/* BEY Perfume: transparent serif wordmark. */
 .brand-wordmark {
-  width: 68px;
-  border-radius: 50%;
+  width: 96px;
+  border-radius: 0;
 }
 @media (max-width: 600px) {
   .brand-wordmark {
-    width: 52px;
+    width: 78px;
   }
 }
 .header .brand-wordmark,
