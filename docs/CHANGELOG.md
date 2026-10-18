@@ -471,3 +471,10 @@ Checkpoint: `checkpoint/v7-seller-service`. Diff: `artifacts/09-seller-service-s
 ### Границы этапа
 
 Корзина, оформление заказа, реальные товары, цены, видео и контакты пока отсутствуют. Иллюстрация и тексты демонстрационные. Публикации и push в удалённый репозиторий не было.
+
+## 2026-10-19 — headline and typography
+
+- Replaced the home headline with «Твой аромат. Твой характер.».
+- Self-hosted the real variable Manrope weights (200–800) and made the hero heading 800, with responsive sizing.
+- Checked 320px, 390px, 768px and desktop layouts; refreshed local portfolio/PDF screenshots.
+- JavaScript checks and all 5 tests passed.
