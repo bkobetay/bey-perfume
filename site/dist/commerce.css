@@ -176,16 +176,6 @@ select {
   overflow: auto;
   overscroll-behavior: contain;
 }
-.demo-notice {
-  padding: 12px 15px;
-  border: 1px solid #ccb48d26;
-  border-radius: 8px;
-  color: #c3b699;
-  background: #ccb48d06;
-  font-size: 11px;
-  line-height: 1.7;
-  margin: 0 0 13px;
-}
 .cart-item {
   display: grid;
   grid-template-columns: 64px 1fr auto;

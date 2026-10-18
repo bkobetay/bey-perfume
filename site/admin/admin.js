@@ -123,7 +123,7 @@
           `${index + 1}. ${item.name}\nКөлемі: ${item.ml} мл · Саны: ${item.quantity}\nБір данасының бағасы: ${money(item.price)} · Сомасы: ${money(item.subtotal)}`,
       )
       .join("\n\n");
-    return `Здравствуйте, ${order.name}! Это BEY Perfume.
+    return `Здравствуйте, ${order.name}! Это Perfume Store.
 
 Код заказа: ${order.id}
 Имя клиента: ${order.name}
@@ -135,7 +135,7 @@ ${russianItems}
 
 ──────────
 
-Сәлеметсіз бе, ${order.name}! Бұл — BEY Perfume.
+Сәлеметсіз бе, ${order.name}! Бұл — Perfume Store.
 
 Тапсырыс коды: ${order.id}
 Клиенттің аты: ${order.name}
@@ -524,7 +524,14 @@ ${kazakhItems}
           const text = el("div");
           text.append(
             el("strong", "", names.get(m.product_id) || m.product_id),
-            el("p", "", kinds[m.kind] + " · " + m.reason),
+            el(
+              "p",
+              "",
+              kinds[m.kind] + " · " +
+                (m.reason.startsWith("Начальный демо-остаток")
+                  ? "Начальный остаток"
+                  : m.reason),
+            ),
             el(
               "small",
               "field-hint",

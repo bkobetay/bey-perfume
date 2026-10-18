@@ -40,7 +40,7 @@ export function initializeInventory(db, products) {
           first ? 1000 : 0,
           first ? 1000 : 0,
           "initial",
-          first ? "Начальный демо-остаток" : "Новый аромат",
+          first ? "Начальный остаток" : "Новый аромат",
           now,
         );
     }

@@ -204,7 +204,7 @@ body:focus {
 .hero-art {
   position: absolute;
   inset: -10px 0 0 28%;
-  background: #0a1220 url("/assets/bey-hero.webp") center/cover;
+  background: #0a1220 url("/assets/perfume-store-hero.webp") center/cover;
   mask-image: linear-gradient(to right, transparent, #000 23%);
   opacity: 0.95;
   animation: hero-image 1.6s var(--ease) both;
@@ -1370,7 +1370,7 @@ h2 + p {
 .text-link:hover span {
   transform: translate(2px, -2px);
 }
-.demo-bottle {
+.perfume-bottle {
   width: 33%;
   height: 70%;
   position: relative;
@@ -1463,7 +1463,7 @@ h2 + p {
     opacity: 1;
   }
   .product-card[data-pointer-active] .product-visual > img,
-  .product-card[data-pointer-active] .demo-bottle {
+  .product-card[data-pointer-active] .perfume-bottle {
     transform: translateY(-5px) scale(1.035);
   }
   .product-card[data-product="gaba"][data-pointer-active]
@@ -1576,7 +1576,7 @@ h2 + p {
   .featured-card .product-copy {
     padding-top: 18px;
   }
-  .demo-bottle {
+  .perfume-bottle {
     width: 41%;
     height: 65%;
   }
@@ -2094,7 +2094,7 @@ h2 + p {
   }
 }
 
-/* BEY Perfume wordmark and signature. */
+/* Perfume Store wordmark and signature. */
 .image-signature {
   font-family: Manrope, sans-serif;
   font-weight: 400;
@@ -2114,7 +2114,7 @@ h2 + p {
   }
 }
 
-/* BEY Perfume: transparent serif wordmark. */
+/* Perfume Store: transparent serif wordmark. */
 .brand-wordmark {
   width: 96px;
   border-radius: 0;

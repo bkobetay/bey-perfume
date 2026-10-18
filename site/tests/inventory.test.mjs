@@ -352,7 +352,7 @@ test("stock: atomic confirmations, manual returns, concurrency, idempotency and 
       );
     assert.equal(
       (await getOrder(legacyId)).items[0].name,
-      "КОЛЛЕКЦИЯ BEY Mawashi",
+      "КОЛЛЕКЦИЯ PERFUME STORE Mawashi",
     );
     assert.equal(
       api.db.prepare("SELECT items FROM orders WHERE id = ?").get(legacyId)

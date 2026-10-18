@@ -54,9 +54,9 @@ function card(product, index, featured = false) {
   const name = escape(product.name);
   const visual = product.image
     ? `<img src="/assets/products/${escape(product.image)}" alt="Флакон ${escape(product.brand)} ${name}${product.edition ? ` — ${escape(product.edition)}` : ""}" width="800" height="800" loading="lazy" decoding="async" />`
-    : `<div class="demo-bottle" aria-hidden="true"><div class="bottle-cap"></div><div class="bottle-body"><div class="bottle-label"><small>BEY Perfume</small><span>${name}</span><i>SCENT COLLECTION</i></div></div></div><span class="visual-disclaimer">Демо-визуал</span>`;
+    : `<div class="perfume-bottle" aria-hidden="true"><div class="bottle-cap"></div><div class="bottle-body"><div class="bottle-label"><small>Perfume Store</small><span>${name}</span><i>SCENT COLLECTION</i></div></div></div>`;
   return `<article class="product-card${featured ? " featured-card reveal" : ""}" data-product="${escape(product.id)}" data-categories="${product.categories.join(" ")}" data-accent="${product.accent}">
-    <div class="product-visual"><span class="product-index" aria-hidden="true">${String(index + 1).padStart(2, "0")}${featured ? " / BEY EDIT" : ""}</span>${visual}</div>
+    <div class="product-visual"><span class="product-index" aria-hidden="true">${String(index + 1).padStart(2, "0")}${featured ? " / STORE EDIT" : ""}</span>${visual}</div>
     <div class="product-copy"><p class="product-brand">${escape(product.brand)}</p><h3>${name}</h3><p class="product-notes">${escape(product.notes)}</p><div class="product-tags">${
       product.categories.length
         ? product.categories
@@ -64,7 +64,7 @@ function card(product, index, featured = false) {
             .map((category) => `<span>${labels[category]}</span>`)
             .join("")
         : "<span>Знакомство скоро</span>"
-    }</div><div class="purchase-controls"><label>Объём<select class="volume-select" aria-label="Объём ${name}">${product.variants.map((v) => `<option value="${v.ml}">${v.ml} мл · ${v.price.toLocaleString("ru-RU")} ₸</option>`).join("")}</select></label><button class="add-cart" type="button" data-add="${escape(product.id)}" aria-label="Добавить ${name} в корзину" disabled>В корзину <span aria-hidden="true">+</span></button><span class="product-availability" role="status">Проверяем наличие…</span><small>Демонстрационная цена</small></div></div>
+    }</div><div class="purchase-controls"><label>Объём<select class="volume-select" aria-label="Объём ${name}">${product.variants.map((v) => `<option value="${v.ml}">${v.ml} мл · ${v.price.toLocaleString("ru-RU")} ₸</option>`).join("")}</select></label><button class="add-cart" type="button" data-add="${escape(product.id)}" aria-label="Добавить ${name} в корзину" disabled>В корзину <span aria-hidden="true">+</span></button><span class="product-availability" role="status">Проверяем наличие…</span></div></div>
   </article>`;
 }
 const replace = (html, name, value) => {
