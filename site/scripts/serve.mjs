@@ -104,7 +104,7 @@ const server = http.createServer(async (request, response) => {
     const fileRoot = adminFile ? adminRoot : root;
     const path = resolve(
       fileRoot,
-      `.${pathname === "/" ? "/index.html" : pathname}`,
+      `.${pathname === "/" ? "/index.html" : pathname === "/catalog" ? "/catalog.html" : pathname}`,
     );
     if (
       !path.startsWith(fileRoot.endsWith(sep) ? fileRoot : fileRoot + sep) ||

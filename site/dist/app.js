@@ -212,7 +212,7 @@ function warmPage(event) {
   if (!link) return;
   const url = new URL(link.href);
   if (url.origin !== location.origin ||
-      !["/", "/index.html", "/catalog.html"].includes(url.pathname) ||
+      !["/", "/index.html", "/catalog", "/catalog.html"].includes(url.pathname) ||
       (url.pathname === location.pathname && url.search === location.search)) return;
   url.hash = "";
   if (prefetchedPages.has(url.href)) return;
