@@ -22,17 +22,18 @@ const files = [
 ];
 const privatePath = (name) =>
   /(^|\/)private\//.test(name) ||
+  /(^|\/)\.dev\.vars(?:\.|$)/.test(name) ||
   (/(^|\/)\.env(?:\.|$)/.test(name) && !name.endsWith(".env.example")) ||
   /\.(?:sqlite(?:-.*)?|db(?:-.*)?|pem|key)$/.test(name) ||
   /(^|\/)admin-access\.txt$/.test(name);
 const blocked = files.filter(privatePath);
 if (blocked.length) {
   console.error(
-    "[Perfume Store] Push blocked: private files are committed. Remove them from Git before uploading:\n" +
+    "[Arafan Perfume] Push blocked: private files are committed. Remove them from Git before uploading:\n" +
       blocked.join("\n"),
   );
   process.exit(1);
 }
 console.log(
-  "[Perfume Store] No private data paths in the committed tree or unpushed history.",
+  "[Arafan Perfume] No private data paths in the committed tree or unpushed history.",
 );

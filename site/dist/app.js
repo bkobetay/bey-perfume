@@ -92,7 +92,7 @@ window.addEventListener("keydown", (event) => {
     stopScroll();
 });
 window.addEventListener("popstate", stopScroll);
-function scrollToSection(target) {
+function scrollToSection(target, instant = false) {
   stopScroll();
   const from = window.scrollY;
   const desired =
@@ -115,7 +115,7 @@ function scrollToSection(target) {
       document.querySelector(".header .brand").focus({ preventScroll: true });
     updateNavigation();
   };
-  if (reducedMotion.matches || Math.abs(to - from) < 2) {
+  if (instant || reducedMotion.matches || Math.abs(to - from) < 2) {
     window.scrollTo(0, to);
     finish();
     return;
@@ -153,7 +153,7 @@ document.addEventListener("click", (event) => {
   event.preventDefault();
   closeMenu();
   if (location.hash !== hash) history.pushState(null, "", hash);
-  scrollToSection(target);
+  scrollToSection(target, event.detail === 0);
 });
 
 // Animate once as a section enters the viewport. Content remains visible without JS.
@@ -169,7 +169,7 @@ if ("IntersectionObserver" in window) {
             { opacity: 0, translate: "0 24px" },
             { opacity: 1, translate: "0 0" },
           ],
-          { duration: 850, easing: "cubic-bezier(.22,1,.36,1)" },
+          { duration: 500, easing: "cubic-bezier(.22,1,.36,1)" },
         );
       });
     },

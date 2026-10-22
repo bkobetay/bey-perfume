@@ -24,8 +24,8 @@
 }
 .order-tab[aria-selected="true"] {
   color: #eadac0;
-  border-color: #ccb48d75;
-  background: #ccb48d15;
+  border-color: #d8b56675;
+  background: #d8b56615;
 }
 .tab-count {
   display: grid;
@@ -66,8 +66,8 @@
   margin: 12px 0 32px;
 }
 .seller-sections [aria-pressed="true"] {
-  border-color: #ccb48d;
-  background: #ccb48d1c;
+  border-color: #d8b566;
+  background: #d8b5661c;
   color: #eadac0;
 }
 #inventory-panel h2 {
@@ -135,7 +135,7 @@
   font-size: 15px;
 }
 .stock-edit option {
-  background: #0d1625;
+  background: #00352a;
 }
 .stock-reason,
 .stock-edit .save-feedback {
@@ -176,14 +176,14 @@
   align-items: flex-start;
   gap: 10px;
   padding: 14px;
-  border: 1px solid #ccb48d50;
+  border: 1px solid #d8b56650;
   border-radius: 8px;
 }
 .payment-check input {
   width: 18px;
   height: 18px;
   flex-shrink: 0;
-  accent-color: #ccb48d;
+  accent-color: #d8b566;
 }
 .payment-check[hidden] {
   display: none !important;

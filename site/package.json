@@ -1,5 +1,5 @@
 {
-  "name": "perfume-store",
+  "name": "arafan-perfume",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -10,7 +10,9 @@
     "admin:setup": "node scripts/setup-admin.mjs",
     "test": "node --test tests/*.test.mjs",
     "orders:backup": "node scripts/backup-orders.mjs",
-    "admin": "node scripts/serve.mjs --admin"
+    "admin": "node scripts/serve.mjs --admin",
+    "build:pages": "node scripts/build-pages.mjs",
+    "cloud:setup": "node scripts/setup-cloud-access.mjs"
   },
   "engines": {
     "node": ">=22.18.0"

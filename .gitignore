@@ -13,3 +13,8 @@ site/private/
 *.db-*
 *.pem
 *.key
+
+# Cloudflare local emulation and secret bindings
+.wrangler/
+.dev.vars
+.dev.vars.*

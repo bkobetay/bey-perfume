@@ -1,0 +1,13 @@
+{
+  "name": "arafan-perfume",
+  "pages_build_output_dir": "../artifacts/arafan-pages",
+  "compatibility_date": "2026-10-22",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "arafan-perfume-orders",
+      "database_id": "ee811391-1e37-456c-8590-a2e84b63b5c4",
+      "migrations_dir": "cloudflare/migrations",
+    },
+  ],
+}

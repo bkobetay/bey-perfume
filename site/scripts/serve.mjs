@@ -25,6 +25,7 @@ const types = {
   ".png": "image/png",
   ".svg": "image/svg+xml",
   ".ttf": "font/ttf",
+  ".woff2": "font/woff2",
   ".mp4": "video/mp4",
 };
 const server = http.createServer(async (request, response) => {
@@ -86,9 +87,15 @@ const server = http.createServer(async (request, response) => {
         "/styles.css",
         "/commerce.css",
         "/assets/favicon.svg",
-        "/assets/perfume-store-logo.svg",
+        "/assets/arafan-perfume-logo.png",
         "/assets/fonts/manrope-regular.ttf",
         "/assets/fonts/manrope-semibold.ttf",
+        "/assets/fonts/manrope-cyrillic-ext-wght-normal.woff2",
+        "/assets/fonts/manrope-cyrillic-wght-normal.woff2",
+        "/assets/fonts/manrope-greek-wght-normal.woff2",
+        "/assets/fonts/manrope-vietnamese-wght-normal.woff2",
+        "/assets/fonts/manrope-latin-ext-wght-normal.woff2",
+        "/assets/fonts/manrope-latin-wght-normal.woff2",
       ].includes(pathname)
     ) {
       notFound();
@@ -181,7 +188,7 @@ server.on("error", (error) => {
 });
 server.listen(port, "127.0.0.1", () =>
   console.log(
-    `Perfume Store ${admin ? "Seller (local only)" : "Perfume"}: http://127.0.0.1:${port}`,
+    `Arafan Perfume ${admin ? "Seller (local only)" : "Perfume"}: http://127.0.0.1:${port}`,
   ),
 );
 for (const signal of ["SIGTERM", "SIGINT"])

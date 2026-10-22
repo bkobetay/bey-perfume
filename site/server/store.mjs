@@ -78,7 +78,7 @@ export function presentOrder(row) {
     ...item,
     name: item.name.replace(
       /^КОЛЛЕКЦИЯ (?:BEY|TS|LAGUNA|PERFUME STUDIO|PERFUMELAND|PARFBURO|VOXPARFUM\.KZ|AROMANIA\.KZ|NICHE AVENUE|FLORA PERFUME|RATAY PERFUME|LIBERTÉ|ALIDEN PARFUM|VELORA PARFUM|EGO|CHARM PERFUME|CAPELLA PERFUME|SEUIP KOR|ARAFAN PERFUME|PARFGREEN|PERFUME STORE) /,
-      "КОЛЛЕКЦИЯ PERFUME STORE ",
+      "КОЛЛЕКЦИЯ ARAFAN PERFUME ",
     ),
   }));
   return order;
