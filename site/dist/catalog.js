@@ -126,10 +126,11 @@
     }
   }
   tabs.forEach((tab, index) => {
-    const select = () => {
+    const select = (event) => {
+      if (family === tab.dataset.filter) return;
       family = tab.dataset.filter;
       page = 1;
-      render({ historyMode: "push" });
+      render({ historyMode: "push", animate: event.detail !== 0 });
     };
     tab.addEventListener("click", select);
     tab.addEventListener("keydown", (event) => {
@@ -147,7 +148,7 @@
   });
   search.addEventListener("input", () => {
     page = 1;
-    render();
+    render({ animate: false });
   });
   clear.addEventListener("click", () => {
     search.value = "";

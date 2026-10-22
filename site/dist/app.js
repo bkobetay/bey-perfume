@@ -69,6 +69,16 @@ window.addEventListener(
 
 // Ease only intentional anchor navigation; ordinary scrolling stays native.
 let scrollFrame;
+let revealObserver;
+const revealAnimations = new WeakMap();
+const revealedElements = new WeakSet();
+function showSection(target) {
+  for (const element of [target, ...target.querySelectorAll(".reveal")]) {
+    revealedElements.add(element);
+    revealObserver?.unobserve(element);
+    revealAnimations.get(element)?.cancel();
+  }
+}
 function stopScroll() {
   cancelAnimationFrame(scrollFrame);
   scrollFrame = undefined;
@@ -94,6 +104,7 @@ window.addEventListener("keydown", (event) => {
 window.addEventListener("popstate", stopScroll);
 function scrollToSection(target, instant = false) {
   stopScroll();
+  showSection(target);
   const from = window.scrollY;
   const desired =
     target === document.body
@@ -158,26 +169,32 @@ document.addEventListener("click", (event) => {
 
 // Animate once as a section enters the viewport. Content remains visible without JS.
 if ("IntersectionObserver" in window) {
-  const observer = new IntersectionObserver(
+  revealObserver = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        observer.unobserve(entry.target);
+        if (!entry.isIntersecting || revealedElements.has(entry.target)) return;
+        revealedElements.add(entry.target);
+        revealObserver.unobserve(entry.target);
         if (reducedMotion.matches) return;
-        entry.target.animate(
+        const animation = entry.target.animate(
           [
-            { opacity: 0, translate: "0 24px" },
+            { opacity: 0, translate: "0 12px" },
             { opacity: 1, translate: "0 0" },
           ],
-          { duration: 500, easing: "cubic-bezier(.22,1,.36,1)" },
+          { duration: 320, easing: "cubic-bezier(.22,1,.36,1)" },
         );
+        revealAnimations.set(entry.target, animation);
       });
     },
     { threshold: 0.08 },
   );
   document
     .querySelectorAll(".reveal")
-    .forEach((element) => observer.observe(element));
+    .forEach((element) => {
+      // Never hide content that was already painted, or an arriving deep link.
+      if (!location.hash && element.getBoundingClientRect().top >= innerHeight)
+        revealObserver.observe(element);
+    });
 }
 reducedMotion.addEventListener("change", () => {
   if (!reducedMotion.matches) return;
@@ -186,3 +203,31 @@ reducedMotion.addEventListener("change", () => {
 });
 updateNavigation();
 document.querySelector("#year").textContent = new Date().getFullYear();
+
+// Warm only the two public documents before a deliberate cross-page navigation.
+const prefetchedPages = new Set();
+function warmPage(event) {
+  if (navigator.connection?.saveData) return;
+  const link = event.target.closest("a[href]");
+  if (!link) return;
+  const url = new URL(link.href);
+  if (url.origin !== location.origin ||
+      !["/", "/index.html", "/catalog.html"].includes(url.pathname) ||
+      (url.pathname === location.pathname && url.search === location.search)) return;
+  url.hash = "";
+  if (prefetchedPages.has(url.href)) return;
+  prefetchedPages.add(url.href);
+  const hint = document.createElement("link");
+  hint.rel = "prefetch";
+  hint.href = url.href;
+  document.head.append(hint);
+}
+document.addEventListener("pointerover", warmPage, { passive: true });
+document.addEventListener("focusin", warmPage);
+
+window.addEventListener("pagehide", () => {
+  stopScroll();
+  document.querySelectorAll(".reveal").forEach(element =>
+    revealAnimations.get(element)?.cancel());
+});
+window.addEventListener("pageshow", updateNavigation);
