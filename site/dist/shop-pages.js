@@ -43,6 +43,11 @@
             '<h1>Аромат не найден</h1><a class="button" href="/catalog">Вернуться в каталог</a>';
           return;
         }
+        const params = new URL(location.href).searchParams;
+        const selectedVariant =
+          p.variants.find((v) => v.ml === Number(params.get("ml"))) ||
+          p.variants[0];
+        const fromCart = params.get("from") === "cart";
         const type = p.type === "razliv" ? "Разлив" : "Распив оригинала",
           route = p.type === "razliv" ? "/catalog" : "/raspiv";
         const group = groups[p.collection] || "Ароматы";
@@ -63,10 +68,10 @@
           "), " +
           type.toLowerCase() +
           ".";
-        target.innerHTML = `<div class="product-navigation"><a class="detail-back" href="${back}"><span>Назад</span></a><nav class="breadcrumbs" aria-label="Путь к аромату"><a href="/">Главная</a><span>/</span><a href="${route}">${p.type === "razliv" ? "Каталог" : "Распив"}</a><span>/</span><a href="${back}">${esc(group)}</a><span>/</span><span aria-current="page">${esc(p.name)}</span></nav></div>
+        target.innerHTML = `<div class="product-navigation"><a class="detail-back" href="${fromCart ? "/cart" : back}"><span>${fromCart ? "К корзине" : "Назад"}</span></a><nav class="breadcrumbs" aria-label="Путь к аромату"><a href="/">Главная</a><span>/</span><a href="${route}">${p.type === "razliv" ? "Каталог" : "Распив"}</a><span>/</span><a href="${back}">${esc(group)}</a><span>/</span><span aria-current="page">${esc(p.name)}</span></nav></div>
     <article class="product-card detail-product" data-product="${esc(p.id)}"><div class="detail-gallery"><div class="product-visual">${p.image ? `<img src="/assets/products/${esc(p.image)}" alt="Аромат-ориентир ${esc(p.brand)} ${esc(p.name)}" width="800" height="800" fetchpriority="high">` : ""}</div><p class="gallery-caption">${p.type === "razliv" ? "На фото — флакон аромата-ориентира. В заказе — разливная парфюмерия в выбранном объёме." : "На фото — оригинальный флакон. Вы заказываете выбранный объём распива."}</p></div>
     <div class="product-copy detail-buy"><div class="detail-meta"><span class="type-label ${p.type === "razliv" ? "razliv" : ""}">${type}</span><span class="sku">Артикул ${esc(p.code)}</span></div><p class="product-brand">${esc(p.brand)}</p><h1>${esc(p.name)}</h1><p class="detail-audience">${audience} аромат</p><span class="product-availability" role="status">${p.available ? "В наличии" : "Нет в наличии"}</span>
-    <div class="purchase-controls"><strong class="current-price" data-current-price>${money(p.variants[0].price)}</strong><label>Объём флакона<select class="volume-select" aria-label="Объём ${esc(p.name)}">${p.variants.map((v) => `<option value="${v.ml}">${v.ml} мл — ${money(v.price)}</option>`).join("")}</select></label><p class="unit-price">${money(p.pricePerMl)} за 1 мл · без доплаты за упаковку</p><div class="detail-actions"><button data-add="${esc(p.id)}" class="add-cart" disabled>Добавить в корзину</button><button class="favorite-toggle" aria-pressed="false" aria-label="Сохранить ${esc(p.name)} в избранное"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 5.5c-2.2-2.3-5.6-1.8-8.5 1.3-2.9-3.1-6.3-3.6-8.5-1.3C.6 8.5 3 13 12 20c9-7 11.4-11.5 8.5-14.5Z"/></svg></button></div><button class="button button-glass buy-now" disabled>Добавить и оформить</button></div>
+    <div class="purchase-controls"><strong class="current-price" data-current-price>${money(selectedVariant.price)}</strong><label>Объём флакона<select class="volume-select" aria-label="Объём ${esc(p.name)}">${p.variants.map((v) => `<option value="${v.ml}" ${v.ml === selectedVariant.ml ? "selected" : ""}>${v.ml} мл — ${money(v.price)}</option>`).join("")}</select></label><p class="unit-price">${money(p.pricePerMl)} за 1 мл · без доплаты за упаковку</p><div class="detail-actions"><button data-add="${esc(p.id)}" class="add-cart" disabled>Добавить в корзину</button><button class="favorite-toggle" aria-pressed="false" aria-label="Сохранить ${esc(p.name)} в избранное"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 5.5c-2.2-2.3-5.6-1.8-8.5 1.3-2.9-3.1-6.3-3.6-8.5-1.3C.6 8.5 3 13 12 20c9-7 11.4-11.5 8.5-14.5Z"/></svg></button></div><button class="button button-glass buy-now" disabled>Добавить и оформить</button></div>
     <a class="product-question" href="https://wa.me/77472886509?text=${encodeURIComponent(question)}" target="_blank" rel="noopener">Есть вопрос об аромате? Напишите нам</a><p class="detail-delivery">Доставка — отдельно при получении. Итоговая стоимость товаров отображается в корзине.</p></div></article>
     <section class="fragrance-information"><div class="fragrance-description"><p class="kicker">ЗНАКОМСТВО С АРОМАТОМ</p><h2>Описание и ноты</h2><p>${esc(p.description)}</p><div class="note-list" aria-label="Основные ноты">${p.notes
       .split(/[·,]/)

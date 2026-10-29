@@ -20,7 +20,7 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
   const panel = existingPanel || el("section", "cart-page-content");
   panel.setAttribute("aria-labelledby", "cart-page-title");
   if (!existingPanel)
-    panel.innerHTML = `<div class="cart-heading"><div><p class="eyebrow">ВАШ ЗАКАЗ</p><h2 id="cart-title">Корзина</h2></div><button type="button" class="icon-close" aria-label="Закрыть корзину">×</button></div><div class="cart-body"><div class="cart-items"></div><p class="cart-stock-warning" role="status"></p><div class="cart-empty" hidden><img class="cart-empty-logo" src="/assets/arafan-perfume-logo.png" alt="" aria-hidden="true" width="1318" height="1298" /><h3>Ваша корзина пока пуста</h3><p>Добавьте аромат и выберите подходящий объём.</p><a class="button button-accent" href="/catalog">Открыть каталог</a></div><form class="checkout-form"><div class="cart-summary"><span>Сумма заявки</span><strong class="cart-total"></strong></div><fieldset class="fulfillment-choice"><legend>Способ получения</legend><label><input type="radio" name="fulfillment" value="delivery" checked><span>Доставка</span></label><label><input type="radio" name="fulfillment" value="pickup"><span>Самовывоз</span></label></fieldset><p class="pickup-details" hidden>Забрать в магазине: Алматы, Достык, 108Б.<br>Ежедневно с 10:00 до 21:00.</p><h3>Контактные данные</h3><label>Ваше имя<input name="name" autocomplete="name" minlength="2" maxlength="80" placeholder="Например, Айдана" aria-describedby="name-hint name-error" required /></label><p class="field-hint" id="name-hint">Введите ваше имя, чтобы продавец знал, как к вам обратиться.</p><p class="name-error" id="name-error" role="status" hidden></p><label>Номер телефона<span class="phone-field"><span class="phone-prefix" aria-hidden="true">+7</span><input name="phone" type="tel" aria-label="Номер телефона" aria-describedby="phone-hint" autocomplete="tel-national" inputmode="numeric" maxlength="12" pattern="[0-9]{3} [0-9]{3} [0-9]{4}" placeholder="700 000 0000" required /></span></label><p class="field-hint" id="phone-hint">Код +7 уже указан. Введите 10 цифр номера — по нему магазин свяжется с вами.</p><label class="delivery-address">Адрес доставки<textarea name="address" maxlength="500" required placeholder="Улица, дом, квартира"></textarea></label><label>Комментарий к заказу<textarea name="comment" maxlength="1000" placeholder="Необязательно"></textarea></label><p class="field-hint delivery-terms">Доставка оплачивается отдельно при получении. Стоимость зависит от адреса и тарифа курьерской службы «Яндекс».</p><label class="contact-consent"><input type="checkbox" name="consent" required /><span>Разрешаю связаться со мной по этой заявке.</span></label><button class="button button-accent submit-order" type="submit">Отправить заказ</button></form><p class="checkout-message" role="status" aria-live="polite"></p><div class="order-success" hidden tabindex="-1"><span class="success-symbol" aria-hidden="true">✓</span><p class="eyebrow">ЗАКАЗ ПРИНЯТ</p><h3>Спасибо за заказ</h3><p>Магазин свяжется с вами, чтобы уточнить детали.</p><p class="receipt-code"></p><p class="receipt-total"></p><p class="receipt-fulfillment"></p><button type="button" class="button button-glass continue-shopping">Продолжить выбор</button></div></div>`;
+    panel.innerHTML = `<div class="cart-heading"><div><p class="eyebrow">ВАШ ЗАКАЗ</p><h2 id="cart-title">Корзина</h2></div><button type="button" class="icon-close" aria-label="Закрыть корзину">×</button></div><div class="cart-body"><div class="cart-items"></div><p class="cart-stock-warning" role="status"></p><div class="cart-empty" hidden><img class="cart-empty-logo" src="/assets/arafan-perfume-logo.png" alt="" aria-hidden="true" width="1318" height="1298" /><h3>Ваша корзина пока пуста</h3><p>Добавьте аромат и выберите подходящий объём.</p><a class="button button-accent" href="/catalog">Открыть каталог</a></div><form class="checkout-form"><div class="cart-summary"><span>Сумма заявки</span><strong class="cart-total"></strong></div><fieldset class="fulfillment-choice"><legend>Способ получения</legend><label><input type="radio" name="fulfillment" value="delivery" checked><span>Доставка</span></label><label><input type="radio" name="fulfillment" value="pickup"><span>Самовывоз</span></label></fieldset><p class="pickup-details" hidden>Забрать в магазине: Алматы, Достык, 108Б.<br>Ежедневно с 10:00 до 21:00.</p><h3>Контактные данные</h3><label>Ваше имя<input name="name" autocomplete="name" minlength="2" maxlength="80" placeholder="Например, Айдана" aria-describedby="name-hint name-error" required /></label><p class="field-hint" id="name-hint">Введите ваше имя, чтобы продавец знал, как к вам обратиться.</p><p class="name-error" id="name-error" role="status" hidden></p><label>Номер телефона<span class="phone-field"><span class="phone-prefix" aria-hidden="true">+7</span><input name="phone" type="tel" aria-label="Номер телефона" aria-describedby="phone-hint" autocomplete="tel-national" inputmode="numeric" maxlength="12" pattern="[0-9]{3} [0-9]{3} [0-9]{4}" placeholder="700 000 0000" required /></span></label><p class="field-hint" id="phone-hint">Код +7 уже указан. Введите 10 цифр номера — по нему магазин свяжется с вами.</p><label class="delivery-address">Адрес доставки<textarea name="address" maxlength="500" required placeholder="Улица, дом, квартира"></textarea></label><label>Комментарий к заказу<textarea name="comment" maxlength="1000" placeholder="Необязательно"></textarea></label><p class="field-hint delivery-terms">Доставка оплачивается отдельно при получении. Стоимость зависит от адреса и тарифа курьерской службы «Яндекс».</p><label class="contact-consent"><input type="checkbox" name="consent" required /><span>Разрешаю связаться со мной по этой заявке.</span></label><button class="button button-accent submit-order" type="submit" disabled>Отправить заказ</button></form><p class="checkout-message" role="status" aria-live="polite"></p><div class="order-success" hidden tabindex="-1"><span class="success-symbol" aria-hidden="true">✓</span><p class="eyebrow">ЗАКАЗ ПРИНЯТ</p><h3>Спасибо за заказ</h3><p>Магазин свяжется с вами, чтобы уточнить детали.</p><p class="receipt-code"></p><p class="receipt-total"></p><p class="receipt-fulfillment"></p><button type="button" class="button button-glass continue-shopping">Продолжить выбор</button></div></div>`;
   panel.querySelector(".cart-heading")?.remove();
   if (cartRoot && !existingPanel) cartRoot.replaceChildren(panel);
   const form = panel.querySelector("form"),
@@ -69,6 +69,64 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
   }
   const bagIcon =
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14l1 14H4L5 7ZM9 8V6a3 3 0 0 1 6 0v2"/></svg>';
+  function updateCardQuantity(card, button, product, select) {
+    let group = card.querySelector(".in-cart-control");
+    if (!group) {
+      group = el("div", "in-cart-control");
+      const minus = el("button", "in-cart-minus"),
+        plus = el("button", "in-cart-plus"),
+        link = el("a", "in-cart-link");
+      minus.type = plus.type = "button";
+      minus.innerHTML =
+        '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg>';
+      plus.innerHTML =
+        '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"/></svg>';
+      link.href = "/cart";
+      link.append(el("strong", "in-cart-count"), el("span", "", "Перейти"));
+      group.append(minus, link, plus);
+      button.after(group);
+    }
+    const ml = Number(select.value),
+      item = basket.find((i) => i.productId === product.id && i.ml === ml),
+      count = item?.quantity || 0;
+    group.hidden = !count;
+    button.hidden = !!count;
+    group.querySelector(".in-cart-count").textContent =
+      "В корзине · " + count + " шт.";
+    const link = group.querySelector("a");
+    link.setAttribute(
+      "aria-label",
+      `Перейти в корзину: ${product.name}, ${ml} мл, ${count} шт.`,
+    );
+    const minus = group.querySelector(".in-cart-minus"),
+      plus = group.querySelector(".in-cart-plus");
+    minus.setAttribute(
+      "aria-label",
+      `Уменьшить количество ${product.name}, ${ml} мл`,
+    );
+    plus.setAttribute(
+      "aria-label",
+      `Увеличить количество ${product.name}, ${ml} мл`,
+    );
+    minus.disabled = busy;
+    plus.disabled = busy || count >= 20 || product.available === false;
+    function adjust(delta) {
+      if (busy) return;
+      const current = basket.find(
+        (i) => i.productId === product.id && i.ml === ml,
+      );
+      if (!current) return;
+      const available =
+        products.find((p) => p.id === product.id)?.available !== false;
+      if (delta > 0 && (!available || current.quantity >= 20)) return;
+      current.quantity += delta;
+      if (!current.quantity) basket = basket.filter((i) => i !== current);
+      changed();
+      if (!current.quantity) button.focus({ preventScroll: true });
+    }
+    minus.onclick = () => adjust(-1);
+    plus.onclick = () => adjust(1);
+  }
   function updateAvailability() {
     document.querySelectorAll("[data-add]").forEach((button) => {
       const p = products.find((p) => p.id === button.dataset.add);
@@ -110,6 +168,8 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
           );
         } else if (button.textContent !== text) button.textContent = text;
       }
+      if (card.classList.contains("detail-product"))
+        updateCardQuantity(card, button, p, select);
       const label = card.querySelector(".product-availability");
       if (label)
         label.textContent =
@@ -157,7 +217,18 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
       if (!found) continue;
       const { p, v } = found;
       const row = el("article", "cart-item");
-      const art = el("div", "cart-item-art");
+      const productURL =
+        "/fragrance?id=" +
+        encodeURIComponent(p.id) +
+        "&ml=" +
+        item.ml +
+        "&from=cart";
+      const art = el("a", "cart-item-art");
+      art.href = productURL;
+      art.setAttribute(
+        "aria-label",
+        "Открыть карточку " + p.brand + " " + p.name,
+      );
       if (p.image) {
         const img = el("img");
         img.src = "/assets/products/" + p.image;
@@ -170,9 +241,13 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
         art.append(mark);
       }
       const copy = el("div", "cart-item-copy");
+      const heading = el("h3");
+      const nameLink = el("a", "cart-product-link", p.name);
+      nameLink.href = productURL;
+      heading.append(nameLink);
       copy.append(
         el("small", "", p.brand),
-        el("h3", "", p.name),
+        heading,
         el(
           "p",
           "",
@@ -559,6 +634,40 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
             "Три флакона по 10 мл добавлены в корзину.";
       });
       updateAvailability();
+      function syncBasket() {
+        try {
+          const saved = JSON.parse(localStorage.getItem("bey-cart-v1") || "[]");
+          if (
+            !Array.isArray(saved) ||
+            JSON.stringify(saved) === JSON.stringify(basket)
+          )
+            return;
+          const seen = new Set();
+          basket = saved
+            .filter((i) => {
+              const key = i?.productId + ":" + i?.ml;
+              if (
+                !detail(i) ||
+                !Number.isInteger(i.quantity) ||
+                i.quantity < 1 ||
+                i.quantity > 20 ||
+                seen.has(key)
+              )
+                return false;
+              seen.add(key);
+              return true;
+            })
+            .slice(0, 24);
+          requestKey = crypto.randomUUID();
+          render();
+        } catch {}
+      }
+      window.addEventListener("pageshow", (event) => {
+        if (event.persisted) syncBasket();
+      });
+      window.addEventListener("storage", (event) => {
+        if (event.key === "bey-cart-v1") syncBasket();
+      });
       setInterval(refreshAvailability, 20000);
       window.addEventListener("focus", refreshAvailability);
       document.addEventListener("visibilitychange", () => {
