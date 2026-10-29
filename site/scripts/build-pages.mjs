@@ -28,6 +28,7 @@ const allowed = new Set([
   ".woff2",
   ".ttf",
   ".txt",
+  ".xml",
 ]);
 async function copyPublic(from, to) {
   for (const item of await readdir(from, { withFileTypes: true })) {

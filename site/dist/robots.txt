@@ -1,0 +1,7 @@
+User-agent: *
+Disallow: /cart
+Disallow: /favorites
+Disallow: /account
+Disallow: /api/
+
+Sitemap: https://arafan-perfume.pages.dev/sitemap.xml

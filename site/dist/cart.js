@@ -159,7 +159,7 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
       if (!button.classList.contains("is-added") || p.available === false) {
         const text = p.available === false ? "Нет в наличии" : "В корзину";
         if (button.classList.contains("icon-cart-button")) {
-          button.innerHTML = bagIcon;
+          button.innerHTML = bagIcon + `<span class="cart-label">${text}</span>`;
           button.setAttribute(
             "aria-label",
             p.available === false
@@ -621,7 +621,7 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
           button.classList.add("is-added");
           if (button.classList.contains("icon-cart-button"))
             button.innerHTML =
-              '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>';
+              '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg><span class="cart-label">Добавлено</span>';
           else button.textContent = "Добавлено ✓";
           setTimeout(() => {
             button.classList.remove("is-added");

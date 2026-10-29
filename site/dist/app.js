@@ -420,7 +420,10 @@ function syncProductActions() {
     if (!add) return;
     const name = card.querySelector("h1,h3")?.textContent.trim() || "аромат";
     add.classList.add("icon-cart-button");
-    if (!add.classList.contains("is-added")) add.innerHTML = productBagIcon;
+    if (!add.classList.contains("is-added"))
+      add.innerHTML =
+        productBagIcon +
+        `<span class="cart-label">${add.disabled ? "Нет в наличии" : "В корзину"}</span>`;
     add.setAttribute(
       "aria-label",
       add.disabled

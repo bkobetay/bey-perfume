@@ -71,7 +71,7 @@
         target.innerHTML = `<div class="product-navigation"><a class="detail-back" href="${fromCart ? "/cart" : back}"><span>${fromCart ? "К корзине" : "Назад"}</span></a><nav class="breadcrumbs" aria-label="Путь к аромату"><a href="/">Главная</a><span>/</span><a href="${route}">${p.type === "razliv" ? "Каталог" : "Распив"}</a><span>/</span><a href="${back}">${esc(group)}</a><span>/</span><span aria-current="page">${esc(p.name)}</span></nav></div>
     <article class="product-card detail-product" data-product="${esc(p.id)}"><div class="detail-gallery"><div class="product-visual">${p.image ? `<img src="/assets/products/${esc(p.image)}" alt="Аромат-ориентир ${esc(p.brand)} ${esc(p.name)}" width="800" height="800" fetchpriority="high">` : ""}</div><p class="gallery-caption">${p.type === "razliv" ? "На фото — флакон аромата-ориентира. В заказе — разливная парфюмерия в выбранном объёме." : "На фото — оригинальный флакон. Вы заказываете выбранный объём распива."}</p></div>
     <div class="product-copy detail-buy"><div class="detail-meta"><span class="type-label ${p.type === "razliv" ? "razliv" : ""}">${type}</span><span class="sku">Артикул ${esc(p.code)}</span></div><p class="product-brand">${esc(p.brand)}</p><h1>${esc(p.name)}</h1><p class="detail-audience">${audience} аромат</p><span class="product-availability" role="status">${p.available ? "В наличии" : "Нет в наличии"}</span>
-    <div class="purchase-controls"><strong class="current-price" data-current-price>${money(selectedVariant.price)}</strong><label>Объём флакона<select class="volume-select" aria-label="Объём ${esc(p.name)}">${p.variants.map((v) => `<option value="${v.ml}" ${v.ml === selectedVariant.ml ? "selected" : ""}>${v.ml} мл — ${money(v.price)}</option>`).join("")}</select></label><p class="unit-price">${money(p.pricePerMl)} за 1 мл · без доплаты за упаковку</p><div class="detail-actions"><button data-add="${esc(p.id)}" class="add-cart" disabled>Добавить в корзину</button><button class="favorite-toggle" aria-pressed="false" aria-label="Сохранить ${esc(p.name)} в избранное"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 5.5c-2.2-2.3-5.6-1.8-8.5 1.3-2.9-3.1-6.3-3.6-8.5-1.3C.6 8.5 3 13 12 20c9-7 11.4-11.5 8.5-14.5Z"/></svg></button></div><button class="button button-glass buy-now" disabled>Добавить и оформить</button></div>
+    <div class="purchase-controls"><strong class="current-price" data-current-price>${money(selectedVariant.price)}</strong><div class="volume-picker"><span class="volume-picker-label" id="volume-picker-label">Объём флакона</span><div class="volume-pills" role="radiogroup" aria-labelledby="volume-picker-label">${p.variants.map((v) => `<button type="button" role="radio" data-ml="${v.ml}" aria-checked="${v.ml === selectedVariant.ml}" tabindex="${v.ml === selectedVariant.ml ? 0 : -1}"><strong>${v.ml} мл</strong><span>${money(v.price)}</span></button>`).join("")}</div><label class="visually-hidden" aria-hidden="true">Объём флакона<select class="volume-select" tabindex="-1">${p.variants.map((v) => `<option value="${v.ml}" ${v.ml === selectedVariant.ml ? "selected" : ""}>${v.ml} мл — ${money(v.price)}</option>`).join("")}</select></label></div><p class="unit-price">${money(p.pricePerMl)} за 1 мл · без доплаты за упаковку</p><div class="detail-actions"><button data-add="${esc(p.id)}" class="add-cart" disabled>Добавить в корзину</button><button class="favorite-toggle" aria-pressed="false" aria-label="Сохранить ${esc(p.name)} в избранное"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 5.5c-2.2-2.3-5.6-1.8-8.5 1.3-2.9-3.1-6.3-3.6-8.5-1.3C.6 8.5 3 13 12 20c9-7 11.4-11.5 8.5-14.5Z"/></svg></button></div><button class="button button-glass buy-now" disabled>Добавить и оформить</button></div>
     <a class="product-question" href="https://wa.me/77472886509?text=${encodeURIComponent(question)}" target="_blank" rel="noopener">Есть вопрос об аромате? Напишите нам</a><p class="detail-delivery">Доставка — отдельно при получении. Итоговая стоимость товаров отображается в корзине.</p></div></article>
     <section class="fragrance-information"><div class="fragrance-description"><p class="kicker">ЗНАКОМСТВО С АРОМАТОМ</p><h2>Описание и ноты</h2><p>${esc(p.description)}</p><div class="note-list" aria-label="Основные ноты">${p.notes
       .split(/[·,]/)
@@ -231,6 +231,52 @@
             activateTab(next, true);
           };
         });
+        // Volume buttons drive the shared select that cart.js already reads.
+        const pills = [...target.querySelectorAll(".volume-pills [data-ml]")];
+        const volumeSelect = target.querySelector(".detail-product .volume-select");
+        function chooseVolume(index, focus = false) {
+          pills.forEach((pill, i) => {
+            pill.setAttribute("aria-checked", String(i === index));
+            pill.tabIndex = i === index ? 0 : -1;
+          });
+          if (focus) pills[index].focus({ preventScroll: true });
+          if (volumeSelect.value === pills[index].dataset.ml) return;
+          volumeSelect.value = pills[index].dataset.ml;
+          volumeSelect.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+        pills.forEach((pill, index) => {
+          pill.onclick = () => chooseVolume(index);
+          pill.onkeydown = (event) => {
+            const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key];
+            if (!step) return;
+            event.preventDefault();
+            chooseVolume((index + step + pills.length) % pills.length, true);
+          };
+        });
+        const profile = p.olfactoryProfile || [];
+        const similar = products
+          .filter((x) => x.id !== p.id && x.type === p.type && x.collection === p.collection && x.available !== false)
+          .map((x) => ({
+            x,
+            score:
+              (x.olfactoryProfile || []).filter((t) => profile.includes(t)).length * 10 -
+              Math.abs(x.pricePerMl - p.pricePerMl) / 100,
+          }))
+          .sort((a, b) => b.score - a.score || a.x.code.localeCompare(b.x.code))
+          .slice(0, 4)
+          .map(({ x }) => x);
+        if (similar.length) {
+          const section = document.createElement("section");
+          section.className = "similar-fragrances";
+          section.setAttribute("aria-labelledby", "similar-title");
+          section.innerHTML = `<div class="section-heading"><div><p class="kicker">ПОХОЖИЕ АРОМАТЫ</p><h2 id="similar-title">Вам может понравиться</h2></div><a class="catalog-view-all" href="${back}"><span>${esc(group)}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg></a></div><div class="product-grid">${similar
+            .map(
+              (x) =>
+                `<article class="product-card" data-product="${esc(x.id)}"><a class="product-visual" href="/fragrance?id=${esc(x.id)}">${x.image ? `<img src="/assets/products/${esc(x.image)}" alt="Флакон ${esc(x.brand)} ${esc(x.name)}" width="800" height="800" loading="lazy">` : ""}</a><div class="product-copy"><span class="type-label ${x.type === "razliv" ? "razliv" : ""}">${x.type === "razliv" ? "Разлив" : "Распив оригинала"} · ${audiences[x.audience] || ""}</span><span class="sku">Код: ${esc(x.code)}</span><p class="product-brand">${esc(x.brand)}</p><h3><a href="/fragrance?id=${esc(x.id)}">${esc(x.name)}</a></h3><p class="product-notes">${esc(x.notes)}</p><div class="purchase-controls"><strong class="current-price" data-current-price>${money(x.variants[0].price)}</strong><label>Объём<select class="volume-select" aria-label="Объём ${esc(x.name)}">${x.variants.map((v) => `<option value="${v.ml}">${v.ml} мл — ${money(v.price)}</option>`).join("")}</select></label><div class="card-actions"><button class="add-cart" data-add="${esc(x.id)}" disabled>В корзину</button><button type="button" class="favorite-toggle" data-favorite-id="${esc(x.id)}" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 5.5c-2.2-2.3-5.6-1.8-8.5 1.3-2.9-3.1-6.3-3.6-8.5-1.3C.6 8.5 3 13 12 20c9-7 11.4-11.5 8.5-14.5Z"/></svg></button></div><span class="product-availability" role="status"></span></div></div></article>`,
+            )
+            .join("")}</div>`;
+          target.append(section);
+        }
         document.title = p.brand + " " + p.name + " — ARAFAN Perfume";
         target.querySelector(".buy-now").onclick = () => {
           const add = target.querySelector("[data-add]");
