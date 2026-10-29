@@ -6,6 +6,31 @@
     if (text !== undefined) e.textContent = text;
     return e;
   };
+  const svg = (paths) => {
+    const ns = "http://www.w3.org/2000/svg";
+    const icon = document.createElementNS(ns, "svg");
+    icon.setAttribute("width", "18");
+    icon.setAttribute("height", "18");
+    icon.setAttribute("viewBox", "0 0 24 24");
+    icon.setAttribute("fill", "none");
+    icon.setAttribute("stroke", "currentColor");
+    icon.setAttribute("stroke-width", "1.8");
+    icon.setAttribute("stroke-linecap", "round");
+    icon.setAttribute("stroke-linejoin", "round");
+    icon.setAttribute("aria-hidden", "true");
+    for (const d of paths) {
+      const path = document.createElementNS(ns, "path");
+      path.setAttribute("d", d);
+      icon.append(path);
+    }
+    return icon;
+  };
+  const phoneText = (phone) => {
+    const d = String(phone).replace(/\D/g, "");
+    return /^7\d{10}$/.test(d)
+      ? `+7 ${d.slice(1, 4)} ${d.slice(4, 7)} ${d.slice(7, 9)} ${d.slice(9)}`
+      : phone;
+  };
   const money = (n) => new Intl.NumberFormat("ru-KZ").format(n) + " ₸";
   const date = (value) =>
     new Intl.DateTimeFormat("ru-KZ", {
@@ -26,8 +51,67 @@
     pageCount = 1,
     request = 0;
   let activeStatus = "active";
-  let section = "orders";
+  let toastTimer = 0;
 
+  // Short notices for the seller (also announced by screen readers).
+  function notify(text, tone = "info") {
+    const box = $("#admin-message");
+    clearTimeout(toastTimer);
+    box.dataset.tone = tone;
+    box.textContent = text;
+    if (text) toastTimer = setTimeout(() => (box.textContent = ""), 6000);
+  }
+  function loginMessage(text, tone = "info") {
+    const box = $("#login-message");
+    box.dataset.tone = tone;
+    box.textContent = text;
+  }
+  const ordersDirty = () =>
+    document.querySelector('.order-edit[data-dirty="true"]');
+
+  /* ---------- Sections: «Заказы» / «Товары и цены» ---------- */
+  const sectionTabs = [...document.querySelectorAll(".section-switch [role=tab]")];
+  let section = "orders";
+  function showSection(name, { focus = false, remember = true } = {}) {
+    section = name === "products" ? "products" : "orders";
+    for (const tab of sectionTabs) {
+      const selected = tab.dataset.section === section;
+      tab.setAttribute("aria-selected", String(selected));
+      tab.tabIndex = selected ? 0 : -1;
+      $("#" + tab.getAttribute("aria-controls")).hidden = !selected;
+      if (selected && focus) tab.focus();
+    }
+    if (remember && location.hash !== "#" + section)
+      history.replaceState(null, "", "#" + section);
+    document.dispatchEvent(
+      new CustomEvent("admin:section", { detail: section }),
+    );
+  }
+  sectionTabs.forEach((tab, index) => {
+    tab.addEventListener("click", () => showSection(tab.dataset.section));
+    tab.addEventListener("keydown", (event) => {
+      const keys = { ArrowRight: 1, ArrowLeft: -1 };
+      if (!(event.key in keys) && !["Home", "End"].includes(event.key)) return;
+      event.preventDefault();
+      const next =
+        event.key === "Home"
+          ? 0
+          : event.key === "End"
+            ? sectionTabs.length - 1
+            : (index + keys[event.key] + sectionTabs.length) %
+              sectionTabs.length;
+      showSection(sectionTabs[next].dataset.section, { focus: true });
+    });
+  });
+  showSection(location.hash === "#products" ? "products" : "orders", {
+    remember: false,
+  });
+  window.addEventListener("hashchange", () => {
+    const wanted = location.hash === "#products" ? "products" : "orders";
+    if (wanted !== section) showSection(wanted, { remember: false });
+  });
+
+  /* ---------- Order status tabs ---------- */
   const tabLabels = {
     active: "В работе",
     new: "Новые",
@@ -40,6 +124,13 @@
     cancelled: "Корзина",
     all: "Все",
   };
+  function selectStatus(value) {
+    if (!discardConfirmed()) return;
+    activeStatus = value;
+    page = 1;
+    updateTabs();
+    load();
+  }
   const tabs = Object.entries(tabLabels).map(([value, title]) => {
     const button = el("button", "order-tab");
     button.type = "button";
@@ -48,13 +139,7 @@
     button.setAttribute("aria-controls", "orders-list");
     button.dataset.status = value;
     button.append(el("span", "", title), el("span", "tab-count", "0"));
-    button.onclick = () => {
-      if (!discardConfirmed()) return;
-      activeStatus = value;
-      page = 1;
-      updateTabs();
-      load();
-    };
+    button.onclick = () => selectStatus(value);
     $(".order-tabs").append(button);
     return button;
   });
@@ -63,52 +148,95 @@
       const selected = button.dataset.status === activeStatus;
       button.setAttribute("aria-selected", String(selected));
       button.tabIndex = selected ? 0 : -1;
+      if (selected)
+        button.scrollIntoView?.({ block: "nearest", inline: "nearest" });
     });
+    document
+      .querySelectorAll(".stat-tile")
+      .forEach((tile) =>
+        tile.setAttribute(
+          "aria-pressed",
+          String(tile.dataset.status === activeStatus),
+        ),
+      );
     $("#orders-list").setAttribute(
       "aria-labelledby",
       "order-tab-" + activeStatus,
     );
   }
-  tabs.forEach((button, index) =>
+  tabs.forEach((button) =>
     button.addEventListener("keydown", (event) => {
+      const shown = tabs.filter((tab) => !tab.hidden);
+      const index = shown.indexOf(button);
       const next =
         event.key === "ArrowRight"
-          ? (index + 1) % tabs.length
+          ? (index + 1) % shown.length
           : event.key === "ArrowLeft"
-            ? (index + tabs.length - 1) % tabs.length
+            ? (index + shown.length - 1) % shown.length
             : event.key === "Home"
               ? 0
               : event.key === "End"
-                ? tabs.length - 1
+                ? shown.length - 1
                 : null;
       if (next === null) return;
       event.preventDefault();
-      tabs[next].focus();
-      tabs[next].click();
+      shown[next].focus();
+      shown[next].click();
     }),
   );
   const belongs = (status) =>
     activeStatus === "all" ||
     activeStatus === status ||
     (activeStatus === "active" && !["completed", "cancelled"].includes(status));
+
+  // KPI tiles double as shortcuts to the matching status tab.
+  const statTiles = ["new", "confirmed", "preparing", "ready"].map((s) => {
+    const tile = el("button", "stat-tile");
+    tile.type = "button";
+    tile.dataset.status = s;
+    tile.setAttribute("aria-pressed", "false");
+    tile.append(
+      el("span", "stat-label", statuses[s]),
+      el("strong", "stat-value", "—"),
+    );
+    tile.onclick = () => selectStatus(s);
+    $(".order-stats").append(tile);
+    return tile;
+  });
   updateTabs();
+
+  function setView(view) {
+    document.body.dataset.view = view;
+    $(".admin-login").hidden = view !== "login";
+    $("#dashboard").hidden = view !== "app";
+  }
   function loginState() {
     request++;
-
-    $("#dashboard").hidden = true;
-    $(".admin-login").hidden = false;
+    setView("login");
     $("#orders-list").replaceChildren();
-    $(".order-stats").replaceChildren();
+    statTiles.forEach((tile) => (tile.lastChild.textContent = "—"));
+    document.dispatchEvent(new CustomEvent("admin:logout"));
   }
   async function api(path, options = {}) {
     const response = await fetch("/api/admin/" + path, {
       ...options,
       headers: { "Content-Type": "application/json" },
     });
-    const data = await response.json();
+    let data = {};
+    try {
+      data = await response.json();
+    } catch {
+      if (response.ok) throw new Error("Сервер вернул неожиданный ответ.");
+    }
     if (!response.ok) {
-      if (response.status === 401) loginState();
-      throw new Error(data.error || "Ошибка сервера.");
+      if (response.status === 401 && path !== "login") {
+        const wasInside = document.body.dataset.view === "app";
+        loginState();
+        if (wasInside) loginMessage("Сессия завершилась. Войдите снова.");
+      }
+      throw Object.assign(new Error(data.error || "Ошибка сервера."), {
+        status: response.status,
+      });
     }
     return data;
   }
@@ -125,7 +253,7 @@
           `${index + 1}. ${item.code ? item.code + " · " : ""}${item.name} (${item.type === "razliv" ? "разлив" : "распив"})\nКөлемі: ${item.ml} мл · Саны: ${item.quantity}\nБір данасының бағасы: ${money(item.price)} · Сомасы: ${money(item.subtotal)}`,
       )
       .join("\n\n");
-    return `Здравствуйте, ${order.name}! Это Arafan Perfume.
+    return `Здравствуйте, ${order.name}! Это ARAFAN Perfume.
 
 Код заказа: ${order.id}
 Имя клиента: ${order.name}
@@ -139,7 +267,7 @@ ${russianItems}
 
 ──────────
 
-Сәлеметсіз бе, ${order.name}! Бұл — Arafan Perfume.
+Сәлеметсіз бе, ${order.name}! Бұл — ARAFAN Perfume.
 
 Тапсырыс коды: ${order.id}
 Клиенттің аты: ${order.name}
@@ -151,23 +279,78 @@ ${kazakhItems}
 Жалпы сома: ${money(order.total)}
 Тапсырысыңызды растайсыз ба?`;
   }
+  function itemsTable(items) {
+    const table = el("table", "order-items");
+    const head = el("thead");
+    const headRow = el("tr");
+    for (const title of ["Код", "Аромат", "Объём × кол-во", "Сумма"]) {
+      const th = el("th", "", title);
+      th.scope = "col";
+      headRow.append(th);
+    }
+    head.append(headRow);
+    const body = el("tbody");
+    for (const item of items) {
+      const type = item.type === "razliv" ? "Разлив" : "Распив";
+      const row = el("tr");
+      const name = el("td", "item-name");
+      if (item.code)
+        name.append(el("span", "item-code item-code-inline", item.code + " · "));
+      name.append(
+        document.createTextNode(item.name),
+        el("span", "item-type", type),
+      );
+      row.append(
+        el("td", "item-code", item.code || "—"),
+        name,
+        el("td", "item-qty", `${item.ml} мл × ${item.quantity}`),
+        el("td", "item-sum", money(item.subtotal)),
+      );
+      body.append(row);
+    }
+    table.append(head, body);
+    return table;
+  }
   function card(order) {
     const article = el("article", "order-card");
-    const header = el("div", "order-card-heading");
-    const heading = el("div");
-    heading.append(
-      el("small", "order-code", order.id),
-      el("h2", "", order.name),
-      el("p", "field-hint", date(order.created_at)),
+    article.dataset.status = order.status;
+    const header = el("header", "order-head");
+    const heading = el("div", "order-head-main");
+    const meta = el("p", "order-meta");
+    meta.append(
+      el("span", "order-code", order.id),
+      el("span", "order-date", date(order.created_at)),
     );
+    heading.append(meta, el("h2", "order-name", order.name));
     const badge = el("span", "status-badge", statuses[order.status]);
     badge.dataset.status = order.status;
     header.append(heading, badge);
     article.append(header);
+
+    const body = el("div", "order-body");
+    const info = el("div", "order-info");
     const contact = el("div", "order-contact");
-    const phone = el("a", "", order.phone);
+    const phone = el("a", "contact-phone");
     phone.href = "tel:" + order.phone;
-    const whatsapp = el("a", "text-link", "Написать в WhatsApp ↗");
+    phone.append(
+      svg([
+        "M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z",
+      ]),
+      document.createTextNode(phoneText(order.phone)),
+    );
+    phone.setAttribute("aria-label", "Позвонить: " + phoneText(order.phone));
+    const whatsapp = el("a", "btn btn-whatsapp");
+    whatsapp.append(
+      svg([
+        "M3 21l1.7-5A8.5 8.5 0 1 1 8 19.3z",
+        "M9 9.5c0 3 2.5 5.5 5.5 5.5l1-1.5-2-1-1 .8a4 4 0 0 1-1.8-1.8l.8-1-1-2z",
+      ]),
+      document.createTextNode("WhatsApp ↗"),
+    );
+    whatsapp.setAttribute(
+      "aria-label",
+      "Написать покупателю в WhatsApp (откроется в новой вкладке)",
+    );
     whatsapp.href =
       "https://wa.me/" +
       order.phone.replace(/\D/g, "") +
@@ -176,72 +359,77 @@ ${kazakhItems}
     whatsapp.target = "_blank";
     whatsapp.rel = "noopener noreferrer";
     contact.append(phone, whatsapp);
-    article.append(contact);
-    article.append(
-      el(
-        "p",
-        "order-fulfillment",
-        order.fulfillment === "pickup"
-          ? "Самовывоз: Достык, 108Б · 10:00–21:00"
-          : "Доставка",
-      ),
-    );
-    if (order.address)
-      article.append(el("p", "order-address", "Адрес: " + order.address));
-    if (order.comment)
-      article.append(el("p", "order-comment", "Комментарий: " + order.comment));
-    const items = el("ul", "order-products");
-    for (const item of order.items) {
-      const li = el("li");
-      li.append(
-        el(
-          "span",
-          "",
-          `${item.code ? item.code + " · " : ""}${item.name} · ${item.type === "razliv" ? "Разлив" : "Распив"} · ${item.ml} мл × ${item.quantity}`,
-        ),
-        el("strong", "", money(item.subtotal)),
+    info.append(contact);
+
+    const fulfillment = el("div", "order-fulfillment");
+    const pickup = order.fulfillment === "pickup";
+    const pill = el("span", "pill", pickup ? "Самовывоз" : "Доставка");
+    pill.dataset.kind = pickup ? "pickup" : "delivery";
+    fulfillment.append(pill);
+    if (pickup)
+      fulfillment.append(
+        el("span", "order-address", "Достык, 108Б · 10:00–21:00"),
       );
-      items.append(li);
+    else
+      fulfillment.append(
+        el("span", "order-address", order.address || "Адрес не указан"),
+      );
+    info.append(fulfillment);
+    if (order.comment) {
+      const comment = el("p", "order-comment");
+      comment.append(
+        el("b", "", "Комментарий покупателя"),
+        document.createTextNode(order.comment),
+      );
+      info.append(comment);
     }
-    article.append(items);
+    info.append(itemsTable(order.items));
     const total = el("div", "order-total");
-    total.append(
-      el("span", "", "Сумма заявки"),
-      el("strong", "", money(order.total)),
-    );
-    article.append(total);
+    total.append(el("span", "", "Итого"), el("strong", "", money(order.total)));
+    info.append(total);
+    body.append(info);
+
     const form = el("form", "order-edit");
-    const statusLabel = el("label", "", "Статус заказа");
+    const statusLabel = el("label", "field");
     const select = el("select");
     select.name = "status";
-    select.setAttribute("aria-label", "Статус заказа");
     for (const [value, title] of Object.entries(statuses)) {
-      const option = el("option", "", title);
+      const option = el(
+        "option",
+        "",
+        value === "paid" ? title + " (оплата не подключена)" : title,
+      );
       option.value = value;
       option.selected = order.status === value;
       if (value === "paid") option.disabled = true;
       select.append(option);
     }
-    statusLabel.append(select);
-    const noteLabel = el("label", "", "Заметка продавца");
+    statusLabel.append(el("span", "field-label", "Статус заказа"), select);
+    const noteLabel = el("label", "field");
     const note = el("textarea");
     note.name = "note";
     note.maxLength = 1000;
-    note.rows = 2;
+    note.rows = 3;
     note.value = order.note;
     note.placeholder = "Например: заберёт завтра после 18:00";
-    noteLabel.append(note);
-    const button = el("button", "button button-accent", "Сохранить");
+    noteLabel.append(el("span", "field-label", "Заметка продавца"), note);
+    const actions = el("div", "form-actions");
+    const button = el("button", "btn btn-primary", "Сохранить");
     button.type = "submit";
     const feedback = el("p", "save-feedback");
     feedback.setAttribute("role", "status");
-    form.append(statusLabel, noteLabel, button, feedback);
+    feedback.setAttribute("aria-live", "polite");
+    actions.append(button, feedback);
+    form.append(statusLabel, noteLabel, actions);
     form.addEventListener("input", () => {
       form.dataset.dirty = "true";
+      feedback.textContent = "Есть несохранённые изменения";
+      feedback.dataset.tone = "";
     });
     form.onsubmit = async (event) => {
       event.preventDefault();
       button.disabled = select.disabled = note.disabled = true;
+      feedback.dataset.tone = "";
       feedback.textContent = "Сохраняем…";
       try {
         const result = await api("orders/" + order.id, {
@@ -256,30 +444,33 @@ ${kazakhItems}
 
         badge.textContent = statuses[order.status];
         badge.dataset.status = order.status;
+        article.dataset.status = order.status;
         note.value = order.note;
         form.dataset.dirty = "false";
+        feedback.dataset.tone = "success";
         feedback.textContent = "Сохранено · " + date(order.updated_at);
         // Refresh only summary counters; preserve other unsaved seller notes.
         const summary = await api("orders");
         renderStats(summary.counts);
         if (!belongs(order.status)) {
           // Move only this card if another seller note is unsaved.
-          if (document.querySelector('[data-dirty="true"]')) {
+          if (ordersDirty()) {
             article.remove();
             $("#orders-caption").textContent =
-              "Список изменился. Сохрани остальные правки и обнови его.";
+              "Список изменился. Сохраните остальные правки и обновите его.";
           } else await load();
-          $("#admin-message").textContent =
-            `Заказ ${order.id} перемещён: ${tabLabels[order.status]}.`;
+          notify(`Заказ ${order.id} перемещён: ${tabLabels[order.status]}.`);
           $("#order-tab-" + activeStatus).focus();
         }
       } catch (error) {
+        feedback.dataset.tone = "error";
         feedback.textContent = error.message;
       } finally {
         button.disabled = select.disabled = note.disabled = false;
       }
     };
-    article.append(form);
+    body.append(form);
+    article.append(body);
     return article;
   }
   function renderStats(counts) {
@@ -292,19 +483,28 @@ ${kazakhItems}
           : status === "active"
             ? all - (counts.completed || 0) - (counts.cancelled || 0)
             : counts[status] || 0;
+      // Kaspi payment is not connected yet: show payment tabs only when used.
+      if (["awaiting_payment", "paid"].includes(status))
+        button.hidden = !counts[status] && activeStatus !== status;
     });
-    $(".order-stats").replaceChildren();
-    for (const s of ["new", "confirmed", "preparing", "ready"]) {
-      const box = el("div");
-      box.append(el("span", "", statuses[s]), el("strong", "", counts[s] || 0));
-      $(".order-stats").append(box);
-    }
+    statTiles.forEach(
+      (tile) => (tile.lastChild.textContent = counts[tile.dataset.status] || 0),
+    );
+  }
+  function stateBox(title, text, tone) {
+    const box = el("div", "state-box");
+    if (tone) box.dataset.tone = tone;
+    box.append(el("strong", "", title));
+    if (text) box.append(el("span", "", text));
+    return box;
   }
   async function load() {
     const turn = ++request;
-    $("#orders-list").inert = true;
-    $("#orders-list").setAttribute("aria-busy", "true");
-    $("#admin-message").textContent = "Загружаем заказы…";
+    const list = $("#orders-list");
+    list.inert = true;
+    list.setAttribute("aria-busy", "true");
+    if (document.body.dataset.view === "app")
+      $("#orders-caption").textContent = "Обновляем список…";
     try {
       const params = new URLSearchParams({
         q: $("#order-search").value,
@@ -313,36 +513,53 @@ ${kazakhItems}
       });
       const data = await api("orders?" + params);
       if (turn !== request) return;
-      $(".admin-login").hidden = true;
-      $("#dashboard").hidden = false;
-      $("#admin-message").textContent = "";
+      if (document.body.dataset.view !== "app") {
+        setView("app");
+        loginMessage("");
+        document.dispatchEvent(new CustomEvent("admin:ready"));
+      }
       page = data.page;
       pageCount = data.pageCount;
       renderStats(data.counts);
-      $("#orders-list").replaceChildren(...data.orders.map(card));
+      list.replaceChildren(...data.orders.map(card));
       if (!data.orders.length)
-        $("#orders-list").append(
-          el("p", "admin-empty", "Пока нет заказов с такими параметрами."),
+        list.append(
+          $("#order-search").value.trim()
+            ? stateBox(
+                "Ничего не найдено",
+                "Проверьте код заказа, имя или телефон.",
+              )
+            : stateBox(
+                "Заказов нет",
+                "Здесь появятся заказы с выбранным статусом.",
+              ),
         );
       $("#orders-caption").textContent =
-        `Найдено: ${data.total} · Обновлено ${new Date().toLocaleTimeString("ru-KZ")}`;
-      $("#orders-page").textContent = `${page} / ${pageCount}`;
+        `Найдено: ${data.total} · Обновлено в ${new Date().toLocaleTimeString("ru-KZ", { hour: "2-digit", minute: "2-digit" })}`;
+      $("#orders-page").textContent = `${page} из ${pageCount}`;
       $("#orders-prev").disabled = page === 1;
       $("#orders-next").disabled = page === pageCount;
       $(".admin-pagination").hidden = pageCount <= 1;
     } catch (error) {
-      if (turn === request || $("#dashboard").hidden)
-        $("#admin-message").textContent = error.message;
+      if (turn !== request && document.body.dataset.view !== "login") return;
+      if (document.body.dataset.view === "app") {
+        $("#orders-caption").textContent = "";
+        notify(error.message, "error");
+      } else {
+        // First visit without a session: show the login form quietly.
+        setView("login");
+        if (error.status !== 401) loginMessage(error.message, "error");
+      }
     } finally {
       if (turn === request) {
-        $("#orders-list").inert = false;
-        $("#orders-list").setAttribute("aria-busy", "false");
+        list.inert = false;
+        list.setAttribute("aria-busy", "false");
       }
     }
   }
   function discardConfirmed() {
     return (
-      !document.querySelector('[data-dirty="true"]') ||
+      !ordersDirty() ||
       confirm("Есть несохранённые изменения. Обновить список без сохранения?")
     );
   }
@@ -350,45 +567,71 @@ ${kazakhItems}
     event.preventDefault();
     const form = event.currentTarget;
     const button = form.querySelector("button");
+    const { username, password } = form.elements;
+    username.removeAttribute("aria-invalid");
+    password.removeAttribute("aria-invalid");
+    if (!username.value.trim() || !password.value) {
+      const empty = !username.value.trim() ? username : password;
+      empty.setAttribute("aria-invalid", "true");
+      loginMessage("Введите логин и пароль.", "error");
+      empty.focus();
+      return;
+    }
     button.disabled = true;
+    loginMessage("Проверяем…");
     try {
       await api("login", {
         method: "POST",
         body: JSON.stringify({
-          username: form.elements.username.value,
-          password: form.elements.password.value,
+          username: username.value,
+          password: password.value,
         }),
       });
-      form.elements.password.value = "";
+      password.value = "";
       page = 1;
       await load();
+      scrollTo(0, 0);
+      $("#workspace").focus({ preventScroll: true });
     } catch (error) {
-      $("#admin-message").textContent = error.message;
+      loginMessage(error.message, "error");
+      if (error.status === 401) {
+        password.setAttribute("aria-invalid", "true");
+        password.select();
+      }
     } finally {
       button.disabled = false;
     }
   };
   $("#logout").onclick = async () => {
-    if (!discardConfirmed()) return;
+    if (
+      document.querySelector('[data-dirty="true"]') &&
+      !confirm("Есть несохранённые изменения. Выйти без сохранения?")
+    )
+      return;
     try {
       await api("logout", { method: "POST", body: "{}" });
+      document
+        .querySelectorAll('[data-dirty="true"]')
+        .forEach((form) => (form.dataset.dirty = "false"));
       loginState();
-      $("#admin-message").textContent = "Вы вышли из кабинета.";
+      loginMessage("Вы вышли из кабинета.");
     } catch (error) {
-      $("#admin-message").textContent = error.message;
+      notify(error.message, "error");
     }
   };
   $("#refresh-orders").onclick = () => {
     if (discardConfirmed()) load();
   };
-  $("#order-search").addEventListener("keydown", (event) => {
-    if (event.key === "Enter" && discardConfirmed()) {
+  $("#orders-search-form").addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (discardConfirmed()) {
       page = 1;
       load();
     }
   });
   $("#order-search").addEventListener("search", () => {
-    if (discardConfirmed()) {
+    // Fired when the field is cleared with the × button.
+    if (!$("#order-search").value && discardConfirmed()) {
       page = 1;
       load();
     }
@@ -422,12 +665,20 @@ ${kazakhItems}
     if (
       document.hidden ||
       $("#dashboard").hidden ||
-      document.querySelector('[data-dirty="true"]') ||
-      document.querySelector(".order-edit :disabled, .stock-edit :disabled") ||
-      document.activeElement?.closest(".order-edit, .admin-tools, .stock-edit")
+      ordersDirty() ||
+      document.querySelector(".order-edit :disabled") ||
+      document.activeElement?.closest(".order-edit, #orders-search-form")
     )
       return;
     load();
   }, 20000);
+  // Shared helpers for products.js (loaded after this script).
+  window.adminKit = {
+    api,
+    notify,
+    money,
+    section: () => section,
+    loggedIn: () => document.body.dataset.view === "app",
+  };
   load();
 })();

@@ -4,109 +4,260 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex,nofollow" />
-    <meta name="theme-color" content="#00291f" />
-    <title>Кабинет продавца — Arafan Perfume</title>
+    <meta name="theme-color" content="#f5f6f2" />
+    <title>Кабинет продавца — ARAFAN Perfume</title>
     <link rel="icon" href="/assets/favicon.svg" />
-    <link rel="stylesheet" href="/styles.css" />
-    <link rel="stylesheet" href="/commerce.css" />
     <link rel="stylesheet" href="/admin.css" />
     <script src="/admin.js" defer></script>
   </head>
-  <body data-page="admin">
-    <header class="admin-header container">
-      <a class="brand" href="__STOREFRONT_URL__"
-        ><img
-          class="brand-wordmark"
+  <body data-page="admin" data-view="boot">
+    <a class="skip-link" href="#workspace">Перейти к содержимому</a>
+
+    <div class="boot-screen" aria-hidden="true">
+      <span class="spinner"></span>
+    </div>
+
+    <section class="admin-login" aria-labelledby="login-title" hidden>
+      <div class="login-card">
+        <img
+          class="login-logo"
           src="/assets/arafan-perfume-logo.png"
-          alt="Arafan Perfume"
+          alt=""
           width="1318"
           height="1298"
-        /><small>НИШЕВАЯ ПАРФЮМЕРИЯ</small></a
-      ><span>КАБИНЕТ ПРОДАВЦА</span
-      ><a class="text-link" href="__STOREFRONT_URL__">На сайт ↗</a>
-    </header>
-    <main class="container admin-main">
-      <section class="admin-login">
-        <p class="eyebrow">ТОЛЬКО ДЛЯ КОМАНДЫ Arafan Perfume</p>
-        <h1>Всё под контролем.</h1>
-        <p>Заказы, детали и следующий шаг — в одном месте.</p>
-        <form id="login-form" class="login-form">
-          <label
-            >Логин<input
+        />
+        <p class="login-kicker">ARAFAN Perfume</p>
+        <h1 id="login-title">Кабинет продавца</h1>
+        <p class="login-lead">Заказы, цены и наличие — в одном месте.</p>
+        <form id="login-form" class="login-form" novalidate>
+          <label class="field"
+            ><span class="field-label">Логин</span
+            ><input
               name="username"
               autocomplete="username"
               value="admin"
-              required /></label
-          ><label
-            >Пароль<input
+              autocapitalize="off"
+              spellcheck="false"
+              required
+          /></label>
+          <label class="field"
+            ><span class="field-label">Пароль</span
+            ><input
               name="password"
               type="password"
               autocomplete="current-password"
               required
-              maxlength="256" /></label
-          ><button class="button button-accent" type="submit">
+              maxlength="256"
+          /></label>
+          <p
+            id="login-message"
+            class="form-message"
+            role="status"
+            aria-live="polite"
+          ></p>
+          <button class="btn btn-primary btn-block" type="submit">
             Войти в кабинет
           </button>
         </form>
-      </section>
-      <section id="dashboard" hidden>
-        <div class="admin-title">
-          <div>
-            <p class="eyebrow">Arafan Perfume / КАБИНЕТ</p>
-            <h1>Заказы магазина</h1>
-            <p>Обрабатывайте заказы, связывайтесь с покупателями и меняйте статусы.</p>
-          </div>
-          <button id="logout" type="button" class="button button-glass">
-            Выйти
-          </button>
-        </div>
-        <section id="orders-panel">
-          <div class="order-stats" aria-label="Сводка заказов"></div>
-          <div
-            class="order-tabs"
+        <a class="login-back" href="__STOREFRONT_URL__">← Вернуться на сайт</a>
+      </div>
+    </section>
+
+    <div id="dashboard" hidden>
+      <header class="topbar">
+        <div class="topbar-inner">
+          <a class="topbar-brand" href="__STOREFRONT_URL__"
+            ><img
+              src="/assets/arafan-perfume-logo.png"
+              alt=""
+              width="1318"
+              height="1298"
+            /><span class="topbar-title"
+              ><strong>ARAFAN Perfume</strong
+              ><span>Кабинет продавца</span></span
+            ></a
+          >
+          <nav
+            class="section-switch"
             role="tablist"
-            aria-label="Статусы заказов"
-          ></div>
-          <p class="field-hint">
-            Отменённые заказы сохраняются во вкладке «Корзина». Их можно вернуть
-            в работу.
-          </p>
-          <div class="admin-tools">
-            <label
-              >Найти заказ<input
-                id="order-search"
-                type="search"
-                placeholder="Код, имя или телефон"
-                maxlength="80" /></label
-            ><button
-              id="refresh-orders"
+            aria-label="Разделы кабинета"
+          >
+            <button
               type="button"
-              class="button button-glass"
+              role="tab"
+              id="section-tab-orders"
+              aria-controls="orders-panel"
+              data-section="orders"
             >
-              Обновить
+              Заказы
+            </button>
+            <button
+              type="button"
+              role="tab"
+              id="section-tab-products"
+              aria-controls="products-panel"
+              data-section="products"
+            >
+              Товары и цены
+            </button>
+          </nav>
+          <div class="topbar-actions">
+            <a
+              class="btn btn-ghost btn-sm"
+              href="__STOREFRONT_URL__"
+              target="_blank"
+              rel="noopener"
+              ><span class="label-long">Открыть сайт</span
+              ><span class="label-short">Сайт</span>&nbsp;↗</a
+            ><button id="logout" type="button" class="btn btn-ghost btn-sm">
+              Выйти
             </button>
           </div>
-          <p id="orders-caption" class="field-hint" aria-live="polite"></p>
+        </div>
+      </header>
+
+      <main id="workspace" class="workspace" tabindex="-1">
+        <section
+          id="orders-panel"
+          class="panel"
+          role="tabpanel"
+          aria-labelledby="section-tab-orders"
+        >
+          <div class="panel-head">
+            <div>
+              <h1>Заказы</h1>
+              <p class="muted">
+                Связывайтесь с покупателями и отмечайте, на каком этапе заказ.
+              </p>
+            </div>
+          </div>
+          <div class="order-stats" aria-label="Сводка заказов"></div>
+          <div class="chips-scroll">
+            <div
+              class="order-tabs chips"
+              role="tablist"
+              aria-label="Статусы заказов"
+            ></div>
+          </div>
+          <form id="orders-search-form" class="toolbar" role="search">
+            <label class="search-field"
+              ><span class="visually-hidden">Найти заказ</span
+              ><input
+                id="order-search"
+                type="search"
+                placeholder="Код заказа, имя или телефон"
+                maxlength="80"
+                enterkeyhint="search"
+            /></label>
+            <button type="submit" class="btn btn-secondary">Найти</button>
+            <button id="refresh-orders" type="button" class="btn btn-secondary">
+              Обновить
+            </button>
+          </form>
+          <p id="orders-caption" class="caption" aria-live="polite"></p>
+          <p class="caption caption-note">
+            Отменённые заказы хранятся во вкладке «Корзина» — их можно вернуть в
+            работу.
+          </p>
           <div
             id="orders-list"
+            class="orders-list"
             role="tabpanel"
             tabindex="0"
             aria-labelledby="order-tab-active"
-          ></div>
-          <div class="admin-pagination">
-            <button type="button" id="orders-prev" class="button button-glass">
-              Назад</button
-            ><span id="orders-page"></span
-            ><button type="button" id="orders-next" class="button button-glass">
-              Далее
-            </button>
+          >
+            <div class="state-box">Загружаем заказы…</div>
           </div>
+          <nav class="admin-pagination" aria-label="Страницы заказов" hidden>
+            <button type="button" id="orders-prev" class="btn btn-secondary">
+              ← Назад</button
+            ><span id="orders-page" aria-live="polite"></span
+            ><button type="button" id="orders-next" class="btn btn-secondary">
+              Далее →
+            </button>
+          </nav>
         </section>
 
-        <section class="product-editor"><h2>Цены, наличие и акции</h2><p>Без количественного учёта миллилитров.</p><button class="button button-glass" id="load-products">Загрузить товары</button><div id="edit-products"></div></section>
-      </section>
-      <p id="admin-message" role="status" aria-live="polite"></p>
-      <noscript>Для управления заказами включите JavaScript.</noscript>
-    </main>
-  <script src="/products.js" defer></script></body>
+        <section
+          id="products-panel"
+          class="panel"
+          role="tabpanel"
+          aria-labelledby="section-tab-products"
+          hidden
+        >
+          <div class="panel-head">
+            <div>
+              <h1>Товары и цены</h1>
+              <p class="muted">
+                Цена за 1 мл, наличие и акции. Цены на 5, 10, 20 и 30 мл
+                считаются автоматически.
+              </p>
+            </div>
+          </div>
+          <div class="products-layout">
+            <div class="products-main">
+              <div class="toolbar products-toolbar">
+                <label class="search-field"
+                  ><span class="visually-hidden">Найти товар</span
+                  ><input
+                    id="product-search"
+                    type="search"
+                    placeholder="Код, бренд или название"
+                    maxlength="80"
+                    autocomplete="off"
+                /></label>
+                <label class="select-field"
+                  ><span class="visually-hidden">Тип товара</span
+                  ><select id="product-type">
+                    <option value="all">Все типы</option>
+                    <option value="razliv">Разлив</option>
+                    <option value="raspiv">Распив</option>
+                  </select></label
+                >
+                <button
+                  id="refresh-products"
+                  type="button"
+                  class="btn btn-secondary"
+                >
+                  Обновить
+                </button>
+              </div>
+              <div class="chips-scroll">
+                <div
+                  class="chips product-filters"
+                  role="group"
+                  aria-label="Фильтр товаров"
+                ></div>
+              </div>
+              <p id="products-caption" class="caption" aria-live="polite"></p>
+              <div id="products-list" class="products-list" aria-busy="true">
+                <div class="state-box">Загружаем товары…</div>
+              </div>
+            </div>
+            <aside
+              id="product-editor"
+              class="product-editor"
+              aria-labelledby="product-editor-title"
+            >
+              <div class="editor-empty">
+                <h2 id="product-editor-title">Редактирование товара</h2>
+                <p class="muted">
+                  Выберите товар в списке, чтобы изменить цену, наличие или
+                  акцию.
+                </p>
+              </div>
+            </aside>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <p id="admin-message" class="toast" role="status" aria-live="polite"></p>
+    <noscript
+      ><p class="noscript">
+        Для работы кабинета включите JavaScript.
+      </p></noscript
+    >
+    <script src="/products.js" defer></script>
+  </body>
 </html>

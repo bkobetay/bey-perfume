@@ -104,6 +104,8 @@ const server = http.createServer(async (request, response) => {
         "/assets/fonts/manrope-vietnamese-wght-normal.woff2",
         "/assets/fonts/manrope-latin-ext-wght-normal.woff2",
         "/assets/fonts/manrope-latin-wght-normal.woff2",
+        "/assets/fonts/onest-cyrillic-wght-normal.woff2",
+        "/assets/fonts/onest-latin-wght-normal.woff2",
       ].includes(pathname)
     ) {
       notFound();
