@@ -71,15 +71,22 @@
 
   /* ---------- Sections: «Заказы» / «Товары и цены» ---------- */
   const sectionTabs = [...document.querySelectorAll(".section-switch [role=tab]")];
+  const sectionNames = sectionTabs.map((tab) => tab.dataset.section);
+  const sectionFromHash = () => {
+    const name = location.hash.slice(1);
+    return sectionNames.includes(name) ? name : "orders";
+  };
   let section = "orders";
   function showSection(name, { focus = false, remember = true } = {}) {
-    section = name === "products" ? "products" : "orders";
+    section = sectionNames.includes(name) ? name : "orders";
     for (const tab of sectionTabs) {
       const selected = tab.dataset.section === section;
       tab.setAttribute("aria-selected", String(selected));
       tab.tabIndex = selected ? 0 : -1;
       $("#" + tab.getAttribute("aria-controls")).hidden = !selected;
       if (selected && focus) tab.focus();
+      if (selected)
+        tab.scrollIntoView?.({ block: "nearest", inline: "nearest" });
     }
     if (remember && location.hash !== "#" + section)
       history.replaceState(null, "", "#" + section);
@@ -103,11 +110,11 @@
       showSection(sectionTabs[next].dataset.section, { focus: true });
     });
   });
-  showSection(location.hash === "#products" ? "products" : "orders", {
+  showSection(sectionFromHash(), {
     remember: false,
   });
   window.addEventListener("hashchange", () => {
-    const wanted = location.hash === "#products" ? "products" : "orders";
+    const wanted = sectionFromHash();
     if (wanted !== section) showSection(wanted, { remember: false });
   });
 
@@ -242,17 +249,27 @@
     }
     return data;
   }
+  // Product lines keep their original wording; set lines list their contents.
+  const isSet = (item) => item.type === "set" || !!item.setId;
+  const componentsText = (item) =>
+    (item.components || [])
+      .map(
+        (c) => `   – ${c.code ? c.code + " · " : ""}${c.name}, ${c.ml} мл`,
+      )
+      .join("\n");
   function whatsappMessage(order) {
     const russianItems = order.items
-      .map(
-        (item, index) =>
-          `${index + 1}. ${item.code ? item.code + " · " : ""}${item.name} (${item.type === "razliv" ? "разлив" : "распив"})\nОбъём: ${item.ml} мл · Количество: ${item.quantity}\nЦена за 1 шт.: ${money(item.price)} · Сумма: ${money(item.subtotal)}`,
+      .map((item, index) =>
+        isSet(item)
+          ? `${index + 1}. ${item.name} (набор)\nСостав:\n${componentsText(item)}\nКоличество: ${item.quantity}\nЦена за 1 набор: ${money(item.price)} · Сумма: ${money(item.subtotal)}`
+          : `${index + 1}. ${item.code ? item.code + " · " : ""}${item.name} (${item.type === "razliv" ? "разлив" : "распив"})\nОбъём: ${item.ml} мл · Количество: ${item.quantity}\nЦена за 1 шт.: ${money(item.price)} · Сумма: ${money(item.subtotal)}`,
       )
       .join("\n\n");
     const kazakhItems = order.items
-      .map(
-        (item, index) =>
-          `${index + 1}. ${item.code ? item.code + " · " : ""}${item.name} (${item.type === "razliv" ? "разлив" : "распив"})\nКөлемі: ${item.ml} мл · Саны: ${item.quantity}\nБір данасының бағасы: ${money(item.price)} · Сомасы: ${money(item.subtotal)}`,
+      .map((item, index) =>
+        isSet(item)
+          ? `${index + 1}. ${item.name} (жиынтық)\nҚұрамы:\n${componentsText(item)}\nСаны: ${item.quantity}\nБір жиынтықтың бағасы: ${money(item.price)} · Сомасы: ${money(item.subtotal)}`
+          : `${index + 1}. ${item.code ? item.code + " · " : ""}${item.name} (${item.type === "razliv" ? "разлив" : "распив"})\nКөлемі: ${item.ml} мл · Саны: ${item.quantity}\nБір данасының бағасы: ${money(item.price)} · Сомасы: ${money(item.subtotal)}`,
       )
       .join("\n\n");
     return `Здравствуйте, ${order.name}! Это ARAFAN Perfume.
@@ -293,8 +310,10 @@ ${kazakhItems}
     head.append(headRow);
     const body = el("tbody");
     for (const item of items) {
-      const type = item.type === "razliv" ? "Разлив" : "Распив";
+      const set = isSet(item);
+      const type = set ? "Набор" : item.type === "razliv" ? "Разлив" : "Распив";
       const row = el("tr");
+      if (set) row.className = "item-set";
       const name = el("td", "item-name");
       if (item.code)
         name.append(el("span", "item-code item-code-inline", item.code + " · "));
@@ -302,10 +321,22 @@ ${kazakhItems}
         document.createTextNode(item.name),
         el("span", "item-type", type),
       );
+      if (set && item.components?.length) {
+        const list = el("ul", "item-components");
+        for (const c of item.components)
+          list.append(
+            el("li", "", `${c.code ? c.code + " · " : ""}${c.name} · ${c.ml} мл`),
+          );
+        name.append(list);
+      }
       row.append(
         el("td", "item-code", item.code || "—"),
         name,
-        el("td", "item-qty", `${item.ml} мл × ${item.quantity}`),
+        el(
+          "td",
+          "item-qty",
+          set ? `× ${item.quantity}` : `${item.ml} мл × ${item.quantity}`,
+        ),
         el("td", "item-sum", money(item.subtotal)),
       );
       body.append(row);

@@ -172,6 +172,7 @@
   let account = null,
     orders = [],
     products = [],
+    sets = [],
     activeTab = "orders";
   const productById = (id) => products.find((p) => p.id === id);
 
@@ -184,6 +185,20 @@
     let added = 0,
       skipped = 0;
     for (const item of order.items) {
+      if (item.setId) {
+        const set = sets.find((s) => s.id === item.setId);
+        const current = basket.find((i) => i.setId === item.setId);
+        if (!set?.available || (!current && basket.length >= 24)) {
+          skipped++;
+          continue;
+        }
+        if (current)
+          current.quantity = Math.min(20, current.quantity + item.quantity);
+        else
+          basket.push({ setId: set.id, quantity: Math.min(20, item.quantity) });
+        added++;
+        continue;
+      }
       const product = productById(item.productId);
       const current = basket.find(
         (i) => i.productId === item.productId && i.ml === item.ml,
@@ -251,8 +266,12 @@
       "ul",
       { class: "acc-items" },
       order.items.map((item) => {
-        const product = productById(item.productId);
-        const href = `/fragrance?id=${encodeURIComponent(item.productId)}&ml=${item.ml}`;
+        const product = item.setId
+          ? productById(item.components?.[0]?.productId)
+          : productById(item.productId);
+        const href = item.setId
+          ? "/sets#" + encodeURIComponent(item.setId)
+          : `/fragrance?id=${encodeURIComponent(item.productId)}&ml=${item.ml}`;
         return h(
           "li",
           {},
@@ -274,13 +293,17 @@
             { class: "acc-item-copy" },
             h("a", { href, text: item.name }),
             h("span", {
-              text: [
-                item.code,
-                item.type === "razliv" ? "Разлив" : "Распив",
-                `${item.ml} мл × ${item.quantity}`,
-              ]
-                .filter(Boolean)
-                .join(" · "),
+              text: item.setId
+                ? (item.components || [])
+                    .map((c) => `${c.name} ${c.ml} мл`)
+                    .join(" · ") + ` · × ${item.quantity}`
+                : [
+                    item.code,
+                    item.type === "razliv" ? "Разлив" : "Распив",
+                    `${item.ml} мл × ${item.quantity}`,
+                  ]
+                    .filter(Boolean)
+                    .join(" · "),
             }),
           ),
           h("strong", { text: money(item.subtotal) }),
@@ -679,6 +702,7 @@
     ]);
     orders = orderData.orders || [];
     products = productData.products || [];
+    sets = productData.sets || [];
     loading.hidden = true;
     dashboard.hidden = false;
     renderDashboard();

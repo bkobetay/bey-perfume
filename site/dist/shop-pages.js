@@ -23,6 +23,57 @@
     niche: "Нишевые ароматы",
     universal: "Универсальные ароматы",
   };
+  // Large countdown tiles; cart.js ticks every [data-countdown-end] on the page.
+  const tiles = (end, title = "Акция закончится через") =>
+    `<div class="countdown countdown-tiles" role="timer" data-countdown-end="${esc(end)}"><p class="countdown-title"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/></svg><span>${esc(title)}</span></p><div class="countdown-units">${[
+      ["d", "дней"],
+      ["h", "часов"],
+      ["m", "минут"],
+      ["s", "секунд"],
+    ]
+      .map(
+        ([unit, label]) =>
+          `<span class="countdown-unit" data-unit="${unit}"><b>00</b><small>${label}</small></span>`,
+      )
+      .join("")}</div></div>`;
+  const future = (value) => Date.parse(value) > Date.now();
+  const plural = (n, one, few, many) =>
+    n % 10 === 1 && n % 100 !== 11
+      ? one
+      : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14)
+        ? few
+        : many;
+  const scopeLinks = {
+    all: ["/catalog", "Весь ассортимент"],
+    female: ["/catalog?family=female", "Женские ароматы"],
+    male: ["/catalog?family=male", "Мужские ароматы"],
+    niche: ["/catalog?family=niche", "Нишевые ароматы"],
+    universal: ["/catalog?family=universal", "Универсальные ароматы"],
+    raspiv: ["/raspiv", "Распив оригиналов"],
+    sets: ["/sets", "Наборы"],
+  };
+  function setCard(set) {
+    const off = Math.round((1 - set.price / set.regularPrice) * 100);
+    // Only a fixed set price below the components deserves its own comparison line.
+    const separate = set.componentsPrice - set.regularPrice;
+    return `<article class="set-card${set.onSale ? " is-on-sale" : ""}" id="${esc(set.id)}"><div class="set-images">${set.items
+      .slice(0, 4)
+      .map((i) =>
+        i.image
+          ? `<a href="/fragrance?id=${esc(i.productId)}&ml=${i.ml}" tabindex="-1" aria-hidden="true"><img src="/assets/products/${esc(i.image)}" alt="" width="800" height="800" loading="lazy"></a>`
+          : "",
+      )
+      .join(
+        "",
+      )}${set.onSale ? `<span class="sale-badge">−${off}%</span>` : ""}</div><div class="set-copy"><span class="type-label">Набор · ${set.items.length} ${plural(set.items.length, "аромат", "аромата", "ароматов")}</span><h2>${esc(set.title)}</h2>${set.description ? `<p class="set-description">${esc(set.description)}</p>` : ""}<ul class="set-items">${set.items
+      .map(
+        (i) =>
+          `<li><a href="/fragrance?id=${esc(i.productId)}&ml=${i.ml}"><small>${esc(i.brand)}</small>${esc(i.name)}</a><span>${i.ml} мл</span></li>`,
+      )
+      .join(
+        "",
+      )}</ul><div class="price-row"><strong class="set-price">${money(set.price)}</strong>${set.onSale ? `<del class="sale-old-price">${money(set.regularPrice)}</del><span class="sale-save">Выгода ${money(set.regularPrice - set.price)}</span>` : ""}</div>${separate > 0 ? `<p class="set-separate">По отдельности — ${money(set.componentsPrice)}</p>` : ""}${set.onSale && future(set.saleEndsAt) ? tiles(set.saleEndsAt, set.promotion ? `«${set.promotion.title}» закончится через` : "Акция закончится через") : ""}<button type="button" class="button" data-add-set="${esc(set.id)}" disabled>Добавить набор в корзину</button></div></article>`;
+  }
   function rating(value, label) {
     const ok = Number.isFinite(value) && value >= 0 && value <= 10;
     return `<div class="rating-item"><div class="rating-circle" role="img" aria-label="${label}: ${ok ? value + " из 10" : "оценка пока не указана"}"><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="rating-track" cx="60" cy="60" r="51"/><circle class="rating-arc" cx="60" cy="60" r="51" pathLength="100" stroke-dasharray="${ok ? value * 10 : 0} 100"/></svg><span>${ok ? value : "—"}<small>/10</small></span></div><span>${label}</span></div>`;
@@ -32,7 +83,7 @@
       if (!r.ok) throw Error();
       return r.json();
     })
-    .then(({ products }) => {
+    .then(({ products, sets = [], promotions = [] }) => {
       const target = document.querySelector("#fragrance-detail");
       if (target) {
         const p = products.find(
@@ -285,6 +336,14 @@
           document.querySelector(".cart-toggle").click();
         };
       }
+      const setsList = document.querySelector("#sets-list");
+      if (setsList) {
+        setsList.innerHTML = sets.map(setCard).join("");
+        setsList.removeAttribute("aria-busy");
+        document.querySelector("#sets-empty").hidden = sets.length > 0;
+        if (location.hash)
+          document.getElementById(location.hash.slice(1))?.scrollIntoView();
+      }
       const favoriteList = document.querySelector("#favorite-list");
       if (favoriteList) {
         let ids = [];
@@ -319,34 +378,57 @@
       const list = document.querySelector("#promotions-list");
       if (list) {
         // Ending soonest first; open-ended offers after dated ones.
+        // Group promotions get one banner each; listed products have their own sale.
         const sales = products
-          .filter((p) => p.onSale)
+          .filter((p) => p.onSale && !p.promotion)
           .sort(
             (a, b) =>
               (Date.parse(a.saleEndsAt) || Infinity) -
               (Date.parse(b.saleEndsAt) || Infinity),
           );
-        document.querySelector("#promotions-empty").hidden = sales.length > 0;
-        const tiles = (end) =>
-          `<div class="countdown countdown-tiles" role="timer" data-countdown-end="${esc(end)}"><p class="countdown-title"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/></svg><span>Акция закончится через</span></p><div class="countdown-units">${[
-            ["d", "дней"],
-            ["h", "часов"],
-            ["m", "минут"],
-            ["s", "секунд"],
-          ]
-            .map(
-              ([unit, label]) =>
-                `<span class="countdown-unit" data-unit="${unit}"><b>00</b><small>${label}</small></span>`,
-            )
-            .join("")}</div></div>`;
-        const soonest = sales.find((p) => Date.parse(p.saleEndsAt) > Date.now());
+        const setSales = sets.filter((set) => set.onSale);
+        document.querySelector("#promotions-empty").hidden =
+          sales.length + setSales.length + promotions.length > 0;
+        const discounts = [
+          ...products
+            .filter((p) => p.onSale)
+            .map((p) => ({
+              off: Math.round((1 - p.pricePerMl / p.basePricePerMl) * 100),
+              end: p.saleEndsAt,
+            })),
+          ...setSales.map((s) => ({
+            off: Math.round((1 - s.price / s.regularPrice) * 100),
+            end: s.saleEndsAt,
+          })),
+        ];
+        const soonest = discounts
+          .filter((d) => future(d.end))
+          .sort((a, b) => Date.parse(a.end) - Date.parse(b.end))[0];
         const hero = document.querySelector("#promotions-hero");
-        if (hero && sales.length) {
-          const best = Math.max(
-            ...sales.map((p) => Math.round((1 - p.pricePerMl / p.basePricePerMl) * 100)),
-          );
-          hero.innerHTML = `<div class="promo-hero-copy"><p class="promo-hero-kicker">Специальные цены</p><h2>Скидки до −${best}%</h2><p>${sales.length} ${sales.length % 10 === 1 && sales.length % 100 !== 11 ? "аромат" : sales.length % 10 >= 2 && sales.length % 10 <= 4 && (sales.length % 100 < 12 || sales.length % 100 > 14) ? "аромата" : "ароматов"} по акционной цене. Цена за миллилитр снижена для всех объёмов.</p></div>${soonest ? tiles(soonest.saleEndsAt) : ""}`;
+        const onSaleCount = products.filter((p) => p.onSale).length + setSales.length;
+        if (hero && discounts.length) {
+          const best = Math.max(...discounts.map((d) => d.off));
+          hero.innerHTML = `<div class="promo-hero-copy"><p class="promo-hero-kicker">Специальные цены</p><h2>Скидки до −${best}%</h2><p>${onSaleCount} ${plural(onSaleCount, "позиция", "позиции", "позиций")} по акционной цене. Скидка действует на все объёмы.</p></div>${soonest ? tiles(soonest.end, "Ближайшая акция закончится через") : ""}`;
           hero.hidden = false;
+        }
+        const banners = promotions
+          .map((promo) => {
+            const [href, label] =
+              promo.scope === "brand"
+                ? ["/catalog?q=" + encodeURIComponent(promo.scopeValue), promo.scopeValue]
+                : scopeLinks[promo.scope] || scopeLinks.all;
+            return `<article class="promo-banner"><span class="sale-badge">−${promo.percent}%</span><div><p class="promo-banner-scope">${esc(label)}</p><h2>${esc(promo.title)}</h2><p>${promo.endsAt ? "До " + new Intl.DateTimeFormat("ru-KZ", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }).format(new Date(promo.endsAt)) : "Без ограничения по сроку"}</p></div>${future(promo.endsAt) ? `<p class="countdown countdown-compact" role="timer" data-countdown-end="${esc(promo.endsAt)}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg><span class="countdown-text"></span></p>` : ""}<a class="button" href="${href}">Смотреть</a></article>`;
+          })
+          .join("");
+        const bannerList = document.querySelector("#promotions-banners");
+        if (bannerList) {
+          bannerList.innerHTML = banners;
+          bannerList.hidden = !promotions.length;
+        }
+        const setList = document.querySelector("#promotions-sets");
+        if (setList) {
+          setList.innerHTML = setSales.map(setCard).join("");
+          setList.hidden = !setSales.length;
         }
         list.innerHTML = sales
           .map((p) => {

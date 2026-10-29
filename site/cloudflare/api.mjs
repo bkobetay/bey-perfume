@@ -1,6 +1,5 @@
 import products from "../data/products.json" with { type: "json" };
 import {
-  catalog,
   productPatch,
   validateOrder,
   matchesAcceptedOrder,
@@ -10,6 +9,7 @@ import {
   NEXT_ORDER_NUMBER_SQL,
 } from "../server/commerce.mjs";
 import { customerAuth } from "../server/customer-auth.mjs";
+import { offers } from "../server/offers.mjs";
 const fail = (status, message) => {
   throw Object.assign(new Error(message), { status });
 };
@@ -158,8 +158,9 @@ export async function handleAPI(request, env) {
       );
       if (row.hits > max) fail(429, "Слишком много попыток. Попробуйте позже.");
     }
+    const offerStore = offers({ first, all, run });
     async function currentProducts() {
-      return catalog(products, await all("SELECT * FROM product_settings"));
+      return (await offerStore.load(products)).products;
     }
     const customer = customerAuth({
       first,
@@ -202,7 +203,7 @@ export async function handleAPI(request, env) {
     if (method === "GET" && path === "/api/products")
       return json({
         currency: "KZT",
-        products: await currentProducts(),
+        ...(await offerStore.storefront(products)),
       });
     if (method === "POST" && path === "/api/admin/login") {
       await limit("login", 10, 15 * 60 * 1000);
@@ -250,7 +251,8 @@ export async function handleAPI(request, env) {
           fail(409, "Ключ заявки уже использован. Откройте корзину заново.");
         return json({ id: prior.id, total: prior.total });
       }
-      const order = validateOrder(data, await currentProducts());
+      const offer = await offerStore.load(products);
+      const order = validateOrder(data, offer.products, offer.sets);
       order.accountId = accountId;
       const fingerprint = await digest(JSON.stringify(order));
       const now = new Date().toISOString(),
@@ -368,6 +370,18 @@ export async function handleAPI(request, env) {
           pageCount,
           statuses,
         });
+      }
+      if (/^\/api\/admin\/(?:sets|promotions)(?:\/|$)/.test(path)) {
+        const { status = 200, ...result } =
+          (await offerStore.admin(
+            path,
+            method,
+            ["POST", "PATCH"].includes(method)
+              ? await body(request)
+              : undefined,
+            products,
+          )) || fail(404, "Не найдено.");
+        return json(result, status);
       }
       if (method === "GET" && path === "/api/admin/products")
         return json({ products: await currentProducts() });

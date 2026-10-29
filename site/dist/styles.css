@@ -6259,3 +6259,230 @@ html {
 .scent-tabs.is-initializing button {
   transition: none !important;
 }
+
+/* Stage 60: seller-managed sets and promotion banners. */
+.sets-list {
+  display: grid;
+  gap: 24px;
+  margin-bottom: 56px;
+}
+.sets-list[hidden] {
+  display: none;
+}
+.sets-list[aria-busy="true"] {
+  min-height: 420px;
+}
+.sets-skeleton {
+  height: 420px;
+  border-radius: 14px;
+  background: linear-gradient(90deg, var(--surface), #fbfcfa, var(--surface));
+  background-size: 200% 100%;
+  animation: sets-skeleton 1.4s ease-in-out infinite;
+}
+@keyframes sets-skeleton {
+  to {
+    background-position: -200% 0;
+  }
+}
+.sets-list .set-card {
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: 40px;
+  margin: 0;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  align-items: stretch;
+  scroll-margin-top: 20px;
+}
+.sets-list .set-images {
+  position: relative;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  align-items: center;
+  min-height: 320px;
+  padding: 24px 12px;
+  border-radius: 10px;
+}
+.sets-list .set-images a {
+  display: block;
+}
+.sets-list .set-images img {
+  width: 100%;
+  height: 240px;
+}
+.set-copy {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+.set-copy .type-label {
+  justify-self: start;
+}
+.set-copy h2 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+.set-card .set-copy p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text);
+}
+.set-card .set-items {
+  display: grid;
+  gap: 0;
+  margin: 4px 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+  line-height: 1.4;
+}
+.set-items li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 15px;
+}
+.set-items a {
+  display: grid;
+  font-weight: 600;
+}
+.set-items a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.set-items small {
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.set-items span {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 600;
+}
+.set-card .set-price {
+  font-size: 30px;
+  font-weight: 700;
+}
+.set-card.is-on-sale .set-price {
+  color: var(--sale);
+}
+.set-card .set-separate {
+  font-size: 14px;
+}
+.set-copy .button {
+  justify-self: start;
+  min-width: 260px;
+}
+.set-copy .countdown-tiles {
+  margin: 0;
+}
+.promo-banners {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+.promo-banners[hidden] {
+  display: none;
+}
+.promo-banner {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  padding: 22px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #0b2f25, #164d3b);
+  color: #fff;
+  overflow: hidden;
+}
+.promo-banner .sale-badge {
+  position: static;
+  justify-self: start;
+  font-size: 18px;
+  padding: 6px 12px;
+}
+.promo-banner-scope {
+  margin: 0 0 4px;
+  font-size: 13px;
+  color: #cfe0d4;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.promo-banner h2 {
+  margin: 0 0 4px;
+  font-size: 24px;
+  font-weight: 650;
+}
+.promo-banner p {
+  margin: 0;
+  font-size: 14px;
+}
+.promo-banner .countdown-compact {
+  background: #ffffff1f;
+  color: #fff;
+}
+.promo-banner .button {
+  justify-self: start;
+  background: #fff;
+  color: #103d31;
+  border-color: #fff;
+}
+/* commerce.css loads later and sets .cart-item-art to block. */
+.cart-item-art.cart-set-art {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+}
+.cart-set-art {
+  width: 88px;
+  height: 116px;
+  box-sizing: border-box;
+}
+.cart-page-content .cart-set-art img,
+.cart-set-art img {
+  width: 100%;
+  height: 72px;
+  object-fit: contain;
+}
+@media (max-width: 860px) {
+  .sets-list .set-card {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 14px;
+  }
+  .sets-list .set-images {
+    min-height: 200px;
+  }
+  .sets-list .set-images img {
+    height: 170px;
+  }
+  .set-copy h2 {
+    font-size: 23px;
+  }
+  .set-copy .button {
+    justify-self: stretch;
+    min-width: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sets-skeleton {
+    animation: none;
+  }
+}

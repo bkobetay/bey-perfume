@@ -98,7 +98,26 @@
               aria-controls="products-panel"
               data-section="products"
             >
-              Товары и цены
+              <span class="label-long">Товары и цены</span
+              ><span class="label-short">Товары</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              id="section-tab-sets"
+              aria-controls="sets-panel"
+              data-section="sets"
+            >
+              Наборы
+            </button>
+            <button
+              type="button"
+              role="tab"
+              id="section-tab-promotions"
+              aria-controls="promotions-panel"
+              data-section="promotions"
+            >
+              Акции
             </button>
           </nav>
           <div class="topbar-actions">
@@ -261,6 +280,136 @@
                 <p class="muted">
                   Выберите товар в списке, чтобы изменить цену, наличие или
                   акцию.
+                </p>
+              </div>
+            </aside>
+          </div>
+        </section>
+        <section
+          id="sets-panel"
+          class="panel"
+          role="tabpanel"
+          aria-labelledby="section-tab-sets"
+          hidden
+        >
+          <div class="panel-head">
+            <div>
+              <h1>Наборы</h1>
+              <p class="muted">
+                Соберите несколько ароматов в один набор, задайте цену и скидку.
+              </p>
+            </div>
+            <button id="create-set" type="button" class="btn btn-primary">
+              + Создать набор
+            </button>
+          </div>
+          <div class="products-layout wide-editor">
+            <div class="products-main">
+              <div class="toolbar products-toolbar">
+                <label class="search-field"
+                  ><span class="visually-hidden">Найти набор</span
+                  ><input
+                    id="set-search"
+                    type="search"
+                    placeholder="Название набора или аромат"
+                    maxlength="80"
+                    autocomplete="off"
+                /></label>
+                <button id="refresh-sets" type="button" class="btn btn-secondary">
+                  Обновить
+                </button>
+              </div>
+              <div class="chips-scroll">
+                <div
+                  class="chips set-filters"
+                  role="group"
+                  aria-label="Фильтр наборов"
+                ></div>
+              </div>
+              <p id="sets-caption" class="caption" aria-live="polite"></p>
+              <div id="sets-list" class="products-list" aria-busy="true">
+                <div class="state-box">Загружаем наборы…</div>
+              </div>
+            </div>
+            <aside
+              id="set-editor"
+              class="product-editor"
+              aria-labelledby="set-editor-title"
+            >
+              <div class="editor-empty">
+                <h2 id="set-editor-title">Набор</h2>
+                <p class="muted">
+                  Выберите набор в списке или создайте новый.
+                </p>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <section
+          id="promotions-panel"
+          class="panel"
+          role="tabpanel"
+          aria-labelledby="section-tab-promotions"
+          hidden
+        >
+          <div class="panel-head">
+            <div>
+              <h1>Акции</h1>
+              <p class="muted">
+                Скидка в процентах на группу ароматов, бренд или наборы. Цену
+                отдельного аромата меняйте в разделе «Товары и цены».
+              </p>
+            </div>
+            <button id="create-promotion" type="button" class="btn btn-primary">
+              + Создать акцию
+            </button>
+          </div>
+          <div class="products-layout">
+            <div class="products-main">
+              <div class="toolbar products-toolbar">
+                <label class="search-field"
+                  ><span class="visually-hidden">Найти акцию</span
+                  ><input
+                    id="promotion-search"
+                    type="search"
+                    placeholder="Название акции или бренд"
+                    maxlength="80"
+                    autocomplete="off"
+                /></label>
+                <button
+                  id="refresh-promotions"
+                  type="button"
+                  class="btn btn-secondary"
+                >
+                  Обновить
+                </button>
+              </div>
+              <div class="chips-scroll">
+                <div
+                  class="chips promotion-filters"
+                  role="group"
+                  aria-label="Статус акций"
+                ></div>
+              </div>
+              <p id="promotions-caption" class="caption" aria-live="polite"></p>
+              <div id="promotions-list" class="products-list" aria-busy="true">
+                <div class="state-box">Загружаем акции…</div>
+              </div>
+              <p class="caption caption-note">
+                Если на аромат действуют несколько скидок, покупатель получает
+                самую низкую цену.
+              </p>
+            </div>
+            <aside
+              id="promotion-editor"
+              class="product-editor"
+              aria-labelledby="promotion-editor-title"
+            >
+              <div class="editor-empty">
+                <h2 id="promotion-editor-title">Акция</h2>
+                <p class="muted">
+                  Выберите акцию в списке или создайте новую.
                 </p>
               </div>
             </aside>

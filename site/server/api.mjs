@@ -1,5 +1,4 @@
 import {
-  catalog,
   productPatch,
   validateOrder as validateRetailOrder,
   matchesAcceptedOrder,
@@ -8,6 +7,7 @@ import {
   NEXT_ORDER_NUMBER_SQL,
 } from "./commerce.mjs";
 import { customerAuth } from "./customer-auth.mjs";
+import { offers } from "./offers.mjs";
 import { readFile } from "node:fs/promises";
 import { randomBytes, createHash, scrypt, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
@@ -71,8 +71,15 @@ export function createAPI(products, directory = privateDir) {
       fail(401, "Войдите в кабинет продавца.");
     return digest(token);
   }
-  const currentProducts = () =>
-    catalog(products, db.prepare("SELECT * FROM product_settings").all());
+  const offerStore = offers({
+    first: async (sql, ...args) => db.prepare(sql).get(...args) || null,
+    all: async (sql, ...args) => db.prepare(sql).all(...args),
+    run: async (sql, ...args) => ({
+      meta: { changes: db.prepare(sql).run(...args).changes },
+    }),
+  });
+  const currentProducts = async () =>
+    (await offerStore.load(products)).products;
   return {
     db,
     async handle(req, res, url) {
@@ -81,7 +88,7 @@ export function createAPI(products, directory = privateDir) {
         if (req.method === "GET" && path === "/api/products")
           return send(res, 200, {
             currency: "KZT",
-            products: currentProducts(),
+            ...(await offerStore.storefront(products)),
           });
         if (req.method !== "GET") {
           if (
@@ -185,7 +192,12 @@ export function createAPI(products, directory = privateDir) {
               );
             return send(res, 200, { id: accepted.id, total: accepted.total });
           }
-          const validated = validateRetailOrder(data, currentProducts());
+          const offer = await offerStore.load(products);
+          const validated = validateRetailOrder(
+            data,
+            offer.products,
+            offer.sets,
+          );
           validated.accountId = accountId;
           const fingerprint = digest(JSON.stringify(validated));
           const now = new Date().toISOString();
@@ -309,8 +321,22 @@ export function createAPI(products, directory = privateDir) {
               statuses,
             });
           }
+          const offerResult =
+            /^\/api\/admin\/(?:sets|promotions)(?:\/|$)/.test(path) &&
+            (await offerStore.admin(
+              path,
+              req.method,
+              ["POST", "PATCH"].includes(req.method)
+                ? await body(req)
+                : undefined,
+              products,
+            ));
+          if (offerResult) {
+            const { status = 200, ...result } = offerResult;
+            return send(res, status, result);
+          }
           if (req.method === "GET" && path === "/api/admin/products")
-            return send(res, 200, { products: currentProducts() });
+            return send(res, 200, { products: await currentProducts() });
           const productMatch =
             /^\/api\/admin\/products(?:\/([a-z0-9-]+))?$/.exec(path);
           if (productMatch && req.method === "PATCH") {
@@ -351,7 +377,7 @@ export function createAPI(products, directory = privateDir) {
             if (!row)
               fail(409, "Товар изменён в другой вкладке. Обновите список.");
             return send(res, 200, {
-              product: currentProducts().find((p) => p.id === id),
+              product: (await currentProducts()).find((p) => p.id === id),
             });
           }
           const match =

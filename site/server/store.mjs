@@ -2,6 +2,7 @@ import { DatabaseSync } from "node:sqlite";
 import { mkdirSync, chmodSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { OFFERS_SCHEMA, STARTER_SET_SQL } from "./offers.mjs";
 
 export const privateDir = resolve(
   process.env.BEY_PRIVATE_DIR ||
@@ -77,6 +78,12 @@ export function openStore(directory = privateDir) {
     db.exec(
       "CREATE INDEX IF NOT EXISTS order_account_date ON orders(account_id,created_at)",
     );
+    // Seed the original storefront set only when the table is first created.
+    const hadSets = db
+      .prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='sets'")
+      .get();
+    db.exec(OFFERS_SCHEMA);
+    if (!hadSets) db.exec(STARTER_SET_SQL);
     db.exec("COMMIT");
   } catch (error) {
     db.exec("ROLLBACK");

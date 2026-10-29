@@ -8,6 +8,7 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
     return e;
   };
   let products = [],
+    sets = [],
     basket = [],
     busy = false,
     requestKey = crypto.randomUUID();
@@ -37,13 +38,20 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => toast.classList.remove("shown"), 2800);
   }
+  // Basket lines are either {productId, type, ml, quantity} or {setId, quantity}.
   const detail = (item) => {
-    const p = products.find((p) => p.id === item.productId);
+    if (item?.setId !== undefined) {
+      const set = sets.find((s) => s.id === item.setId);
+      return set ? { set, price: set.price } : null;
+    }
+    const p = products.find((p) => p.id === item?.productId);
     const v = p?.variants.find((v) => v.ml === item.ml);
-    return p && v ? { p, v } : null;
+    return p && v ? { p, v, price: v.price } : null;
   };
+  const lineKey = (i) =>
+    i?.setId !== undefined ? "set:" + i.setId : `${i?.productId}:${i?.ml}`;
   const total = () =>
-    basket.reduce((sum, i) => sum + (detail(i)?.v.price || 0) * i.quantity, 0);
+    basket.reduce((sum, i) => sum + (detail(i)?.price || 0) * i.quantity, 0);
   function save() {
     try {
       localStorage.setItem("bey-cart-v1", JSON.stringify(basket));
@@ -61,10 +69,12 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
       .filter((i) => i.productId === id)
       .reduce((sum, i) => sum + i.ml * i.quantity, 0);
   function stockProblem() {
-    return basket.some(
-      (i) => products.find((p) => p.id === i.productId)?.available === false,
+    return basket.some((i) =>
+      i.setId !== undefined
+        ? sets.find((s) => s.id === i.setId)?.available === false
+        : products.find((p) => p.id === i.productId)?.available === false,
     )
-      ? "Один из ароматов больше недоступен. Удалите его из корзины."
+      ? "Одна из позиций больше недоступна. Удалите её из корзины."
       : "";
   }
   const bagIcon =
@@ -134,12 +144,12 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/></svg>';
   const percentOff = (p) =>
     Math.round((1 - p.pricePerMl / p.basePricePerMl) * 100);
-  function countdown(end, large) {
+  function countdown(end, large, title = "Акция закончится через") {
     const box = el("div", "countdown " + (large ? "countdown-tiles" : "countdown-compact"));
     box.dataset.countdownEnd = end;
     box.setAttribute("role", "timer");
     if (large) {
-      box.innerHTML = `<p class="countdown-title">${boltIcon}<span>Акция закончится через</span></p><div class="countdown-units">${[
+      box.innerHTML = `<p class="countdown-title">${boltIcon}<span></span></p><div class="countdown-units">${[
         ["d", "дней"],
         ["h", "часов"],
         ["m", "минут"],
@@ -150,6 +160,8 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
             `<span class="countdown-unit" data-unit="${unit}"><b>00</b><small>${label}</small></span>`,
         )
         .join("")}</div>`;
+      // Seller-provided promotion titles are inserted as text only.
+      box.querySelector(".countdown-title span").textContent = title;
     } else
       box.innerHTML = `${clockIcon}<span class="countdown-text"></span>`;
     tickCountdowns();
@@ -200,7 +212,14 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
     }
     if (timer?.dataset.countdownEnd !== p.saleEndsAt) {
       timer?.remove();
-      row.after(countdown(p.saleEndsAt, large));
+      const box = countdown(
+        p.saleEndsAt,
+        large,
+        p.promotion
+          ? `«${p.promotion.title}» закончится через`
+          : "Акция закончится через",
+      );
+      row.after(box);
     }
   }
   function tickCountdowns() {
@@ -293,17 +312,18 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
         label.textContent =
           p.available === false ? "Нет в наличии" : "В наличии";
     });
-    const set = document.querySelector("#add-set");
-    if (set) {
-      const ids = set.dataset.items.split(",");
-      const list = ids.map((id) => products.find((p) => p.id === id));
-      set.disabled = list.some((p) => !p || p.available === false);
-      const total = list.reduce(
-        (s, p) => s + (p?.variants.find((v) => v.ml === 10)?.price || 0),
-        0,
-      );
-      document.querySelector("#set-price").textContent = money(total);
-    }
+    document.querySelectorAll("[data-add-set]").forEach((button) => {
+      const set = sets.find((s) => s.id === button.dataset.addSet);
+      const inBasket =
+        basket.find((i) => i.setId === button.dataset.addSet)?.quantity || 0;
+      button.disabled = !set?.available || inBasket >= 20;
+      if (!button.classList.contains("is-added"))
+        button.textContent = !set?.available
+          ? "Набор недоступен"
+          : inBasket
+            ? `В корзине · ${inBasket} шт. Добавить ещё`
+            : "Добавить набор в корзину";
+    });
   }
   async function refreshAvailability() {
     if (busy || document.hidden) return;
@@ -313,11 +333,84 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
       const data = await response.json();
       if (busy) return;
       products = data.products;
+      sets = data.sets || [];
       updateAvailability();
       if (success.hidden) render();
     } catch {
       /* Checkout still checks availability on the server. */
     }
+  }
+  function quantityControls(item, index, label, unavailable) {
+    const controls = el("div", "quantity-controls");
+    const minus = el("button", "", "−"),
+      plus = el("button", "", "+"),
+      count = el("span", "", item.quantity);
+    minus.type = plus.type = "button";
+    minus.setAttribute("aria-label", "Уменьшить " + label);
+    plus.setAttribute("aria-label", "Увеличить " + label);
+    minus.disabled = item.quantity <= 1;
+    plus.disabled = item.quantity >= 20 || unavailable;
+    minus.onclick = () => {
+      item.quantity--;
+      changed();
+      restoreControl(index, false);
+    };
+    plus.onclick = () => {
+      if (unavailable) return;
+      item.quantity++;
+      changed();
+      restoreControl(index, true);
+    };
+    controls.append(minus, count, plus);
+    return controls;
+  }
+  function setRow(set, item, index) {
+    const row = el("article", "cart-item cart-item-set");
+    const art = el("a", "cart-item-art cart-set-art");
+    art.href = "/sets#" + set.id;
+    art.setAttribute("aria-label", "Открыть набор " + set.title);
+    for (const component of set.items.slice(0, 3)) {
+      if (!component.image) continue;
+      const img = el("img");
+      img.src = "/assets/products/" + component.image;
+      img.alt = "";
+      art.append(img);
+    }
+    const copy = el("div", "cart-item-copy");
+    const heading = el("h3");
+    const link = el("a", "cart-product-link", set.title);
+    link.href = "/sets#" + set.id;
+    heading.append(link);
+    copy.append(
+      el("small", "", "Набор · " + set.items.length + " аромата"),
+      heading,
+      el(
+        "p",
+        "",
+        set.items.map((i) => `${i.brand} ${i.name} ${i.ml} мл`).join(" · ") +
+          " · " +
+          money(set.price),
+      ),
+      quantityControls(item, index, "набор " + set.title, !set.available),
+    );
+    const side = el("div", "cart-item-side");
+    side.append(el("strong", "", money(set.price * item.quantity)));
+    if (set.onSale)
+      side.append(el("del", "sale-old-price", money(set.regularPrice * item.quantity)));
+    const remove = el("button", "remove-item", "Удалить");
+    remove.type = "button";
+    remove.setAttribute("aria-label", "Удалить набор " + set.title);
+    remove.onclick = () => {
+      basket.splice(index, 1);
+      changed();
+      (
+        list.querySelector(".remove-item") ||
+        panel.querySelector(".cart-empty a")
+      ).focus();
+    };
+    side.append(remove);
+    row.append(art, copy, side);
+    return row;
   }
   function render() {
     if (cartRoot)
@@ -333,6 +426,10 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
     for (const [index, item] of basket.entries()) {
       const found = detail(item);
       if (!found) continue;
+      if (found.set) {
+        list.append(setRow(found.set, item, index));
+        continue;
+      }
       const { p, v } = found;
       const row = el("article", "cart-item");
       const productURL =
@@ -698,10 +795,11 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
     })
     .then((data) => {
       products = data.products;
+      sets = data.sets || [];
       const seen = new Set();
       basket = basket
         .filter((i) => {
-          const k = `${i?.productId}:${i?.ml}`;
+          const k = lineKey(i);
           if (
             !i ||
             !detail(i) ||
@@ -723,21 +821,41 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
       });
       document.addEventListener("store:refresh-controls", updateAvailability);
       document.addEventListener("click", (event) => {
-        const set = event.target.closest("#add-set");
+        const setButton = event.target.closest("[data-add-set]");
+        if (setButton) {
+          const set = sets.find((s) => s.id === setButton.dataset.addSet);
+          const current = basket.find((i) => i.setId === set?.id);
+          if (
+            !set?.available ||
+            (current?.quantity || 0) >= 20 ||
+            (!current && basket.length >= 24)
+          ) {
+            notify("Набор сейчас нельзя добавить.");
+            return;
+          }
+          if (current) current.quantity++;
+          else basket.push({ setId: set.id, quantity: 1 });
+          changed();
+          setButton.classList.add("is-added");
+          setButton.textContent = "Добавлено ✓";
+          setTimeout(() => {
+            setButton.classList.remove("is-added");
+            updateAvailability();
+          }, 1200);
+          notify("Набор добавлен в корзину");
+          return;
+        }
         const button = event.target.closest("[data-add]");
-        if (!set && !button) return;
-        const requests = set
-          ? set.dataset.items.split(",").map((id) => ({ id, ml: 10 }))
-          : [
-              {
-                id: button.dataset.add,
-                ml: Number(
-                  button
-                    .closest(".product-card")
-                    .querySelector(".volume-select").value,
-                ),
-              },
-            ];
+        if (!button) return;
+        const requests = [
+          {
+            id: button.dataset.add,
+            ml: Number(
+              button.closest(".product-card").querySelector(".volume-select")
+                .value,
+            ),
+          },
+        ];
         if (
           requests.some((r) => {
             const p = products.find((p) => p.id === r.id);
@@ -771,21 +889,16 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
             });
         }
         changed();
-        if (button) {
-          button.classList.add("is-added");
-          if (button.classList.contains("icon-cart-button"))
-            button.innerHTML =
-              '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg><span class="cart-label">Добавлено</span>';
-          else button.textContent = "Добавлено ✓";
-          setTimeout(() => {
-            button.classList.remove("is-added");
-            updateAvailability();
-          }, 1200);
-        }
-        notify(set ? "Набор добавлен в корзину" : "Аромат добавлен в корзину");
-        if (set)
-          document.querySelector("#set-feedback").textContent =
-            "Три флакона по 10 мл добавлены в корзину.";
+        button.classList.add("is-added");
+        if (button.classList.contains("icon-cart-button"))
+          button.innerHTML =
+            '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg><span class="cart-label">Добавлено</span>';
+        else button.textContent = "Добавлено ✓";
+        setTimeout(() => {
+          button.classList.remove("is-added");
+          updateAvailability();
+        }, 1200);
+        notify("Аромат добавлен в корзину");
       });
       updateAvailability();
       function syncBasket() {
@@ -799,7 +912,7 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
           const seen = new Set();
           basket = saved
             .filter((i) => {
-              const key = i?.productId + ":" + i?.ml;
+              const key = lineKey(i);
               if (
                 !detail(i) ||
                 !Number.isInteger(i.quantity) ||

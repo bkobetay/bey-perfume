@@ -23,11 +23,16 @@ const fulfillmentMigration = await readFile(
   ),
   "utf8",
 );
+const offersMigration = await readFile(
+  new URL("../cloudflare/migrations/0004_sets_promotions.sql", import.meta.url),
+  "utf8",
+);
 function setup() {
   const sql = new DatabaseSync(":memory:");
   sql.exec(schema);
   sql.exec(awaitMigration);
   sql.exec(fulfillmentMigration);
+  sql.exec(offersMigration);
   for (const p of products)
     sql
       .prepare(
@@ -550,4 +555,219 @@ test("retail migration preserves historical orders, events and stock audit rows"
   } finally {
     sql.close();
   }
+});
+test("Cloudflare: seller sets and group promotions price products, sets and orders", async (t) => {
+  const s = setup();
+  t.after(() => s.sql.close());
+  const { call } = s;
+  assert.equal((await call("/api/admin/sets")).status, 401);
+  await s.login();
+  const start = (await call("/api/products")).data;
+  const starter = start.sets.find((x) => x.id === "set-starter");
+  assert.ok(starter, "the original fixed set is seeded");
+  assert.equal(starter.items.length, 3);
+  assert.equal(
+    starter.price,
+    starter.items.reduce((sum, i) => sum + i.price, 0),
+  );
+  const female = start.products.find(
+    (p) => p.collection === "female" && p.type === "razliv",
+  );
+  const male = start.products.find(
+    (p) => p.collection === "male" && p.type === "razliv",
+  );
+
+  // Group promotion: −20% on female fragrances, ends in a day.
+  const ends = new Date(Date.now() + 86400000).toISOString();
+  const bad = await call("/api/admin/promotions", "POST", {
+    title: "Неделя",
+    scope: "brand",
+    scopeValue: "Нет такого",
+    percent: 20,
+    active: true,
+  });
+  assert.equal(bad.status, 400);
+  const created = await call("/api/admin/promotions", "POST", {
+    title: "Женская неделя",
+    scope: "female",
+    percent: 20,
+    startsAt: null,
+    endsAt: ends,
+    active: true,
+  });
+  assert.equal(created.status, 201);
+  const promo = created.data.promotion;
+  assert.equal(promo.status, "active");
+  assert.ok(promo.affected > 0);
+  let catalog = (await call("/api/products")).data;
+  let f = catalog.products.find((p) => p.id === female.id);
+  assert.equal(f.onSale, true);
+  assert.equal(f.pricePerMl, Math.round(female.basePricePerMl * 0.8));
+  assert.equal(f.promotion.title, "Женская неделя");
+  assert.equal(f.saleEndsAt, ends);
+  assert.equal(
+    catalog.products.find((p) => p.id === male.id).onSale,
+    false,
+    "male fragrances are not covered",
+  );
+  assert.deepEqual(
+    catalog.promotions.map((p) => p.id),
+    [promo.id],
+  );
+
+  // A deeper product sale beats the promotion; a shallower one does not.
+  const product = (await call("/api/admin/products")).data.products.find(
+    (p) => p.id === female.id,
+  );
+  await call("/api/admin/products/" + female.id, "PATCH", {
+    version: product.version,
+    pricePerMl: product.basePricePerMl,
+    available: true,
+    salePricePerMl: Math.round(product.basePricePerMl * 0.5),
+    saleEndsAt: null,
+  });
+  f = (await call("/api/products")).data.products.find(
+    (p) => p.id === female.id,
+  );
+  assert.equal(f.pricePerMl, Math.round(product.basePricePerMl * 0.5));
+  assert.equal(f.promotion, null);
+
+  // Switching the promotion off restores regular prices for the group.
+  const off = await call("/api/admin/promotions/" + promo.id, "PATCH", {
+    title: "Женская неделя",
+    scope: "female",
+    percent: 20,
+    endsAt: ends,
+    active: false,
+    version: promo.version,
+  });
+  assert.equal(off.data.promotion.status, "off");
+  assert.equal(
+    (
+      await call("/api/admin/promotions/" + promo.id, "PATCH", {
+        title: "Старое",
+        scope: "female",
+        percent: 20,
+        active: true,
+        version: promo.version,
+      })
+    ).status,
+    409,
+  );
+  assert.equal((await call("/api/products")).data.promotions.length, 0);
+
+  // Seller-created set with its own sale price, then a sets-wide promotion.
+  const createdSet = await call("/api/admin/sets", "POST", {
+    title: "Мужской дуэт",
+    description: "Два аромата по 20 мл",
+    items: [
+      { productId: male.id, ml: 20 },
+      { productId: female.id, ml: 5 },
+    ],
+    fixedPrice: null,
+    salePrice: 1,
+    saleEndsAt: ends,
+    available: true,
+    visible: true,
+    sort: 1,
+  });
+  assert.equal(createdSet.status, 201);
+  const set = createdSet.data.set;
+  assert.equal(
+    set.regularPrice,
+    male.basePricePerMl * 20 + female.basePricePerMl * 5,
+  );
+  assert.equal(set.price, 1);
+  assert.equal(set.onSale, true);
+  assert.equal(
+    (
+      await call("/api/admin/sets", "POST", {
+        title: "Дубль",
+        items: [
+          { productId: male.id, ml: 20 },
+          { productId: male.id, ml: 20 },
+        ],
+        available: true,
+        visible: true,
+      })
+    ).status,
+    400,
+  );
+  const hidden = await call("/api/admin/sets/" + set.id, "PATCH", {
+    title: "Мужской дуэт",
+    items: [{ productId: male.id, ml: 20 }],
+    fixedPrice: 9000,
+    salePrice: null,
+    saleEndsAt: null,
+    available: true,
+    visible: false,
+    sort: 1,
+    version: set.version,
+  });
+  assert.equal(hidden.status, 200);
+  assert.equal(hidden.data.set.price, 9000);
+  assert.ok(
+    !(await call("/api/products")).data.sets.some((x) => x.id === set.id),
+    "hidden sets are not public",
+  );
+  const setsPromo = await call("/api/admin/promotions", "POST", {
+    title: "Наборы −10%",
+    scope: "sets",
+    percent: 10,
+    active: true,
+  });
+  assert.equal(setsPromo.status, 201);
+  const publicStarter = (await call("/api/products")).data.sets.find(
+    (x) => x.id === "set-starter",
+  );
+  assert.equal(
+    publicStarter.price,
+    Math.round(publicStarter.regularPrice * 0.9),
+  );
+  assert.equal(publicStarter.promotion.title, "Наборы −10%");
+
+  // Orders accept set lines priced on the server.
+  const order = {
+    requestKey: crypto.randomUUID(),
+    name: "Айдана",
+    phone: "+77000000000",
+    fulfillment: "pickup",
+    address: "",
+    items: [
+      { setId: "set-starter", quantity: 2 },
+      { productId: male.id, type: male.type, ml: 5, quantity: 1 },
+    ],
+    expectedTotal: publicStarter.price * 2 + male.pricePerMl * 5,
+  };
+  const placed = await call("/api/orders", "POST", order);
+  assert.equal(placed.status, 201);
+  assert.equal(
+    (await call("/api/orders", "POST", order)).status,
+    200,
+    "set orders stay idempotent",
+  );
+  assert.equal(
+    (
+      await call("/api/orders", "POST", {
+        ...order,
+        requestKey: crypto.randomUUID(),
+        items: [{ setId: set.id, quantity: 1 }],
+        expectedTotal: 9000,
+      })
+    ).status,
+    400,
+    "hidden sets cannot be ordered",
+  );
+  const stored = (await call("/api/admin/orders")).data.orders.find(
+    (o) => o.id === placed.data.id,
+  );
+  const line = stored.items.find((i) => i.setId === "set-starter");
+  assert.equal(line.type, "set");
+  assert.equal(line.components.length, 3);
+  assert.equal(line.subtotal, publicStarter.price * 2);
+  assert.equal(
+    (await call("/api/admin/sets/" + set.id, "DELETE")).data.ok,
+    true,
+  );
+  assert.equal((await call("/api/admin/sets/" + set.id, "DELETE")).status, 404);
 });

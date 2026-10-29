@@ -40,14 +40,78 @@ export const orderCode = (prefix, number) =>
 // Highest number already used today; old long codes never match the prefix.
 export const NEXT_ORDER_NUMBER_SQL =
   "SELECT COALESCE(MAX(CAST(substr(id, 12) AS INTEGER)), 0) + 1 AS next FROM orders WHERE id LIKE ?";
-export function catalog(products, rows, now = Date.now()) {
+export const promotionScopes = {
+  all: "Весь ассортимент",
+  female: "Женские ароматы",
+  male: "Мужские ароматы",
+  niche: "Нишевые ароматы",
+  universal: "Универсальные ароматы",
+  raspiv: "Распив оригиналов",
+  brand: "Бренд",
+  sets: "Наборы",
+};
+const time = (value) => (value ? Date.parse(value) : NaN);
+export function promotionStatus(row, now = Date.now()) {
+  if (!row.active) return "off";
+  if (time(row.ends_at) <= now) return "expired";
+  if (time(row.starts_at) > now) return "scheduled";
+  return "active";
+}
+export function promotionCovers(row, product) {
+  switch (row.scope) {
+    case "all":
+      return true;
+    case "raspiv":
+      return product.type === "raspiv";
+    case "brand":
+      return product.brand === row.scope_value;
+    case "sets":
+      return false;
+    default:
+      return product.collection === row.scope && product.type === "razliv";
+  }
+}
+export const presentPromotion = (row) =>
+  row && {
+    id: row.id,
+    title: row.title,
+    scope: row.scope,
+    scopeValue: row.scope_value || "",
+    percent: row.percent,
+    startsAt: row.starts_at || null,
+    endsAt: row.ends_at || null,
+  };
+const discounted = (price, percent) =>
+  Math.round((price * (100 - percent)) / 100);
+// The deepest active promotion among those covering an item.
+function bestPromotion(promotions, covers) {
+  return promotions
+    .filter(covers)
+    .reduce(
+      (best, row) => (!best || row.percent > best.percent ? row : best),
+      null,
+    );
+}
+export function catalog(products, rows, now = Date.now(), promotionRows = []) {
+  const active = promotionRows.filter(
+    (row) => promotionStatus(row, now) === "active",
+  );
   return products.map((product) => {
     const row = rows.find((r) => r.product_id === product.id);
     const base = row?.price_per_ml ?? basePrice(product);
     const sale = row?.sale_price_per_ml ?? null;
-    const end = row?.sale_ends_at ?? null;
-    const onSale = sale !== null && sale < base;
-    const price = onSale ? sale : base;
+    const ownSale = sale !== null && sale < base ? sale : null;
+    const promotion = bestPromotion(active, (p) =>
+      promotionCovers(p, { ...product, type: product.type || "raspiv" }),
+    );
+    const promoPrice = promotion ? discounted(base, promotion.percent) : null;
+    // A group promotion wins only when strictly cheaper than the product's own sale.
+    const byPromotion = promoPrice !== null && promoPrice < (ownSale ?? base);
+    const price = byPromotion ? promoPrice : (ownSale ?? base);
+    const onSale = price < base;
+    const end = byPromotion
+      ? promotion.ends_at || null
+      : (row?.sale_ends_at ?? null);
     return {
       ...product,
       type: product.type || "raspiv",
@@ -55,8 +119,11 @@ export function catalog(products, rows, now = Date.now()) {
       pricePerMl: price,
       basePricePerMl: base,
       salePricePerMl: sale,
-      saleEndsAt: end,
+      saleEndsAt: onSale ? end : (row?.sale_ends_at ?? null),
       onSale,
+      promotion: byPromotion ? presentPromotion(promotion) : null,
+      // The product's own stored end date, for the seller's editor.
+      ownSaleEndsAt: row?.sale_ends_at ?? null,
       version: row?.version ?? 0,
       variants: [5, 10, 20, 30].map((ml) => ({
         ml,
@@ -100,6 +167,169 @@ export function productPatch(data) {
     end,
   };
 }
+// Sets: fixed composition priced from current regular per-ml prices unless fixed.
+export function setCatalog(rows, priced, promotionRows = [], now = Date.now()) {
+  const active = promotionRows.filter(
+    (row) =>
+      promotionStatus(row, now) === "active" &&
+      ["all", "sets"].includes(row.scope),
+  );
+  const promotion = bestPromotion(active, () => true);
+  return rows
+    .map((row) => {
+      const items = JSON.parse(row.items).map(({ productId, ml }) => {
+        const p = priced.find((x) => x.id === productId);
+        return {
+          productId,
+          ml,
+          code: p?.code || "",
+          brand: p?.brand || "",
+          name: p?.name || "Аромат снят с продажи",
+          image: p?.image || "",
+          available: !!p && p.available !== false,
+          price: p ? p.basePricePerMl * ml : 0,
+        };
+      });
+      const sum = items.reduce((total, item) => total + item.price, 0);
+      const regular = row.fixed_price ?? sum;
+      const saleActive =
+        row.sale_price !== null &&
+        row.sale_price < regular &&
+        !(time(row.sale_ends_at) <= now);
+      const promoPrice = promotion
+        ? discounted(regular, promotion.percent)
+        : null;
+      const byPromotion =
+        promoPrice !== null &&
+        promoPrice < (saleActive ? row.sale_price : regular);
+      const price = byPromotion
+        ? promoPrice
+        : saleActive
+          ? row.sale_price
+          : regular;
+      return {
+        id: row.id,
+        title: row.title,
+        description: row.description,
+        items,
+        componentsPrice: sum,
+        fixedPrice: row.fixed_price,
+        regularPrice: regular,
+        price,
+        onSale: price < regular,
+        salePrice: row.sale_price,
+        saleEndsAt: byPromotion
+          ? promotion.ends_at || null
+          : row.sale_ends_at || null,
+        ownSaleEndsAt: row.sale_ends_at || null,
+        promotion: byPromotion ? presentPromotion(promotion) : null,
+        available:
+          !!row.available &&
+          items.length > 0 &&
+          items.every((i) => i.available),
+        visible: !!row.visible,
+        sort: row.sort,
+        version: row.version,
+        updatedAt: row.updated_at,
+      };
+    })
+    .sort((a, b) => a.sort - b.sort || a.title.localeCompare(b.title, "ru"));
+}
+const isoOrNull = (value, label) => {
+  if (value === null || value === undefined || value === "") return null;
+  if (
+    typeof value !== "string" ||
+    value.length > 40 ||
+    !/^\d{4}-\d{2}-\d{2}T/.test(value) ||
+    !Number.isFinite(Date.parse(value))
+  )
+    fail(400, `Проверьте дату: ${label}.`);
+  return new Date(value).toISOString();
+};
+const money = (value, label) => {
+  if (value === null || value === undefined || value === "") return null;
+  if (!Number.isSafeInteger(value) || value < 0 || value > 100000000)
+    fail(400, `${label}: укажите целую сумму в тенге.`);
+  return value;
+};
+export function setPatch(data, priced) {
+  const title = textField(data.title, "Название", 80);
+  if (!title) fail(400, "Укажите название набора.");
+  const description = textField(data.description, "Описание", 300);
+  if (
+    !Array.isArray(data.items) ||
+    !data.items.length ||
+    data.items.length > 10
+  )
+    fail(400, "Добавьте в набор от 1 до 10 ароматов.");
+  const seen = new Set();
+  const items = data.items.map((item) => {
+    const product = priced.find((p) => p.id === item?.productId);
+    if (!product || ![5, 10, 20, 30].includes(item.ml))
+      fail(400, "Проверьте аромат и объём в составе набора.");
+    const key = product.id + ":" + item.ml;
+    if (seen.has(key))
+      fail(400, "Один и тот же аромат с объёмом добавлен дважды.");
+    seen.add(key);
+    return { productId: product.id, ml: item.ml };
+  });
+  const fixedPrice = money(data.fixedPrice, "Цена набора");
+  const regular =
+    fixedPrice ??
+    items.reduce(
+      (sum, i) =>
+        sum + priced.find((p) => p.id === i.productId).basePricePerMl * i.ml,
+      0,
+    );
+  const salePrice = money(data.salePrice, "Цена по акции");
+  if (salePrice !== null && salePrice >= regular)
+    fail(400, "Цена по акции должна быть ниже обычной цены набора.");
+  if (typeof data.available !== "boolean" || typeof data.visible !== "boolean")
+    fail(400, "Проверьте наличие и видимость набора.");
+  const sort = data.sort ?? 0;
+  if (!Number.isSafeInteger(sort) || Math.abs(sort) > 100000)
+    fail(400, "Порядок — целое число.");
+  return {
+    title,
+    description,
+    items: JSON.stringify(items),
+    fixedPrice,
+    salePrice,
+    saleEndsAt: isoOrNull(data.saleEndsAt, "окончание акции набора"),
+    available: Number(data.available),
+    visible: Number(data.visible),
+    sort,
+  };
+}
+export function promotionPatch(data, products) {
+  const title = textField(data.title, "Название", 60);
+  if (!title) fail(400, "Укажите название акции.");
+  if (!Object.hasOwn(promotionScopes, data.scope))
+    fail(400, "Выберите, на что действует акция.");
+  let scopeValue = "";
+  if (data.scope === "brand") {
+    scopeValue = typeof data.scopeValue === "string" ? data.scopeValue : "";
+    if (!products.some((p) => p.brand === scopeValue))
+      fail(400, "Выберите бренд из каталога.");
+  }
+  if (!Number.isInteger(data.percent) || data.percent < 1 || data.percent > 90)
+    fail(400, "Скидка — целое число от 1 до 90 %.");
+  const startsAt = isoOrNull(data.startsAt, "начало акции");
+  const endsAt = isoOrNull(data.endsAt, "окончание акции");
+  if (startsAt && endsAt && Date.parse(endsAt) <= Date.parse(startsAt))
+    fail(400, "Окончание акции должно быть позже начала.");
+  if (typeof data.active !== "boolean")
+    fail(400, "Укажите, включена ли акция.");
+  return {
+    title,
+    scope: data.scope,
+    scopeValue,
+    percent: data.percent,
+    startsAt,
+    endsAt,
+    active: Number(data.active),
+  };
+}
 function textField(value, label, max) {
   if (value === undefined) return "";
   if (
@@ -110,7 +340,7 @@ function textField(value, label, max) {
     fail(400, `${label}: не более ${max} символов.`);
   return value.trim();
 }
-export function validateOrder(data, products) {
+export function validateOrder(data, products, sets = []) {
   const error = customerNameError(data.name);
   if (error) fail(400, error);
   if (
@@ -131,6 +361,36 @@ export function validateOrder(data, products) {
     fail(400, "Добавьте от 1 до 24 позиций.");
   const keys = new Set();
   const items = data.items.map((item) => {
+    if (item?.setId !== undefined) {
+      const set = sets.find((s) => s.id === item.setId && s.visible);
+      if (
+        !set ||
+        !Number.isInteger(item.quantity) ||
+        item.quantity < 1 ||
+        item.quantity > 20
+      )
+        fail(400, "Проверьте набор и количество (1–20).");
+      if (!set.available)
+        fail(409, "Этот набор сейчас недоступен. Обновите корзину.");
+      const key = "set:" + set.id;
+      if (keys.has(key)) fail(400, "Повторяющаяся позиция.");
+      keys.add(key);
+      return {
+        setId: set.id,
+        type: "set",
+        code: "",
+        name: "Набор: " + set.title,
+        components: set.items.map((i) => ({
+          productId: i.productId,
+          code: i.code,
+          name: i.brand + " " + i.name,
+          ml: i.ml,
+        })),
+        quantity: item.quantity,
+        price: set.price,
+        subtotal: set.price * item.quantity,
+      };
+    }
     const product = products.find((p) => p.id === item?.productId);
     const variant = product?.variants.find((v) => v.ml === item.ml);
     if (
@@ -199,10 +459,12 @@ export function matchesAcceptedOrder(data, row, accountId) {
     data.items.every(
       (item, i) =>
         item &&
-        item.productId === items[i].productId &&
-        item.ml === items[i].ml &&
-        item.quantity === items[i].quantity &&
-        (!item.type || item.type === (items[i].type || "raspiv")),
+        (items[i].setId
+          ? item.setId === items[i].setId
+          : item.productId === items[i].productId &&
+            item.ml === items[i].ml &&
+            (!item.type || item.type === (items[i].type || "raspiv"))) &&
+        item.quantity === items[i].quantity,
     )
   );
 }
