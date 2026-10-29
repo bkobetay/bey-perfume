@@ -139,43 +139,60 @@
               aria-label="Статусы заказов"
             ></div>
           </div>
-          <form id="orders-search-form" class="toolbar" role="search">
-            <label class="search-field"
-              ><span class="visually-hidden">Найти заказ</span
-              ><input
-                id="order-search"
-                type="search"
-                placeholder="Код заказа, имя или телефон"
-                maxlength="80"
-                enterkeyhint="search"
-            /></label>
-            <button type="submit" class="btn btn-secondary">Найти</button>
-            <button id="refresh-orders" type="button" class="btn btn-secondary">
-              Обновить
-            </button>
-          </form>
-          <p id="orders-caption" class="caption" aria-live="polite"></p>
-          <p class="caption caption-note">
-            Отменённые заказы хранятся во вкладке «Корзина» — их можно вернуть в
-            работу.
-          </p>
-          <div
-            id="orders-list"
-            class="orders-list"
-            role="tabpanel"
-            tabindex="0"
-            aria-labelledby="order-tab-active"
-          >
-            <div class="state-box">Загружаем заказы…</div>
+          <div class="products-layout orders-layout">
+            <div class="products-main">
+              <form id="orders-search-form" class="toolbar" role="search">
+                <label class="search-field"
+                  ><span class="visually-hidden">Найти заказ</span
+                  ><input
+                    id="order-search"
+                    type="search"
+                    placeholder="Код заказа, имя или телефон"
+                    maxlength="80"
+                    enterkeyhint="search"
+                /></label>
+                <button type="submit" class="btn btn-secondary">Найти</button>
+                <button id="refresh-orders" type="button" class="btn btn-secondary">
+                  Обновить
+                </button>
+              </form>
+              <p id="orders-caption" class="caption" aria-live="polite"></p>
+              <p class="caption caption-note">
+                Отменённые заказы хранятся во вкладке «Корзина» — их можно вернуть в
+                работу.
+              </p>
+              <div
+                id="orders-list"
+                class="orders-list"
+                role="tabpanel"
+                tabindex="0"
+                aria-labelledby="order-tab-active"
+              >
+                <div class="state-box">Загружаем заказы…</div>
+              </div>
+              <nav class="admin-pagination" aria-label="Страницы заказов" hidden>
+                <button type="button" id="orders-prev" class="btn btn-secondary">
+                  ← Назад</button
+                ><span id="orders-page" aria-live="polite"></span
+                ><button type="button" id="orders-next" class="btn btn-secondary">
+                  Далее →
+                </button>
+              </nav>
+            </div>
+            <aside
+              id="order-editor"
+              class="product-editor order-panel"
+              aria-labelledby="order-editor-title"
+            >
+              <div class="editor-empty">
+                <h2 id="order-editor-title">Карточка заказа</h2>
+                <p class="muted">
+                  Выберите заказ в списке, чтобы связаться с покупателем и
+                  изменить статус.
+                </p>
+              </div>
+            </aside>
           </div>
-          <nav class="admin-pagination" aria-label="Страницы заказов" hidden>
-            <button type="button" id="orders-prev" class="btn btn-secondary">
-              ← Назад</button
-            ><span id="orders-page" aria-live="polite"></span
-            ><button type="button" id="orders-next" class="btn btn-secondary">
-              Далее →
-            </button>
-          </nav>
         </section>
 
         <section

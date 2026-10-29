@@ -673,12 +673,26 @@ body[data-view="boot"] .boot-screen {
 }
 
 /* ---------- Orders ---------- */
+.orders-layout {
+  margin-top: 16px;
+}
+.orders-layout .toolbar {
+  margin-top: 0;
+}
+.orders-layout .product-editor {
+  top: 84px;
+}
 .orders-list {
-  display: grid;
-  gap: 14px;
-  margin-top: 14px;
+  margin-top: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
   border-radius: var(--radius);
+  background: var(--surface);
   transition: opacity 0.15s;
+}
+.orders-list .state-box {
+  border: 0;
+  border-radius: 0;
 }
 .orders-list:focus-visible {
   outline-offset: 4px;
@@ -707,36 +721,6 @@ body[data-view="boot"] .boot-screen {
   background: var(--danger-soft);
   color: var(--danger);
 }
-.order-card {
-  position: relative;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
-  box-shadow: var(--shadow);
-}
-.order-card::before {
-  content: "";
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 4px;
-  background: var(--dot, var(--border));
-}
-.order-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 16px 20px 14px 24px;
-  border-bottom: 1px solid var(--border);
-}
-.order-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 12px;
-  color: var(--muted);
-  font-size: 13px;
-}
 .order-code {
   color: var(--text);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -744,20 +728,132 @@ body[data-view="boot"] .boot-screen {
   font-weight: 600;
   letter-spacing: 0.01em;
 }
-.order-name {
-  margin-top: 4px;
-  font-size: 19px;
-  overflow-wrap: anywhere;
-}
-.order-body {
+/* Compact order rows */
+.order-row,
+.orders-head {
   display: grid;
-  grid-template-columns: minmax(0, 1.65fr) minmax(280px, 1fr);
+  grid-template-columns: 172px minmax(0, 1fr) 96px 100px 128px;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 16px;
+}
+.orders-head {
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--subtle);
+  font-size: 12px;
+  font-weight: 600;
+}
+.orders-head span:nth-child(4) {
+  text-align: right;
+}
+.orders-head span:nth-child(5) {
+  text-align: right;
+}
+.order-row {
+  min-height: 60px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  text-align: left;
+  font-size: 14px;
+  transition: background-color 0.12s;
+}
+.order-row:last-child {
+  border-bottom: 0;
+}
+.order-row:hover {
+  background: var(--surface-2);
+}
+.order-row[aria-current="true"] {
+  background: var(--accent-soft);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+.order-row:focus-visible {
+  outline-offset: -3px;
+}
+.o-id,
+.o-who,
+.o-total {
+  display: grid;
+  min-width: 0;
+  line-height: 1.3;
+}
+.o-id .order-code {
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.o-id[data-long="true"] .order-code {
+  font-size: 12px;
+  font-weight: 600;
+}
+.editor-tags .order-code {
+  font-size: 15px;
+  font-weight: 700;
+}
+.o-id small,
+.o-who small,
+.o-total small {
+  color: var(--muted);
+  font-size: 12px;
+}
+.o-who strong {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-weight: 600;
+}
+.o-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.o-phone {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.o-marker {
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: var(--surface-3);
+  color: var(--muted);
+}
+.o-marker[data-kind="note"] {
+  background: #fff4d6;
+  color: #8a4b00;
+}
+.o-total {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.o-total strong {
+  font-weight: 650;
+  white-space: nowrap;
+}
+.o-status {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Order panel */
+.order-panel-body {
+  display: grid;
 }
 .order-info {
   display: grid;
   align-content: start;
   gap: 14px;
-  padding: 16px 20px 18px 24px;
+  padding: 16px 20px 18px;
 }
 .order-contact {
   display: flex;
@@ -836,22 +932,42 @@ body[data-view="boot"] .boot-screen {
   border-collapse: collapse;
   font-size: 14px;
 }
-.order-items th {
-  padding: 0 8px 6px 0;
+.order-items thead {
+  display: none;
+}
+.order-items,
+.order-items tbody {
+  display: block;
+}
+.order-items tr {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "name name"
+    "qty sum";
+  gap: 2px 12px;
+  padding: 10px 0;
   border-bottom: 1px solid var(--border);
-  color: var(--subtle);
-  font-size: 12px;
-  font-weight: 600;
-  text-align: left;
+}
+.order-items tr:first-child {
+  padding-top: 0;
 }
 .order-items td {
-  padding: 9px 8px 9px 0;
-  border-bottom: 1px solid var(--border);
-  vertical-align: top;
+  padding: 0;
+  border: 0;
 }
-.order-items th:last-child,
-.order-items td:last-child {
-  padding-right: 0;
+.order-items td.item-code {
+  display: none;
+}
+.order-items .item-name {
+  grid-area: name;
+}
+.order-items .item-qty {
+  grid-area: qty;
+  color: var(--muted);
+}
+.order-items .item-sum {
+  grid-area: sum;
   text-align: right;
 }
 .item-code {
@@ -895,8 +1011,8 @@ body[data-view="boot"] .boot-screen {
   display: grid;
   align-content: start;
   gap: 12px;
-  padding: 16px 20px 18px;
-  border-left: 1px solid var(--border);
+  padding: 16px 20px 20px;
+  border-top: 1px solid var(--border);
   background: var(--surface-2);
 }
 .order-edit[data-dirty="true"] {
@@ -1326,6 +1442,7 @@ body[data-view="boot"] .boot-screen {
     z-index: 50;
     display: block;
     width: min(440px, 100%);
+    overscroll-behavior: contain;
     max-height: none;
     border: 0;
     border-left: 1px solid var(--border);
@@ -1353,15 +1470,63 @@ body[data-view="boot"] .boot-screen {
   .editor-backdrop {
     display: none;
   }
+  .orders-layout {
+    grid-template-columns: minmax(0, 1fr) 400px;
+  }
+}
+@media (max-width: 1180px) {
+  .order-panel[data-open="true"] {
+    width: min(480px, 100%);
+  }
+}
+@media (max-width: 860px) {
+  .orders-head {
+    display: none;
+  }
+  .order-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "who status"
+      "id id"
+      "ful total";
+    gap: 4px 12px;
+    padding: 12px 14px;
+  }
+  .order-row .o-who {
+    grid-area: who;
+  }
+  .order-row .o-who .o-phone {
+    display: none;
+  }
+  .order-row .o-id {
+    grid-area: id;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .order-row .o-id .order-code {
+    min-width: 0;
+  }
+  .order-row .o-ful {
+    grid-area: ful;
+  }
+  .order-row .o-total {
+    grid-area: total;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+  .order-row .o-total small {
+    order: -1;
+  }
+  .order-row .o-status {
+    grid-area: status;
+  }
+  .order-row .o-who strong {
+    flex-wrap: wrap;
+  }
 }
 @media (max-width: 960px) {
-  .order-body {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .order-edit {
-    border-top: 1px solid var(--border);
-    border-left: 0;
-  }
   .topbar-inner {
     flex-wrap: wrap;
     row-gap: 8px;
@@ -1477,55 +1642,13 @@ body[data-view="boot"] .boot-screen {
   .toolbar .select-field {
     flex: 1 1 0;
   }
-  .order-head {
-    padding: 14px 14px 12px 18px;
-  }
-  .order-info {
-    padding: 14px 14px 16px 18px;
-  }
+  .order-info,
   .order-edit {
-    padding: 14px 14px 16px 18px;
+    padding-inline: 16px;
   }
   .order-contact > * {
     flex: 1 1 auto;
     justify-content: center;
-  }
-  .order-items thead {
-    display: none;
-  }
-  .order-items,
-  .order-items tbody {
-    display: block;
-  }
-  .order-items tr {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      "name name"
-      "qty sum";
-    gap: 2px 12px;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--border);
-  }
-  .order-items td {
-    padding: 0;
-    border: 0;
-  }
-  .order-items .item-code {
-    display: none;
-  }
-  .order-items .item-name {
-    grid-area: name;
-  }
-  .order-items .item-qty {
-    grid-area: qty;
-    color: var(--muted);
-  }
-  .order-items .item-sum {
-    grid-area: sum;
-  }
-  .item-name .item-code-inline {
-    display: inline;
   }
   .form-actions .btn {
     width: 100%;
@@ -1551,9 +1674,6 @@ body[data-view="boot"] .boot-screen {
     gap: 6px;
     padding-inline: 11px;
     font-size: 13.5px;
-  }
-  .item-code-inline {
-    display: none;
   }
 }
 .label-short {

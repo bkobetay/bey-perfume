@@ -214,6 +214,8 @@
     request++;
     setView("login");
     $("#orders-list").replaceChildren();
+    orders = [];
+    closePanel(true);
     statTiles.forEach((tile) => (tile.lastChild.textContent = "—"));
     document.dispatchEvent(new CustomEvent("admin:logout"));
   }
@@ -311,33 +313,213 @@ ${kazakhItems}
     table.append(head, body);
     return table;
   }
-  function card(order) {
-    const article = el("article", "order-card");
-    article.dataset.status = order.status;
-    const header = el("header", "order-head");
-    const heading = el("div", "order-head-main");
-    const meta = el("p", "order-meta");
-    meta.append(
+  /* ---------- Orders list + side panel (same pattern as products) ---------- */
+  const panel = $("#order-editor");
+  const narrow = matchMedia("(max-width: 1180px)");
+  let orders = [];
+  let openId = null;
+  let openOrder = null;
+  let returnFocus = null;
+  let backdrop = null;
+  const icons = {
+    phone:
+      "M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z",
+    comment: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z",
+    note: "M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z",
+  };
+  const shortDate = (value) =>
+    new Intl.DateTimeFormat("ru-KZ", {
+      day: "2-digit",
+      month: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(new Date(value));
+  const pieces = (order) =>
+    order.items.reduce((sum, item) => sum + item.quantity, 0);
+  const fulfillmentName = (order) =>
+    order.fulfillment === "pickup" ? "Самовывоз" : "Доставка";
+  function marker(kind, title) {
+    const span = el("span", "o-marker");
+    span.dataset.kind = kind;
+    span.title = title;
+    const icon = svg([icons[kind]]);
+    icon.setAttribute("width", "14");
+    icon.setAttribute("height", "14");
+    span.append(icon, el("span", "visually-hidden", title));
+    return span;
+  }
+  function orderRow(order) {
+    const button = el("button", "order-row");
+    button.type = "button";
+    button.dataset.id = order.id;
+    button.dataset.status = order.status;
+    if (order.id === openId) button.setAttribute("aria-current", "true");
+    const id = el("span", "o-id");
+    // Short codes (ARF-301026-07) are read out loud; legacy ones are long.
+    id.dataset.long = String(order.id.length > 14);
+    id.append(
       el("span", "order-code", order.id),
-      el("span", "order-date", date(order.created_at)),
+      el("small", "o-date", shortDate(order.created_at)),
     );
-    heading.append(meta, el("h2", "order-name", order.name));
+    const who = el("span", "o-who");
+    const name = el("strong");
+    name.append(el("span", "o-name", order.name));
+    if (order.comment) name.append(marker("comment", "Есть комментарий покупателя"));
+    if (order.note) name.append(marker("note", "Есть заметка продавца"));
+    who.append(name, el("small", "o-phone", phoneText(order.phone)));
+    const ful = el("span", "o-ful");
+    const pill = el("span", "pill", fulfillmentName(order));
+    pill.dataset.kind = order.fulfillment === "pickup" ? "pickup" : "delivery";
+    ful.append(pill);
+    const total = el("span", "o-total");
+    total.append(
+      el("strong", "", money(order.total)),
+      el("small", "", pieces(order) + " шт."),
+    );
+    const status = el("span", "o-status");
     const badge = el("span", "status-badge", statuses[order.status]);
     badge.dataset.status = order.status;
-    header.append(heading, badge);
-    article.append(header);
+    status.append(badge);
+    button.append(id, who, ful, total, status);
+    button.setAttribute(
+      "aria-label",
+      [
+        "Заказ " + order.id,
+        date(order.created_at),
+        order.name,
+        phoneText(order.phone),
+        fulfillmentName(order),
+        pieces(order) + " шт. на " + money(order.total),
+        "статус: " + statuses[order.status],
+        order.comment ? "есть комментарий покупателя" : "",
+        order.note ? "есть заметка продавца" : "",
+      ]
+        .filter(Boolean)
+        .join(", "),
+    );
+    button.onclick = () => openPanel(order.id, button);
+    return button;
+  }
+  function listHead() {
+    const head = el("div", "orders-head");
+    head.setAttribute("aria-hidden", "true");
+    for (const title of ["Заказ", "Покупатель", "Получение", "Сумма", "Статус"])
+      head.append(el("span", "", title));
+    return head;
+  }
+  function markOpenRow() {
+    document.querySelectorAll(".order-row").forEach((row) => {
+      if (row.dataset.id === openId) row.setAttribute("aria-current", "true");
+      else row.removeAttribute("aria-current");
+    });
+  }
+  function replaceRow(order) {
+    const row = document.querySelector(
+      `.order-row[data-id="${CSS.escape(order.id)}"]`,
+    );
+    if (!row) return;
+    const focused = document.activeElement === row;
+    const fresh = orderRow(order);
+    row.replaceWith(fresh);
+    if (focused) fresh.focus();
+  }
+  function setSheet(open) {
+    if (open && narrow.matches) {
+      panel.dataset.open = "true";
+      panel.setAttribute("role", "dialog");
+      panel.setAttribute("aria-modal", "true");
+      if (!backdrop) {
+        backdrop = el("div", "editor-backdrop");
+        backdrop.onclick = () => closePanel();
+      }
+      panel.before(backdrop);
+      document.body.style.overflow = "hidden";
+    } else {
+      panel.dataset.open = "false";
+      panel.removeAttribute("role");
+      panel.removeAttribute("aria-modal");
+      backdrop?.remove();
+      document.body.style.overflow = "";
+    }
+  }
+  function openPanel(id, origin) {
+    if (
+      id !== openId &&
+      ordersDirty() &&
+      !confirm(
+        "Есть несохранённые изменения заказа. Открыть другой заказ без сохранения?",
+      )
+    )
+      return;
+    const order = orders.find((o) => o.id === id);
+    if (!order) return;
+    openId = id;
+    returnFocus = origin || null;
+    markOpenRow();
+    drawPanel(order);
+    setSheet(true);
+    panel.querySelector("h2")?.focus();
+  }
+  function closePanel(force = false) {
+    if (
+      !force &&
+      ordersDirty() &&
+      !confirm("Есть несохранённые изменения заказа. Закрыть без сохранения?")
+    )
+      return;
+    const wasOpen = panel.dataset.open === "true";
+    const id = openId;
+    setSheet(false);
+    if (narrow.matches || force) {
+      openId = null;
+      openOrder = null;
+      markOpenRow();
+      drawEmptyPanel();
+    }
+    if (wasOpen) {
+      const row = document.querySelector(
+        `.order-row[data-id="${CSS.escape(id || "")}"]`,
+      );
+      (row || (returnFocus?.isConnected ? returnFocus : $("#orders-list"))).focus();
+    }
+  }
+  function drawEmptyPanel() {
+    const box = el("div", "editor-empty");
+    const h2 = el("h2", "", "Карточка заказа");
+    h2.id = "order-editor-title";
+    box.append(
+      h2,
+      el(
+        "p",
+        "muted",
+        "Выберите заказ в списке, чтобы связаться с покупателем и изменить статус.",
+      ),
+    );
+    panel.replaceChildren(box);
+  }
+  function drawPanel(order, message) {
+    openOrder = order;
+    const head = el("div", "editor-head");
+    const titleBox = el("div");
+    const tags = el("div", "editor-tags");
+    const badge = el("span", "status-badge", statuses[order.status]);
+    badge.dataset.status = order.status;
+    tags.append(el("span", "order-code", order.id), badge);
+    const h2 = el("h2", "", order.name);
+    h2.id = "order-editor-title";
+    h2.tabIndex = -1;
+    titleBox.append(tags, h2, el("small", "", date(order.created_at)));
+    const close = el("button", "editor-close", "×");
+    close.type = "button";
+    close.setAttribute("aria-label", "Закрыть заказ");
+    close.onclick = () => closePanel();
+    head.append(titleBox, close);
 
-    const body = el("div", "order-body");
     const info = el("div", "order-info");
     const contact = el("div", "order-contact");
     const phone = el("a", "contact-phone");
     phone.href = "tel:" + order.phone;
-    phone.append(
-      svg([
-        "M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z",
-      ]),
-      document.createTextNode(phoneText(order.phone)),
-    );
+    phone.append(svg([icons.phone]), document.createTextNode(phoneText(order.phone)));
     phone.setAttribute("aria-label", "Позвонить: " + phoneText(order.phone));
     const whatsapp = el("a", "btn btn-whatsapp");
     whatsapp.append(
@@ -363,17 +545,18 @@ ${kazakhItems}
 
     const fulfillment = el("div", "order-fulfillment");
     const pickup = order.fulfillment === "pickup";
-    const pill = el("span", "pill", pickup ? "Самовывоз" : "Доставка");
+    const pill = el("span", "pill", fulfillmentName(order));
     pill.dataset.kind = pickup ? "pickup" : "delivery";
-    fulfillment.append(pill);
-    if (pickup)
-      fulfillment.append(
-        el("span", "order-address", "Достык, 108Б · 10:00–21:00"),
-      );
-    else
-      fulfillment.append(
-        el("span", "order-address", order.address || "Адрес не указан"),
-      );
+    fulfillment.append(
+      pill,
+      el(
+        "span",
+        "order-address",
+        pickup
+          ? "Достык, 108Б · 10:00–21:00"
+          : order.address || "Адрес не указан",
+      ),
+    );
     info.append(fulfillment);
     if (order.comment) {
       const comment = el("p", "order-comment");
@@ -385,9 +568,11 @@ ${kazakhItems}
     }
     info.append(itemsTable(order.items));
     const total = el("div", "order-total");
-    total.append(el("span", "", "Итого"), el("strong", "", money(order.total)));
+    total.append(
+      el("span", "", `Итого · ${pieces(order)} шт.`),
+      el("strong", "", money(order.total)),
+    );
     info.append(total);
-    body.append(info);
 
     const form = el("form", "order-edit");
     const statusLabel = el("label", "field");
@@ -419,6 +604,10 @@ ${kazakhItems}
     const feedback = el("p", "save-feedback");
     feedback.setAttribute("role", "status");
     feedback.setAttribute("aria-live", "polite");
+    if (message) {
+      feedback.dataset.tone = message.tone;
+      feedback.textContent = message.text;
+    }
     actions.append(button, feedback);
     form.append(statusLabel, noteLabel, actions);
     form.addEventListener("input", () => {
@@ -431,6 +620,7 @@ ${kazakhItems}
       button.disabled = select.disabled = note.disabled = true;
       feedback.dataset.tone = "";
       feedback.textContent = "Сохраняем…";
+      let saved = null;
       try {
         const result = await api("orders/" + order.id, {
           method: "PATCH",
@@ -440,39 +630,89 @@ ${kazakhItems}
             version: order.version,
           }),
         });
-        order = result.order;
-
-        badge.textContent = statuses[order.status];
-        badge.dataset.status = order.status;
-        article.dataset.status = order.status;
-        note.value = order.note;
+        saved = result.order;
         form.dataset.dirty = "false";
-        feedback.dataset.tone = "success";
-        feedback.textContent = "Сохранено · " + date(order.updated_at);
-        // Refresh only summary counters; preserve other unsaved seller notes.
-        const summary = await api("orders");
-        renderStats(summary.counts);
-        if (!belongs(order.status)) {
-          // Move only this card if another seller note is unsaved.
-          if (ordersDirty()) {
-            article.remove();
-            $("#orders-caption").textContent =
-              "Список изменился. Сохраните остальные правки и обновите его.";
-          } else await load();
-          notify(`Заказ ${order.id} перемещён: ${tabLabels[order.status]}.`);
-          $("#order-tab-" + activeStatus).focus();
+        const index = orders.findIndex((o) => o.id === saved.id);
+        if (index >= 0) orders[index] = saved;
+        const moved = !belongs(saved.status);
+        drawPanel(saved, {
+          tone: "success",
+          text:
+            "Сохранено · " +
+            date(saved.updated_at) +
+            (moved ? ` · перенесён в «${tabLabels[saved.status]}»` : ""),
+        });
+        panel.querySelector(".order-edit .btn-primary")?.focus();
+        if (moved) {
+          notify(`Заказ ${saved.id} перемещён: ${tabLabels[saved.status]}.`);
+          await load();
+        } else {
+          replaceRow(saved);
+          // Refresh only the summary counters.
+          const summary = await api("orders");
+          renderStats(summary.counts);
         }
       } catch (error) {
+        if (saved || document.body.dataset.view !== "app") return;
         feedback.dataset.tone = "error";
         feedback.textContent = error.message;
+        if (error.status === 409 && !form.querySelector(".reload-order")) {
+          const reload = el(
+            "button",
+            "btn btn-secondary reload-order",
+            "Загрузить актуальные данные",
+          );
+          reload.type = "button";
+          reload.onclick = async () => {
+            form.dataset.dirty = "false";
+            await load();
+            const fresh = orders.find((o) => o.id === order.id);
+            if (fresh) drawPanel(fresh);
+            else
+              feedback.textContent =
+                "Заказ не найден в текущем списке. Откройте нужную вкладку и обновите.";
+          };
+          actions.append(reload);
+        }
       } finally {
-        button.disabled = select.disabled = note.disabled = false;
+        if (form.isConnected)
+          button.disabled = select.disabled = note.disabled = false;
       }
     };
-    body.append(form);
-    article.append(body);
-    return article;
+    const body = el("div", "order-panel-body");
+    body.append(info, form);
+    panel.replaceChildren(head, body);
   }
+  // Keep an open, untouched order in sync with freshly loaded data.
+  function syncPanel() {
+    if (!openId || !openOrder || ordersDirty()) return;
+    // Never redraw under a seller who is typing or choosing a status.
+    if (document.activeElement?.matches(".order-edit select, .order-edit textarea"))
+      return;
+    const fresh = orders.find((o) => o.id === openId);
+    if (fresh && fresh.version !== openOrder.version) {
+      const hadFocus = panel.contains(document.activeElement);
+      drawPanel(fresh, {
+        tone: "",
+        text: "Заказ обновлён · " + date(fresh.updated_at),
+      });
+      if (hadFocus) panel.querySelector("h2")?.focus();
+    }
+  }
+  panel.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && panel.dataset.open === "true") {
+      event.preventDefault();
+      closePanel();
+    }
+  });
+  narrow.addEventListener("change", () => {
+    if (!narrow.matches && panel.dataset.open === "true") setSheet(false);
+  });
+  document.addEventListener("admin:section", (event) => {
+    // Leaving «Заказы» hides the sheet without discarding the draft.
+    if (event.detail !== "orders" && panel.dataset.open === "true")
+      setSheet(false);
+  });
   function renderStats(counts) {
     const all = Object.values(counts).reduce((sum, count) => sum + count, 0);
     tabs.forEach((button) => {
@@ -501,6 +741,9 @@ ${kazakhItems}
   async function load() {
     const turn = ++request;
     const list = $("#orders-list");
+    // Remember a focused row before `inert` drops focus, to restore it later.
+    const focusedId = document.activeElement?.closest?.(".order-row")?.dataset
+      .id;
     list.inert = true;
     list.setAttribute("aria-busy", "true");
     if (document.body.dataset.view === "app")
@@ -521,7 +764,12 @@ ${kazakhItems}
       page = data.page;
       pageCount = data.pageCount;
       renderStats(data.counts);
-      list.replaceChildren(...data.orders.map(card));
+      orders = data.orders;
+      list.replaceChildren(
+        ...(orders.length ? [listHead()] : []),
+        ...orders.map(orderRow),
+      );
+      syncPanel();
       if (!data.orders.length)
         list.append(
           $("#order-search").value.trim()
@@ -554,15 +802,19 @@ ${kazakhItems}
       if (turn === request) {
         list.inert = false;
         list.setAttribute("aria-busy", "false");
+        if (
+          focusedId &&
+          (document.activeElement === document.body || !document.activeElement)
+        )
+          document
+            .querySelector(`.order-row[data-id="${CSS.escape(focusedId)}"]`)
+            ?.focus();
       }
     }
   }
-  function discardConfirmed() {
-    return (
-      !ordersDirty() ||
-      confirm("Есть несохранённые изменения. Обновить список без сохранения?")
-    );
-  }
+  // The open order lives in its own panel, so reloading, filtering or paging
+  // the list never discards an unsaved draft there.
+  const discardConfirmed = () => true;
   $("#login-form").onsubmit = async (event) => {
     event.preventDefault();
     const form = event.currentTarget;
@@ -666,7 +918,8 @@ ${kazakhItems}
       document.hidden ||
       $("#dashboard").hidden ||
       ordersDirty() ||
-      document.querySelector(".order-edit :disabled") ||
+      // (the always-disabled «Оплачен» option must not count as "saving")
+      document.querySelector(".order-edit :is(button, select, textarea):disabled") ||
       document.activeElement?.closest(".order-edit, #orders-search-form")
     )
       return;
