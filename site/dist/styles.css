@@ -4311,3 +4311,141 @@ textarea::placeholder {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+body[data-page="about"] .page-heading {
+  max-width: 1060px;
+  margin-inline: auto;
+  text-align: center;
+  padding-top: 45px;
+  padding-bottom: 35px;
+  font-family: Onest, Manrope, sans-serif;
+}
+body[data-page="about"] .page-heading h1 {
+  font-family: Onest, Manrope, sans-serif;
+  font-size: clamp(34px, 4vw, 48px);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+}
+body[data-page="about"] .page-heading > p:last-child {
+  font-size: 18px;
+  line-height: 1.7;
+  max-width: 850px;
+  margin-inline: auto;
+}
+body[data-page="about"] .prose {
+  max-width: 1060px;
+  margin-inline: auto;
+  font-family: Onest, Manrope, sans-serif;
+  padding-top: 0;
+}
+body[data-page="about"] .prose > p {
+  font-size: 18px;
+  line-height: 1.8;
+  margin: 0 0 25px;
+  color: #111;
+}
+body[data-page="about"] .prose > p:first-child {
+  font-size: 20px;
+  line-height: 1.7;
+  font-weight: 450;
+  margin-bottom: 30px;
+}
+body[data-page="about"] .certificate-gallery {
+  margin-top: 36px;
+}
+body[data-page="about"] .certificate-heading h2 {
+  font-family: Onest, Manrope, sans-serif;
+  font-size: 28px;
+  font-weight: 600;
+}
+.certificate-toolbar {
+  gap: 8px;
+}
+.certificate-toolbar .certificate-zoom-button,
+.certificate-toolbar #certificate-close {
+  width: 42px;
+  height: 42px;
+  min-height: 42px;
+  padding: 9px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  color: #193e2b;
+  background: #fff;
+  border: 1px solid #d9e3d3;
+  flex-shrink: 0;
+}
+.certificate-toolbar button svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.certificate-toolbar button:hover:enabled {
+  background: #edf3e8;
+  border-color: #aac39a;
+}
+.certificate-toolbar strong {
+  font-family: Onest, Manrope, sans-serif;
+  font-weight: 550;
+  font-size: 14px;
+}
+.certificate-view {
+  display: block;
+}
+.certificate-view img {
+  max-width: none;
+  max-height: none;
+  object-fit: contain;
+  margin-inline: auto;
+  flex-shrink: 0;
+}
+@media (max-width: 760px) {
+  body[data-page="about"] .page-heading {
+    padding-top: 30px;
+    padding-bottom: 26px;
+  }
+  body[data-page="about"] .page-heading > p:last-child {
+    font-size: 17px;
+  }
+  body[data-page="about"] .prose > p {
+    font-size: 17px;
+    line-height: 1.75;
+    margin-bottom: 22px;
+  }
+  body[data-page="about"] .prose > p:first-child {
+    font-size: 18px;
+  }
+  .certificate-toolbar {
+    padding: 10px;
+    gap: 6px;
+  }
+  .certificate-toolbar strong {
+    font-size: 12px;
+  }
+  .certificate-toolbar .certificate-zoom-button,
+  .certificate-toolbar #certificate-close {
+    width: 40px;
+    height: 40px;
+    min-height: 40px;
+    padding: 8px;
+  }
+}
+.about-avatar {
+  width: 140px;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 1px solid #dde5d8;
+  margin: 18px auto 23px;
+}
+@media (max-width: 760px) {
+  .about-avatar {
+    width: 116px;
+    height: 116px;
+    margin: 16px auto 20px;
+  }
+}

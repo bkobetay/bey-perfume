@@ -149,10 +149,53 @@ document.querySelector("#contact-form")?.addEventListener("submit", (event) => {
 const certDialog = document.querySelector("#certificate-lightbox");
 if (certDialog) {
   let current = 0,
+    zoomLevel = 1,
     opener;
   const large = document.querySelector("#certificate-large"),
     view = document.querySelector(".certificate-view"),
-    zoom = document.querySelector("#certificate-zoom");
+    zoomIn = document.querySelector("#certificate-zoom-in"),
+    zoomOut = document.querySelector("#certificate-zoom-out");
+  function applyZoom(preserve = true) {
+    if (!certDialog.open || !large.naturalWidth) return;
+    const oldWidth = large.getBoundingClientRect().width,
+      oldHeight = large.getBoundingClientRect().height,
+      cx = oldWidth
+        ? (view.scrollLeft +
+            view.clientWidth / 2 -
+            Math.max(16, (view.clientWidth - oldWidth) / 2)) /
+          oldWidth
+        : 0.5,
+      cy = oldHeight
+        ? (view.scrollTop + view.clientHeight / 2 - 16) / oldHeight
+        : 0.5;
+    const fit = Math.min(
+      (view.clientWidth - 32) / large.naturalWidth,
+      (view.clientHeight - 32) / large.naturalHeight,
+    );
+    const width = Math.max(1, large.naturalWidth * fit * zoomLevel),
+      height = Math.max(1, large.naturalHeight * fit * zoomLevel);
+    large.style.width = width + "px";
+    large.style.height = height + "px";
+    view.dataset.zoom = zoomLevel;
+    zoomOut.disabled = zoomLevel <= 1;
+    zoomIn.disabled = zoomLevel >= 2.5;
+    document.querySelector("#certificate-scale").textContent =
+      "Масштаб " + Math.round(zoomLevel * 100) + "%";
+    if (zoomLevel === 1 || !preserve) {
+      view.scrollLeft = 0;
+      view.scrollTop = 0;
+    } else {
+      view.scrollLeft = Math.max(
+        0,
+        cx * width +
+          Math.max(16, (view.clientWidth - width) / 2) -
+          view.clientWidth / 2,
+      );
+      view.scrollTop = Math.max(0, cy * height + 16 - view.clientHeight / 2);
+    }
+  }
+  large.addEventListener("load", () => applyZoom(false));
+  window.addEventListener("resize", () => applyZoom());
   const renderCertificate = () => {
     large.src = "/assets/certificates/origine-france-" + (current + 1) + ".jpg";
     large.alt = "Документ Origine France Garantie, страница " + (current + 1);
@@ -160,9 +203,12 @@ if (certDialog) {
       "Страница " + (current + 1) + " из 3";
     document.querySelector("#certificate-counter").textContent =
       current + 1 + " / 3";
-    view.classList.remove("is-zoomed");
-    zoom.setAttribute("aria-pressed", "false");
-    zoom.textContent = "Увеличить";
+    zoomLevel = 1;
+    view.dataset.zoom = "1";
+    zoomOut.disabled = true;
+    zoomIn.disabled = false;
+    document.querySelector("#certificate-scale").textContent = "Масштаб 100%";
+    requestAnimationFrame(() => applyZoom(false));
     document.querySelector("#certificate-prev").disabled = current === 0;
     document.querySelector("#certificate-next").disabled = current === 2;
   };
@@ -172,6 +218,7 @@ if (certDialog) {
       current = Number(button.dataset.certificate);
       renderCertificate();
       certDialog.showModal();
+      requestAnimationFrame(() => applyZoom(false));
     }),
   );
   document.querySelector("#certificate-prev").onclick = () => {
@@ -191,10 +238,13 @@ if (certDialog) {
   certDialog.addEventListener("close", () =>
     opener?.focus({ preventScroll: true }),
   );
-  zoom.onclick = () => {
-    const on = view.classList.toggle("is-zoomed");
-    zoom.setAttribute("aria-pressed", String(on));
-    zoom.textContent = on ? "По размеру окна" : "Увеличить";
+  zoomIn.onclick = () => {
+    zoomLevel = Math.min(2.5, zoomLevel + 0.25);
+    applyZoom();
+  };
+  zoomOut.onclick = () => {
+    zoomLevel = Math.max(1, zoomLevel - 0.25);
+    applyZoom();
   };
   const track = document.querySelector(".certificate-track");
   document.querySelector(".certificate-scroll-prev").onclick = () =>
