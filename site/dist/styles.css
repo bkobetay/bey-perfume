@@ -3947,3 +3947,18 @@ main[tabindex="-1"]:focus {
     transition: none;
   }
 }
+
+/* The header scrolls naturally with the page. */
+body > .header {
+  position: relative;
+  top: auto;
+}
+html {
+  scroll-padding-top: 24px;
+}
+#catalog-results {
+  scroll-margin-top: 24px;
+}
+.detail-gallery {
+  top: 24px;
+}
