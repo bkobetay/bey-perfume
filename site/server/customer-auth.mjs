@@ -28,6 +28,13 @@ const hash = async (password, salt) => {
     ),
   );
 };
+// Constant-time comparison of two 64-character hex digests.
+function equal(actual, expected) {
+  let different = 0;
+  for (let i = 0; i < 64; i++)
+    different |= actual.charCodeAt(i) ^ expected.charCodeAt(i);
+  return !different;
+}
 function credentials(data) {
   const email =
     typeof data.email === "string" ? data.email.trim().toLowerCase() : "";
@@ -97,6 +104,50 @@ export function customerAuth({ first, all, run, limit, secure, cookies }) {
           "Восстановление пароля пока недоступно: отправка email не настроена.",
         );
       }
+      if (path === "/api/account/profile") {
+        const account = await current();
+        if (!account) fail(401, "Войдите в личный кабинет.");
+        const name = typeof data.name === "string" ? data.name.trim() : "";
+        if (!name || name.length > 100 || /[\u0000-\u001f]/u.test(name))
+          fail(400, "Укажите имя (до 100 символов).");
+        await run("UPDATE customers SET name=? WHERE id=?", name, account.id);
+        return { data: { account: { ...account, name } } };
+      }
+      if (path === "/api/account/password") {
+        const account = await current();
+        if (!account) fail(401, "Войдите в личный кабинет.");
+        await limit("customer-password", 10, 15 * 60 * 1000);
+        const row = await first(
+          "SELECT password_hash,password_salt FROM customers WHERE id=?",
+          account.id,
+        );
+        if (
+          typeof data.currentPassword !== "string" ||
+          !equal(
+            await hash(data.currentPassword, row.password_salt),
+            row.password_hash,
+          )
+        )
+          fail(401, "Текущий пароль указан неверно.");
+        const { password } = credentials({
+          email: account.email,
+          password: data.newPassword,
+        });
+        const salt = random();
+        await run(
+          "UPDATE customers SET password_hash=?,password_salt=? WHERE id=?",
+          await hash(password, salt),
+          salt,
+          account.id,
+        );
+        // Keep this browser signed in and end every other session.
+        await run(
+          "DELETE FROM customer_sessions WHERE account_id=? AND token_hash<>?",
+          account.id,
+          await digest(token),
+        );
+        return { data: { ok: true } };
+      }
       if (!["/api/account/register", "/api/account/login"].includes(path))
         return null;
       await limit("customer-auth", 10, 15 * 60 * 1000);
@@ -135,11 +186,8 @@ export function customerAuth({ first, all, run, limit, secure, cookies }) {
           password,
           row?.password_salt || "0".repeat(64),
         );
-        let different = 0;
-        const expected = row?.password_hash || "0".repeat(64);
-        for (let i = 0; i < 64; i++)
-          different |= actual.charCodeAt(i) ^ expected.charCodeAt(i);
-        if (!row || different) fail(401, "Неверный email или пароль.");
+        if (!equal(actual, row?.password_hash || "0".repeat(64)) || !row)
+          fail(401, "Неверный email или пароль.");
         account = { id: row.id, email: row.email, name: row.name };
       }
       if (token)

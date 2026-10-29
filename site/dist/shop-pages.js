@@ -71,7 +71,7 @@
         target.innerHTML = `<div class="product-navigation"><a class="detail-back" href="${fromCart ? "/cart" : back}"><span>${fromCart ? "К корзине" : "Назад"}</span></a><nav class="breadcrumbs" aria-label="Путь к аромату"><a href="/">Главная</a><span>/</span><a href="${route}">${p.type === "razliv" ? "Каталог" : "Распив"}</a><span>/</span><a href="${back}">${esc(group)}</a><span>/</span><span aria-current="page">${esc(p.name)}</span></nav></div>
     <article class="product-card detail-product" data-product="${esc(p.id)}"><div class="detail-gallery"><div class="product-visual">${p.image ? `<img src="/assets/products/${esc(p.image)}" alt="Аромат-ориентир ${esc(p.brand)} ${esc(p.name)}" width="800" height="800" fetchpriority="high">` : ""}</div><p class="gallery-caption">${p.type === "razliv" ? "На фото — флакон аромата-ориентира. В заказе — разливная парфюмерия в выбранном объёме." : "На фото — оригинальный флакон. Вы заказываете выбранный объём распива."}</p></div>
     <div class="product-copy detail-buy"><div class="detail-meta"><span class="type-label ${p.type === "razliv" ? "razliv" : ""}">${type}</span><span class="sku">Артикул ${esc(p.code)}</span></div><p class="product-brand">${esc(p.brand)}</p><h1>${esc(p.name)}</h1><p class="detail-audience">${audience} аромат</p><span class="product-availability" role="status">${p.available ? "В наличии" : "Нет в наличии"}</span>
-    <div class="purchase-controls"><strong class="current-price" data-current-price>${money(selectedVariant.price)}</strong><div class="volume-picker"><span class="volume-picker-label" id="volume-picker-label">Объём флакона</span><div class="volume-pills" role="radiogroup" aria-labelledby="volume-picker-label">${p.variants.map((v) => `<button type="button" role="radio" data-ml="${v.ml}" aria-checked="${v.ml === selectedVariant.ml}" tabindex="${v.ml === selectedVariant.ml ? 0 : -1}"><strong>${v.ml} мл</strong><span>${money(v.price)}</span></button>`).join("")}</div><label class="visually-hidden" aria-hidden="true">Объём флакона<select class="volume-select" tabindex="-1">${p.variants.map((v) => `<option value="${v.ml}" ${v.ml === selectedVariant.ml ? "selected" : ""}>${v.ml} мл — ${money(v.price)}</option>`).join("")}</select></label></div><p class="unit-price">${money(p.pricePerMl)} за 1 мл · без доплаты за упаковку</p><div class="detail-actions"><button data-add="${esc(p.id)}" class="add-cart" disabled>Добавить в корзину</button><button class="favorite-toggle" aria-pressed="false" aria-label="Сохранить ${esc(p.name)} в избранное"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 5.5c-2.2-2.3-5.6-1.8-8.5 1.3-2.9-3.1-6.3-3.6-8.5-1.3C.6 8.5 3 13 12 20c9-7 11.4-11.5 8.5-14.5Z"/></svg></button></div><button class="button button-glass buy-now" disabled>Добавить и оформить</button></div>
+    <div class="purchase-controls"><strong class="current-price" data-current-price>${money(selectedVariant.price)}</strong><div class="volume-picker"><span class="volume-picker-label" id="volume-picker-label">Объём флакона</span><div class="volume-pills" role="radiogroup" aria-labelledby="volume-picker-label">${p.variants.map((v) => `<button type="button" role="radio" data-ml="${v.ml}" aria-checked="${v.ml === selectedVariant.ml}" tabindex="${v.ml === selectedVariant.ml ? 0 : -1}"><strong>${v.ml} мл</strong><span>${money(v.price)}</span>${v.originalPrice ? `<del>${money(v.originalPrice)}</del>` : ""}</button>`).join("")}</div><label class="visually-hidden" aria-hidden="true">Объём флакона<select class="volume-select" tabindex="-1">${p.variants.map((v) => `<option value="${v.ml}" ${v.ml === selectedVariant.ml ? "selected" : ""}>${v.ml} мл — ${money(v.price)}</option>`).join("")}</select></label></div><p class="unit-price">${money(p.pricePerMl)} за 1 мл${p.onSale ? ` <del>${money(p.basePricePerMl)}</del>` : ""} · без доплаты за упаковку</p><div class="detail-actions"><button data-add="${esc(p.id)}" class="add-cart" disabled>Добавить в корзину</button><button class="favorite-toggle" aria-pressed="false" aria-label="Сохранить ${esc(p.name)} в избранное"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 5.5c-2.2-2.3-5.6-1.8-8.5 1.3-2.9-3.1-6.3-3.6-8.5-1.3C.6 8.5 3 13 12 20c9-7 11.4-11.5 8.5-14.5Z"/></svg></button></div><button class="button button-glass buy-now" disabled>Добавить и оформить</button></div>
     <a class="product-question" href="https://wa.me/77472886509?text=${encodeURIComponent(question)}" target="_blank" rel="noopener">Есть вопрос об аромате? Напишите нам</a><p class="detail-delivery">Доставка — отдельно при получении. Итоговая стоимость товаров отображается в корзине.</p></div></article>
     <section class="fragrance-information"><div class="fragrance-description"><p class="kicker">ЗНАКОМСТВО С АРОМАТОМ</p><h2>Описание и ноты</h2><p>${esc(p.description)}</p><div class="note-list" aria-label="Основные ноты">${p.notes
       .split(/[·,]/)
@@ -318,36 +318,44 @@
       }
       const list = document.querySelector("#promotions-list");
       if (list) {
-        const sales = products.filter((p) => p.onSale);
+        // Ending soonest first; open-ended offers after dated ones.
+        const sales = products
+          .filter((p) => p.onSale)
+          .sort(
+            (a, b) =>
+              (Date.parse(a.saleEndsAt) || Infinity) -
+              (Date.parse(b.saleEndsAt) || Infinity),
+          );
         document.querySelector("#promotions-empty").hidden = sales.length > 0;
+        const tiles = (end) =>
+          `<div class="countdown countdown-tiles" role="timer" data-countdown-end="${esc(end)}"><p class="countdown-title"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/></svg><span>Акция закончится через</span></p><div class="countdown-units">${[
+            ["d", "дней"],
+            ["h", "часов"],
+            ["m", "минут"],
+            ["s", "секунд"],
+          ]
+            .map(
+              ([unit, label]) =>
+                `<span class="countdown-unit" data-unit="${unit}"><b>00</b><small>${label}</small></span>`,
+            )
+            .join("")}</div></div>`;
+        const soonest = sales.find((p) => Date.parse(p.saleEndsAt) > Date.now());
+        const hero = document.querySelector("#promotions-hero");
+        if (hero && sales.length) {
+          const best = Math.max(
+            ...sales.map((p) => Math.round((1 - p.pricePerMl / p.basePricePerMl) * 100)),
+          );
+          hero.innerHTML = `<div class="promo-hero-copy"><p class="promo-hero-kicker">Специальные цены</p><h2>Скидки до −${best}%</h2><p>${sales.length} ${sales.length % 10 === 1 && sales.length % 100 !== 11 ? "аромат" : sales.length % 10 >= 2 && sales.length % 10 <= 4 && (sales.length % 100 < 12 || sales.length % 100 > 14) ? "аромата" : "ароматов"} по акционной цене. Цена за миллилитр снижена для всех объёмов.</p></div>${soonest ? tiles(soonest.saleEndsAt) : ""}`;
+          hero.hidden = false;
+        }
         list.innerHTML = sales
-          .map(
-            (p) =>
-              `<article class="promotion-product"><a href="/fragrance?id=${esc(p.id)}"><img src="/assets/products/${esc(p.image)}" width="250" height="250" alt="${esc(p.name)}"><span class="type-label">Специальная цена</span><p class="product-brand">${esc(p.brand)}</p><h2>${esc(p.name)}</h2><p><del>${money(p.basePricePerMl)}</del> <strong>${money(p.pricePerMl)} / мл</strong></p>${p.saleEndsAt ? `<p class="sale-timer" data-sale-end="${esc(p.saleEndsAt)}" hidden></p>` : ""}<span class="button">Выбрать объём</span></a></article>`,
-          )
+          .map((p) => {
+            const off = Math.round((1 - p.pricePerMl / p.basePricePerMl) * 100);
+            const ends = Date.parse(p.saleEndsAt) > Date.now();
+            return `<article class="promotion-product"><a class="promotion-visual" href="/fragrance?id=${esc(p.id)}"><img src="/assets/products/${esc(p.image)}" width="250" height="250" alt="${esc(p.brand)} ${esc(p.name)}" loading="lazy"><span class="sale-badge">−${off}%</span></a><div class="promotion-copy"><p class="product-brand">${esc(p.brand)}</p><h2><a href="/fragrance?id=${esc(p.id)}">${esc(p.name)}</a></h2><p class="promotion-prices"><strong>${money(p.pricePerMl)} / мл</strong><del>${money(p.basePricePerMl)}</del></p><p class="promotion-from">5 мл — ${money(p.variants[0].price)} вместо ${money(p.variants[0].originalPrice)}</p>${ends ? `<p class="countdown countdown-compact" role="timer" data-countdown-end="${esc(p.saleEndsAt)}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg><span class="countdown-text"></span></p>` : `<p class="promotion-open">Специальная цена</p>`}<a class="button" href="/fragrance?id=${esc(p.id)}">Выбрать объём</a></div></article>`;
+          })
           .join("");
       }
-      const timers = [...document.querySelectorAll("[data-sale-end]")];
-      function updateTimers() {
-        for (const timer of timers) {
-          const seconds = Math.floor(
-            (Date.parse(timer.dataset.saleEnd) - Date.now()) / 1000,
-          );
-          timer.hidden = !(seconds > 0);
-          if (seconds > 0) {
-            const d = Math.floor(seconds / 86400),
-              h = Math.floor((seconds % 86400) / 3600),
-              m = Math.floor((seconds % 3600) / 60),
-              s = seconds % 60;
-            timer.textContent =
-              "До окончания: " +
-              (d ? d + " д. " : "") +
-              [h, m, s].map((n) => String(n).padStart(2, "0")).join(":");
-          }
-        }
-      }
-      updateTimers();
-      if (timers.length) setInterval(updateTimers, 1000);
       document.dispatchEvent(new Event("store:refresh-controls"));
     })
     .catch(() => {

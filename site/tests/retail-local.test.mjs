@@ -82,6 +82,83 @@ test("local retail: availability/CAS, account sessions/ownership, addresses, sto
       .email,
     "account@example.com",
   );
+  const renamed = await call(
+    "/api/account/profile",
+    "POST",
+    { name: "Айдана Серик" },
+    customer,
+  );
+  assert.equal(renamed.data.account.name, "Айдана Серик");
+  assert.equal(
+    (await call("/api/account/profile", "POST", { name: " " }, customer)).status,
+    400,
+  );
+  assert.equal(
+    (await call("/api/account/profile", "POST", { name: "Гость" })).status,
+    401,
+  );
+  const otherDevice = (
+    await call("/api/account/login", "POST", {
+      email: "account@example.com",
+      password: "safe test password",
+    })
+  ).cookie;
+  assert.equal(
+    (
+      await call(
+        "/api/account/password",
+        "POST",
+        { currentPassword: "wrong password!", newPassword: "new safe password" },
+        customer,
+      )
+    ).status,
+    401,
+  );
+  assert.equal(
+    (
+      await call(
+        "/api/account/password",
+        "POST",
+        { currentPassword: "safe test password", newPassword: "short" },
+        customer,
+      )
+    ).status,
+    400,
+  );
+  assert.equal(
+    (
+      await call(
+        "/api/account/password",
+        "POST",
+        {
+          currentPassword: "safe test password",
+          newPassword: "new safe password",
+        },
+        customer,
+      )
+    ).status,
+    200,
+  );
+  assert.equal(
+    (await call("/api/account/me", "GET", undefined, customer)).data.account
+      .name,
+    "Айдана Серик",
+    "password change keeps the current browser signed in",
+  );
+  assert.equal(
+    (await call("/api/account/me", "GET", undefined, otherDevice)).data.account,
+    null,
+    "password change ends other sessions",
+  );
+  assert.equal(
+    (
+      await call("/api/account/login", "POST", {
+        email: "account@example.com",
+        password: "new safe password",
+      })
+    ).status,
+    200,
+  );
   const order = {
     requestKey: randomUUID(),
     name: "Айдана",

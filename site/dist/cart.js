@@ -127,6 +127,122 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
     minus.onclick = () => adjust(-1);
     plus.onclick = () => adjust(1);
   }
+  // Sale presentation: badge, struck original price and a live countdown.
+  const clockIcon =
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg>';
+  const boltIcon =
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/></svg>';
+  const percentOff = (p) =>
+    Math.round((1 - p.pricePerMl / p.basePricePerMl) * 100);
+  function countdown(end, large) {
+    const box = el("div", "countdown " + (large ? "countdown-tiles" : "countdown-compact"));
+    box.dataset.countdownEnd = end;
+    box.setAttribute("role", "timer");
+    if (large) {
+      box.innerHTML = `<p class="countdown-title">${boltIcon}<span>Акция закончится через</span></p><div class="countdown-units">${[
+        ["d", "дней"],
+        ["h", "часов"],
+        ["m", "минут"],
+        ["s", "секунд"],
+      ]
+        .map(
+          ([unit, label]) =>
+            `<span class="countdown-unit" data-unit="${unit}"><b>00</b><small>${label}</small></span>`,
+        )
+        .join("")}</div>`;
+    } else
+      box.innerHTML = `${clockIcon}<span class="countdown-text"></span>`;
+    tickCountdowns();
+    return box;
+  }
+  function decorateSale(card, p, variant, priceLabel) {
+    const large = card.classList.contains("detail-product");
+    const visual = card.querySelector(".product-visual");
+    let row = priceLabel.closest(".price-row");
+    if (!row) {
+      row = el("div", "price-row");
+      priceLabel.before(row);
+      row.append(priceLabel);
+    }
+    card.classList.toggle("is-on-sale", !!p.onSale);
+    let badge = visual?.querySelector(".sale-badge"),
+      old = row.querySelector(".sale-old-price"),
+      timer = card.querySelector(".countdown");
+    if (!p.onSale) {
+      badge?.remove();
+      old?.remove();
+      row.querySelector(".sale-save")?.remove();
+      timer?.remove();
+      return;
+    }
+    if (visual && !badge) {
+      badge = el("span", "sale-badge");
+      visual.append(badge);
+    }
+    if (badge) badge.textContent = "−" + percentOff(p) + "%";
+    if (!old) {
+      old = el("del", "sale-old-price");
+      row.append(old);
+    }
+    old.textContent = money(variant.originalPrice);
+    old.setAttribute("aria-label", "Старая цена " + money(variant.originalPrice));
+    if (large) {
+      let save = row.querySelector(".sale-save");
+      if (!save) {
+        save = el("span", "sale-save");
+        row.append(save);
+      }
+      save.textContent = "Выгода " + money(variant.originalPrice - variant.price);
+    }
+    if (!(Date.parse(p.saleEndsAt) > Date.now())) {
+      timer?.remove();
+      return;
+    }
+    if (timer?.dataset.countdownEnd !== p.saleEndsAt) {
+      timer?.remove();
+      row.after(countdown(p.saleEndsAt, large));
+    }
+  }
+  function tickCountdowns() {
+    document.querySelectorAll("[data-countdown-end]").forEach((box) => {
+      const left = Math.floor(
+        (Date.parse(box.dataset.countdownEnd) - Date.now()) / 1000,
+      );
+      if (!(left > 0)) {
+        box.hidden = true;
+        return;
+      }
+      box.hidden = false;
+      const parts = {
+        d: Math.floor(left / 86400),
+        h: Math.floor((left % 86400) / 3600),
+        m: Math.floor((left % 3600) / 60),
+        s: left % 60,
+      };
+      const pad = (n) => String(n).padStart(2, "0");
+      const text = box.querySelector(".countdown-text");
+      if (text)
+        text.textContent =
+          "Осталось " +
+          (parts.d ? parts.d + " д " : "") +
+          [parts.h, parts.m, parts.s].map(pad).join(":");
+      box.querySelectorAll("[data-unit]").forEach((unit) => {
+        const value = pad(parts[unit.dataset.unit]);
+        const digits = unit.querySelector("b");
+        if (digits.textContent === value) return;
+        digits.textContent = value;
+        unit.classList.remove("is-ticking");
+        void unit.offsetWidth;
+        unit.classList.add("is-ticking");
+      });
+      box.setAttribute(
+        "aria-label",
+        `До конца акции ${parts.d} д ${parts.h} ч ${parts.m} мин`,
+      );
+    });
+  }
+  setInterval(tickCountdowns, 1000);
+  document.addEventListener("store:refresh-controls", tickCountdowns);
   function updateAvailability() {
     document.querySelectorAll("[data-add]").forEach((button) => {
       const p = products.find((p) => p.id === button.dataset.add);
@@ -149,10 +265,12 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
           select.value = selected;
       }
       const priceLabel = card.querySelector("[data-current-price]");
-      if (priceLabel)
-        priceLabel.textContent = money(
-          p.variants.find((v) => String(v.ml) === select.value)?.price || 0,
-        );
+      const variant =
+        p.variants.find((v) => String(v.ml) === select.value) || p.variants[0];
+      if (priceLabel) {
+        priceLabel.textContent = money(variant.price);
+        decorateSale(card, p, variant, priceLabel);
+      }
       button.disabled = p.available === false;
       const quick = card.querySelector(".buy-now");
       if (quick) quick.disabled = p.available === false;
@@ -349,6 +467,42 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
   }
   if (cartRoot) restoreDraft();
   receiving();
+  // Signed-in customers get empty contact fields filled from their latest order.
+  async function prefillFromAccount() {
+    const fields = form.elements;
+    if (fields.name.value || fields.phone.value || fields.address.value) return;
+    try {
+      const me = await fetch("/api/account").then((r) => r.json());
+      if (!me.account) return;
+      const r = await fetch("/api/account/orders");
+      const history = r.ok ? (await r.json()).orders || [] : [];
+      const last = history[0];
+      if (fields.name.value || fields.phone.value || fields.address.value)
+        return;
+      fields.name.value = last?.name || me.account.name || "";
+      const digits = String(last?.phone || "")
+        .replace(/\D/g, "")
+        .replace(/^[78](?=\d{10}$)/, "");
+      fields.phone.value = [digits.slice(0, 3), digits.slice(3, 6), digits.slice(6, 10)]
+        .filter(Boolean)
+        .join(" ");
+      fields.address.value = history.find((o) => o.address)?.address || "";
+      if (last?.fulfillment === "pickup")
+        form.querySelector('[value="pickup"]').checked = true;
+      receiving();
+      persistDraft();
+    } catch {}
+  }
+  if (cartRoot) {
+    prefillFromAccount();
+    try {
+      const note = sessionStorage.getItem("arafan-repeat-note");
+      if (note) {
+        sessionStorage.removeItem("arafan-repeat-note");
+        setTimeout(() => notify(note), 300);
+      }
+    } catch {}
+  }
   form.addEventListener("change", () => {
     receiving();
     persistDraft();
