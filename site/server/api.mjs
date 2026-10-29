@@ -3,6 +3,9 @@ import {
   productPatch,
   validateOrder as validateRetailOrder,
   matchesAcceptedOrder,
+  orderCodePrefix,
+  orderCode,
+  NEXT_ORDER_NUMBER_SQL,
 } from "./commerce.mjs";
 import { customerAuth } from "./customer-auth.mjs";
 import { readFile } from "node:fs/promises";
@@ -185,8 +188,8 @@ export function createAPI(products, directory = privateDir) {
           const validated = validateRetailOrder(data, currentProducts());
           validated.accountId = accountId;
           const fingerprint = digest(JSON.stringify(validated));
-          const id = `ARF-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${randomBytes(5).toString("hex").toUpperCase()}`;
           const now = new Date().toISOString();
+          let id;
           db.exec("BEGIN IMMEDIATE");
           try {
             const prior = db
@@ -201,6 +204,12 @@ export function createAPI(products, directory = privateDir) {
               db.exec("COMMIT");
               return send(res, 200, { id: prior.id, total: prior.total });
             }
+            // The immediate transaction serialises numbering between requests.
+            const prefix = orderCodePrefix();
+            id = orderCode(
+              prefix,
+              db.prepare(NEXT_ORDER_NUMBER_SQL).get(prefix + "%").next,
+            );
             db.prepare(
               "INSERT INTO orders (id, request_key, fingerprint, name, phone, items, total, created_at, updated_at,address,comment,account_id,fulfillment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             ).run(
@@ -346,7 +355,7 @@ export function createAPI(products, directory = privateDir) {
             });
           }
           const match =
-            /^\/api\/admin\/orders\/((?:STORE|PG|ARF|SK|CAP|CP|EGO|VP|AP|LIB|RP|FP|NA|ARO|VOX|PB|PL|PS|LAGUNA|TS|BEY)-\d{8}-[A-F0-9]{10})$/.exec(
+            /^\/api\/admin\/orders\/((?:STORE|PG|ARF|SK|CAP|CP|EGO|VP|AP|LIB|RP|FP|NA|ARO|VOX|PB|PL|PS|LAGUNA|TS|BEY)-\d{8}-[A-F0-9]{10}|ARF-\d{6}-\d{2,4})$/.exec(
               path,
             );
           if (match && req.method === "PATCH") {

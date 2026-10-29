@@ -6254,3 +6254,8 @@ html {
     transform: none;
   }
 }
+
+/* Catalog tabs: no colour animation while the URL selection is applied on load. */
+.scent-tabs.is-initializing button {
+  transition: none !important;
+}

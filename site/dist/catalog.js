@@ -199,4 +199,10 @@
   });
   readURL();
   render({ animate: false });
+  // The tab chosen in the URL appears instantly; only later clicks animate.
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() =>
+      document.querySelector(".scent-tabs")?.classList.remove("is-initializing"),
+    ),
+  );
 })();

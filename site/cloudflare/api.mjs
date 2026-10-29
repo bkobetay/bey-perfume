@@ -5,6 +5,9 @@ import {
   validateOrder,
   matchesAcceptedOrder,
   statuses,
+  orderCodePrefix,
+  orderCode,
+  NEXT_ORDER_NUMBER_SQL,
 } from "../server/commerce.mjs";
 import { customerAuth } from "../server/customer-auth.mjs";
 const fail = (status, message) => {
@@ -250,29 +253,42 @@ export async function handleAPI(request, env) {
       const order = validateOrder(data, await currentProducts());
       order.accountId = accountId;
       const fingerprint = await digest(JSON.stringify(order));
-      const id =
-          "ARF-" +
-          new Date().toISOString().slice(0, 10).replaceAll("-", "") +
-          "-" +
-          hex(random(5)).toUpperCase(),
-        now = new Date().toISOString();
-      const inserted = await first(
-        "INSERT INTO orders(id,request_key,fingerprint,name,search_name,phone,items,total,created_at,updated_at,address,comment,account_id,fulfillment) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(request_key) DO NOTHING RETURNING id,total",
-        id,
-        data.requestKey,
-        fingerprint,
-        order.name,
-        order.name.toLocaleLowerCase("ru"),
-        order.phone,
-        JSON.stringify(order.items),
-        order.total,
-        now,
-        now,
-        order.address,
-        order.comment,
-        order.accountId,
-        order.fulfillment,
-      );
+      const now = new Date().toISOString(),
+        prefix = orderCodePrefix();
+      // D1 has no interactive transactions: take the next daily number and
+      // retry with a higher one if a concurrent order claimed it first.
+      let inserted,
+        number = (await first(NEXT_ORDER_NUMBER_SQL, prefix + "%")).next;
+      for (let attempt = 0; ; attempt++) {
+        const id = orderCode(prefix, number);
+        try {
+          inserted = await first(
+            "INSERT INTO orders(id,request_key,fingerprint,name,search_name,phone,items,total,created_at,updated_at,address,comment,account_id,fulfillment) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(request_key) DO NOTHING RETURNING id,total",
+            id,
+            data.requestKey,
+            fingerprint,
+            order.name,
+            order.name.toLocaleLowerCase("ru"),
+            order.phone,
+            JSON.stringify(order.items),
+            order.total,
+            now,
+            now,
+            order.address,
+            order.comment,
+            order.accountId,
+            order.fulfillment,
+          );
+          break;
+        } catch (error) {
+          if (
+            attempt >= 20 ||
+            !/UNIQUE constraint failed: orders\.id/.test(error.message)
+          )
+            throw error;
+          number++;
+        }
+      }
       if (!inserted) {
         const row = await first(
           "SELECT id,total,fingerprint FROM orders WHERE request_key=?",
@@ -392,7 +408,7 @@ export async function handleAPI(request, env) {
         });
       }
       const orderMatch =
-        /^\/api\/admin\/orders\/([A-Z]+-\d{8}-[A-F0-9]{10})(\/return-stock)?$/.exec(
+        /^\/api\/admin\/orders\/([A-Z]+-\d{8}-[A-F0-9]{10}|ARF-\d{6}-\d{2,4})(\/return-stock)?$/.exec(
           path,
         );
       if (

@@ -21,6 +21,25 @@ export function basePrice(product) {
     throw new Error("Invalid baseline product price");
   return price;
 }
+// Short seller-friendly codes: ARF-DDMMYY-NN, numbered per Almaty calendar day.
+export function orderCodePrefix(now = new Date()) {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Asia/Almaty",
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+    })
+      .formatToParts(now)
+      .map((p) => [p.type, p.value]),
+  );
+  return `ARF-${parts.day}${parts.month}${parts.year}-`;
+}
+export const orderCode = (prefix, number) =>
+  prefix + String(number).padStart(2, "0");
+// Highest number already used today; old long codes never match the prefix.
+export const NEXT_ORDER_NUMBER_SQL =
+  "SELECT COALESCE(MAX(CAST(substr(id, 12) AS INTEGER)), 0) + 1 AS next FROM orders WHERE id LIKE ?";
 export function catalog(products, rows, now = Date.now()) {
   return products.map((product) => {
     const row = rows.find((r) => r.product_id === product.id);

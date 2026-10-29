@@ -90,7 +90,8 @@ test("local retail: availability/CAS, account sessions/ownership, addresses, sto
   );
   assert.equal(renamed.data.account.name, "Айдана Серик");
   assert.equal(
-    (await call("/api/account/profile", "POST", { name: " " }, customer)).status,
+    (await call("/api/account/profile", "POST", { name: " " }, customer))
+      .status,
     400,
   );
   assert.equal(
@@ -108,7 +109,10 @@ test("local retail: availability/CAS, account sessions/ownership, addresses, sto
       await call(
         "/api/account/password",
         "POST",
-        { currentPassword: "wrong password!", newPassword: "new safe password" },
+        {
+          currentPassword: "wrong password!",
+          newPassword: "new safe password",
+        },
         customer,
       )
     ).status,
