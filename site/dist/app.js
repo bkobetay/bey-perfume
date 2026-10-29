@@ -259,7 +259,6 @@ if (mega && catalogLink) {
       transform: hidden ? "translateY(-8px) scale(.995)" : style.transform,
     };
     wanted = open;
-    if (open) document.dispatchEvent(new Event("store:catalog-open"));
     const turn = ++generation;
     animation?.cancel();
     catalogLink.setAttribute("aria-expanded", String(open));
@@ -346,9 +345,6 @@ if (mega && catalogLink) {
     link.addEventListener("focus", select);
   });
   desktop.addEventListener("change", () => showMega(false));
-  document.addEventListener("store:info-open", () => {
-    if (wanted) showMega(false);
-  });
 }
 
 // Shared bag/favorite controls for catalog, home and asynchronously loaded cards.
@@ -423,101 +419,3 @@ syncProductActions();
 document.addEventListener("store:refresh-controls", syncProductActions);
 window.addEventListener("store:favorites-changed", syncProductActions);
 window.addEventListener("storage", syncProductActions);
-
-// Secondary information stays one compact popover away from the shopping routes.
-const infoLink = document.querySelector("#store-info-link"),
-  infoMenu = document.querySelector("#store-info-menu");
-if (infoLink && infoMenu) {
-  let enter,
-    leave,
-    animation,
-    turn = 0,
-    wanted = false;
-  const desktop = matchMedia("(min-width:1081px) and (hover:hover)");
-  function showInfo(open, keyboard = false) {
-    clearTimeout(enter);
-    clearTimeout(leave);
-    if (open && !desktop.matches) return;
-    wanted = open;
-    const generation = ++turn,
-      hidden = infoMenu.hidden,
-      current = hidden ? null : getComputedStyle(infoMenu),
-      from = {
-        opacity: hidden ? 0 : current.opacity,
-        transform: hidden ? "translateY(-5px)" : current.transform,
-      };
-    animation?.cancel();
-    infoLink.setAttribute("aria-expanded", String(open));
-    infoMenu.hidden = false;
-    infoMenu.inert = !open;
-    if (open) document.dispatchEvent(new Event("store:info-open"));
-    if (keyboard || matchMedia("(prefers-reduced-motion:reduce)").matches) {
-      infoMenu.hidden = !open;
-      if (open) infoMenu.querySelector("a").focus();
-      return;
-    }
-    animation = infoMenu.animate(
-      [
-        from,
-        open
-          ? { opacity: 1, transform: "none" }
-          : { opacity: 0, transform: "translateY(-3px)" },
-      ],
-      {
-        duration: open ? 220 : 140,
-        easing: "cubic-bezier(.22,1,.36,1)",
-        fill: "both",
-      },
-    );
-    animation.finished
-      .then(() => {
-        if (generation !== turn) return;
-        infoMenu.hidden = !open;
-        animation.cancel();
-        animation = null;
-      })
-      .catch(() => {});
-  }
-  infoLink.addEventListener("pointerenter", () => {
-    clearTimeout(leave);
-    enter = setTimeout(() => showInfo(true), 100);
-  });
-  infoMenu.addEventListener("pointerenter", () => clearTimeout(leave));
-  infoLink.addEventListener("pointerleave", () => {
-    clearTimeout(enter);
-    leave = setTimeout(() => showInfo(false), 150);
-  });
-  infoMenu.addEventListener("pointerleave", () => {
-    leave = setTimeout(() => showInfo(false), 150);
-  });
-  infoLink.addEventListener("keydown", (event) => {
-    if (event.key === "ArrowDown" && desktop.matches) {
-      event.preventDefault();
-      showInfo(true, true);
-    }
-  });
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && wanted) {
-      showInfo(false, true);
-      infoLink.focus({ preventScroll: true });
-    }
-  });
-  document.addEventListener("pointerdown", (event) => {
-    if (wanted && !infoMenu.contains(event.target) && event.target !== infoLink)
-      showInfo(false);
-  });
-  document.querySelector(".header").addEventListener("focusout", () =>
-    setTimeout(() => {
-      if (
-        wanted &&
-        !infoMenu.contains(document.activeElement) &&
-        document.activeElement !== infoLink
-      )
-        showInfo(false, true);
-    }, 0),
-  );
-  document.addEventListener("store:catalog-open", () => {
-    if (wanted) showInfo(false);
-  });
-  desktop.addEventListener("change", () => showInfo(false, true));
-}

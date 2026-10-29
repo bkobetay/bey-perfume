@@ -150,6 +150,15 @@
       tabs[next].click();
     });
   });
+  document
+    .querySelector("#header-search-form")
+    .addEventListener("submit", (event) => {
+      event.preventDefault();
+      const menu = document.querySelector(".menu-toggle");
+      if (menu?.getAttribute("aria-expanded") === "true") menu.click();
+      page = 1;
+      render({ historyMode: "push", animate: false, scroll: true });
+    });
   search.addEventListener("input", () => {
     page = 1;
     render({ animate: false });
