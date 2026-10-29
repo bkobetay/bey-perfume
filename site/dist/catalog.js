@@ -12,7 +12,11 @@
   const results = document.querySelector("#catalog-results");
   const pageSize = 12;
   const descriptions = {
-    all: "Вся коллекция — от лёгких цитрусов до тёплых древесных нот.",
+    all: "Выберите аромат и объём.",
+    female: "Женская разливная парфюмерия.",
+    male: "Мужская разливная парфюмерия.",
+    niche: "Нишевая разливная парфюмерия.",
+    universal: "Универсальная разливная парфюмерия.",
     woody: "Кедр, сандал и ветивер — глубина в нескольких нотах.",
     fresh: "Цитрусовые и зелёные акценты для лёгкого звучания.",
     oriental: "Тёплая амбра и мягкие ванильные оттенки.",
@@ -28,7 +32,7 @@
     text: normalize(
       [
         ...card.querySelectorAll(
-          ".product-brand, h3, .product-notes, .product-tags span",
+          ".product-brand, h3, .product-notes, .product-tags span, .sku",
         ),
       ]
         .map((element) => element.textContent)

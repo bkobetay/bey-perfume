@@ -1,17 +1,10 @@
 import {
-  initializeInventory,
-  inventoryProducts,
-  checkStock,
-  deductOrder,
-  paidStatuses,
-  units,
-  moveStock,
-  requirements,
-} from "./inventory.mjs";
-import {
-  customerNameError,
-  normalizeCustomerName,
-} from "../dist/name-validation.js";
+  catalog,
+  productPatch,
+  validateOrder as validateRetailOrder,
+  matchesAcceptedOrder,
+} from "./commerce.mjs";
+import { customerAuth } from "./customer-auth.mjs";
 import { readFile } from "node:fs/promises";
 import { randomBytes, createHash, scrypt, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
@@ -25,7 +18,6 @@ const fail = (status, message) => {
 const hashPassword = promisify(scrypt);
 export function createAPI(products, directory = privateDir) {
   const db = openStore(directory);
-  initializeInventory(db, products);
   const limits = new Map();
   function limit(key, max, ms) {
     const now = Date.now();
@@ -76,63 +68,8 @@ export function createAPI(products, directory = privateDir) {
       fail(401, "Войдите в кабинет продавца.");
     return digest(token);
   }
-  function validateOrder(data) {
-    const nameError = customerNameError(data.name);
-    if (nameError) fail(400, nameError);
-    if (
-      typeof data.phone !== "string" ||
-      data.phone.length > 30 ||
-      !/^[+\d\s()\-]+$/.test(data.phone)
-    )
-      fail(400, "Проверьте номер телефона.");
-    let digits = data.phone.replace(/\D/g, "");
-    if (digits.length === 11 && digits[0] === "8")
-      digits = "7" + digits.slice(1);
-    if (!/^7\d{10}$/.test(digits))
-      fail(400, "Укажите +7 и ровно 10 цифр номера, например +7 700 000 0000.");
-    if (
-      !Array.isArray(data.items) ||
-      !data.items.length ||
-      data.items.length > 24
-    )
-      fail(400, "Добавьте от 1 до 24 позиций.");
-    const keys = new Set();
-    const items = data.items.map((item) => {
-      const product = products.find((p) => p.id === item?.productId);
-      const variant = product?.variants.find((v) => v.ml === item.ml);
-      if (
-        !variant ||
-        item.ml < 5 ||
-        !Number.isInteger(item.quantity) ||
-        item.quantity < 1 ||
-        item.quantity > 20
-      )
-        fail(
-          400,
-          "Распив доступен от 5 мл. Проверьте аромат, объём и количество (1–20).",
-        );
-      const key = `${product.id}:${variant.ml}`;
-      if (keys.has(key)) fail(400, "Повторяющаяся позиция.");
-      keys.add(key);
-      return {
-        productId: product.id,
-        name: `${product.brand} ${product.name}`,
-        ml: variant.ml,
-        quantity: item.quantity,
-        price: variant.price,
-        subtotal: variant.price * item.quantity,
-      };
-    });
-    const total = items.reduce((sum, item) => sum + item.subtotal, 0);
-    if (data.expectedTotal !== total)
-      fail(409, "Стоимость изменилась. Обновите страницу и проверьте сумму.");
-    return {
-      name: normalizeCustomerName(data.name),
-      phone: "+" + digits,
-      items,
-      total,
-    };
-  }
+  const currentProducts = () =>
+    catalog(products, db.prepare("SELECT * FROM product_settings").all());
   return {
     db,
     async handle(req, res, url) {
@@ -140,11 +77,8 @@ export function createAPI(products, directory = privateDir) {
         const path = url.pathname;
         if (req.method === "GET" && path === "/api/products")
           return send(res, 200, {
-            demoPrices: true,
             currency: "KZT",
-            products: inventoryProducts(db, products).map(
-              ({ stockVersion, stockUpdatedAt, ...product }) => product,
-            ),
+            products: currentProducts(),
           });
         if (req.method !== "GET") {
           if (
@@ -152,6 +86,32 @@ export function createAPI(products, directory = privateDir) {
             req.headers["sec-fetch-site"] === "cross-site"
           )
             fail(403, "Запрос с другого сайта запрещён.");
+        }
+        const customer = customerAuth({
+          first: async (sql, ...args) => db.prepare(sql).get(...args) || null,
+          all: async (sql, ...args) => db.prepare(sql).all(...args),
+          run: async (sql, ...args) => ({
+            meta: { changes: db.prepare(sql).run(...args).changes },
+          }),
+          limit: async (kind, max, ms) =>
+            limit(kind + ":" + req.socket.remoteAddress, max, ms),
+          secure: false,
+          cookies: req.headers.cookie,
+        });
+        if (path.startsWith("/api/account")) {
+          const result = await customer.handle(
+            path,
+            req.method,
+            req.method === "POST" ? await body(req) : undefined,
+          );
+          if (result)
+            return send(
+              res,
+              result.status || 200,
+              result.data,
+              result.cookie ? { "Set-Cookie": result.cookie } : {},
+            );
+          fail(404, "Не найдено.");
         }
         if (req.method === "POST" && path === "/api/admin/login") {
           limit("login:" + req.socket.remoteAddress, 10, 15 * 60 * 1000);
@@ -210,7 +170,20 @@ export function createAPI(products, directory = privateDir) {
             !/^[a-f0-9-]{36}$/.test(data.requestKey)
           )
             fail(400, "Неверный ключ заявки.");
-          const validated = validateOrder(data);
+          const accountId = (await customer.current())?.id ?? null;
+          const accepted = db
+            .prepare("SELECT * FROM orders WHERE request_key=?")
+            .get(data.requestKey);
+          if (accepted) {
+            if (!matchesAcceptedOrder(data, accepted, accountId))
+              fail(
+                409,
+                "Ключ заявки уже использован. Откройте корзину заново.",
+              );
+            return send(res, 200, { id: accepted.id, total: accepted.total });
+          }
+          const validated = validateRetailOrder(data, currentProducts());
+          validated.accountId = accountId;
           const fingerprint = digest(JSON.stringify(validated));
           const id = `ARF-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${randomBytes(5).toString("hex").toUpperCase()}`;
           const now = new Date().toISOString();
@@ -228,9 +201,8 @@ export function createAPI(products, directory = privateDir) {
               db.exec("COMMIT");
               return send(res, 200, { id: prior.id, total: prior.total });
             }
-            checkStock(db, validated.items);
             db.prepare(
-              "INSERT INTO orders (id, request_key, fingerprint, name, phone, items, total, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+              "INSERT INTO orders (id, request_key, fingerprint, name, phone, items, total, created_at, updated_at,address,comment,account_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             ).run(
               id,
               data.requestKey,
@@ -241,6 +213,9 @@ export function createAPI(products, directory = privateDir) {
               validated.total,
               now,
               now,
+              validated.address,
+              validated.comment,
+              validated.accountId,
             );
             db.prepare(
               "INSERT INTO events (order_id, status, at) VALUES (?, ?, ?)",
@@ -252,6 +227,11 @@ export function createAPI(products, directory = privateDir) {
           }
           return send(res, 201, { id, total: validated.total });
         }
+        if (
+          path.startsWith("/api/admin/inventory") ||
+          path.endsWith("/return-stock")
+        )
+          fail(404, "Не найдено.");
         if (path.startsWith("/api/admin/")) {
           const tokenHash = session(req);
           if (req.method === "POST" && path === "/api/admin/logout") {
@@ -289,7 +269,7 @@ export function createAPI(products, directory = privateDir) {
                   o.status === status ||
                   (status === "active" &&
                     !["completed", "cancelled"].includes(o.status))) &&
-                [o.id, o.name, o.phone].some((s) =>
+                [o.id, o.name, o.phone, o.items].some((s) =>
                   s.toLocaleLowerCase("ru").includes(q),
                 ),
             );
@@ -319,133 +299,50 @@ export function createAPI(products, directory = privateDir) {
               statuses,
             });
           }
-          if (req.method === "GET" && path === "/api/admin/inventory") {
-            return send(res, 200, {
-              products: inventoryProducts(db, products),
-              movements: db
-                .prepare(
-                  "SELECT * FROM inventory_movements ORDER BY id DESC LIMIT 50",
-                )
-                .all(),
-            });
-          }
-          const stockMatch = /^\/api\/admin\/inventory\/([a-z0-9-]+)$/.exec(
-            path,
-          );
-          if (stockMatch && req.method === "PATCH") {
-            const data = await body(req);
-            if (!products.some((p) => p.id === stockMatch[1]))
+          if (req.method === "GET" && path === "/api/admin/products")
+            return send(res, 200, { products: currentProducts() });
+          const productMatch =
+            /^\/api\/admin\/products(?:\/([a-z0-9-]+))?$/.exec(path);
+          if (productMatch && req.method === "PATCH") {
+            const data = await body(req),
+              id = productMatch[1] || data.productId;
+            if (!products.some((p) => p.id === id))
               fail(404, "Аромат не найден.");
-            if (
-              !["add", "remove", "set"].includes(data.kind) ||
-              !Number.isInteger(data.version) ||
-              typeof data.reason !== "string" ||
-              !data.reason.trim() ||
-              data.reason.length > 300 ||
-              typeof data.requestKey !== "string" ||
-              !/^[a-f0-9-]{36}$/.test(data.requestKey)
-            )
-              fail(400, "Укажите операцию, объём и причину (до 300 символов).");
-            const amount = units(data.ml);
-            if (!amount && data.kind !== "set")
-              fail(
-                400,
-                "Для поступления или списания объём должен быть больше нуля.",
-              );
-            const fingerprint = digest(
-              JSON.stringify([
-                stockMatch[1],
-                data.kind,
-                amount,
-                data.reason.trim(),
-                data.version,
-              ]),
-            );
-            db.exec("BEGIN IMMEDIATE");
-            try {
-              const prior = db
+            const patch = productPatch(data),
+              now = new Date().toISOString();
+            let row;
+            if (data.version === 0)
+              row = db
                 .prepare(
-                  "SELECT fingerprint FROM inventory_requests WHERE request_key = ?",
+                  "INSERT INTO product_settings(product_id,price_per_ml,available,sale_price_per_ml,sale_ends_at,updated_at) VALUES (?,?,?,?,?,?) ON CONFLICT(product_id) DO NOTHING RETURNING *",
                 )
-                .get(data.requestKey);
-              if (prior && prior.fingerprint !== fingerprint)
-                fail(409, "Ключ операции уже использован. Обновите склад.");
-              if (!prior) {
-                const current = db
-                  .prepare("SELECT * FROM inventory WHERE product_id = ?")
-                  .get(stockMatch[1]);
-                if (current.version !== data.version)
-                  fail(
-                    409,
-                    "Остаток изменился. Обновите склад перед сохранением.",
-                  );
-                const delta =
-                  data.kind === "set"
-                    ? amount - current.quantity_units
-                    : data.kind === "remove"
-                      ? -amount
-                      : amount;
-                moveStock(
-                  db,
-                  stockMatch[1],
-                  delta,
-                  data.kind,
-                  data.reason.trim(),
-                );
-                db.prepare("INSERT INTO inventory_requests VALUES (?, ?)").run(
-                  data.requestKey,
-                  fingerprint,
-                );
-              }
-              db.exec("COMMIT");
-            } catch (error) {
-              db.exec("ROLLBACK");
-              throw error;
-            }
-            return send(res, 200, { ok: true });
-          }
-          const returnMatch =
-            /^\/api\/admin\/orders\/((?:STORE|PG|ARF|SK|CAP|CP|EGO|VP|AP|LIB|RP|FP|NA|ARO|VOX|PB|PL|PS|LAGUNA|TS|BEY)-\d{8}-[A-F0-9]{10})\/return-stock$/.exec(
-              path,
-            );
-          if (returnMatch && req.method === "POST") {
-            const data = await body(req);
-            db.exec("BEGIN IMMEDIATE");
-            try {
-              const order = db
-                .prepare("SELECT * FROM orders WHERE id = ?")
-                .get(returnMatch[1]);
-              if (!order) fail(404, "Заказ не найден.");
-              if (order.version !== data.version)
-                fail(409, "Заказ изменился. Обновите список.");
-              if (
-                order.status !== "cancelled" ||
-                order.inventory_state !== "deducted"
-              )
-                fail(
-                  409,
-                  "Возврат доступен только для отменённого заказа со списанным объёмом.",
-                );
-              for (const [id, { amount }] of requirements(
-                JSON.parse(order.items),
-              ))
-                moveStock(
-                  db,
+                .get(
                   id,
-                  amount,
-                  "return",
-                  "Продавец подтвердил фактический возврат",
-                  order.id,
+                  patch.price,
+                  patch.available,
+                  patch.sale,
+                  patch.end,
+                  now,
                 );
-              db.prepare(
-                "UPDATE orders SET inventory_state = 'returned', version = version + 1, updated_at = ? WHERE id = ?",
-              ).run(new Date().toISOString(), order.id);
-              db.exec("COMMIT");
-            } catch (error) {
-              db.exec("ROLLBACK");
-              throw error;
-            }
-            return send(res, 200, { ok: true });
+            else
+              row = db
+                .prepare(
+                  "UPDATE product_settings SET price_per_ml=?,available=?,sale_price_per_ml=?,sale_ends_at=?,version=version+1,updated_at=? WHERE product_id=? AND version=? RETURNING *",
+                )
+                .get(
+                  patch.price,
+                  patch.available,
+                  patch.sale,
+                  patch.end,
+                  now,
+                  id,
+                  data.version,
+                );
+            if (!row)
+              fail(409, "Товар изменён в другой вкладке. Обновите список.");
+            return send(res, 200, {
+              product: currentProducts().find((p) => p.id === id),
+            });
           }
           const match =
             /^\/api\/admin\/orders\/((?:STORE|PG|ARF|SK|CAP|CP|EGO|VP|AP|LIB|RP|FP|NA|ARO|VOX|PB|PL|PS|LAGUNA|TS|BEY)-\d{8}-[A-F0-9]{10})$/.exec(
@@ -469,8 +366,11 @@ export function createAPI(products, directory = privateDir) {
               if (!current) fail(404, "Заказ не найден.");
               if (current.version !== data.version)
                 fail(409, "Заказ изменён в другой вкладке. Обновите список.");
-              if (paidStatuses.has(data.status))
-                deductOrder(db, current, data.paymentConfirmed);
+              if (data.status === "paid")
+                fail(
+                  409,
+                  "Оплата подтверждается только платёжным провайдером.",
+                );
               db.prepare(
                 "UPDATE orders SET status = ?, note = ?, version = version + 1, updated_at = ? WHERE id = ?",
               ).run(data.status, data.note.trim(), now, match[1]);

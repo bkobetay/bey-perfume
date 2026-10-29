@@ -12,9 +12,14 @@ const schema = await readFile(
   new URL("../cloudflare/migrations/0001_store.sql", import.meta.url),
   "utf8",
 );
+const awaitMigration = await readFile(
+  new URL("../cloudflare/migrations/0002_retail_accounts.sql", import.meta.url),
+  "utf8",
+);
 function setup() {
   const sql = new DatabaseSync(":memory:");
   sql.exec(schema);
+  sql.exec(awaitMigration);
   for (const p of products)
     sql
       .prepare(
@@ -54,7 +59,12 @@ function setup() {
     path,
     method = "GET",
     data,
-    { auth = true, origin = "https://shop.pages.dev", ip = "127.0.0.1" } = {},
+    {
+      auth = true,
+      origin = "https://shop.pages.dev",
+      ip = "127.0.0.1",
+      customerCookie,
+    } = {},
   ) {
     const headers = {
       "Content-Type": "application/json",
@@ -62,6 +72,10 @@ function setup() {
     };
     if (origin) headers.Origin = origin;
     if (auth && cookie) headers.Cookie = cookie;
+    if (customerCookie)
+      headers.Cookie = [headers.Cookie, customerCookie]
+        .filter(Boolean)
+        .join("; ");
     const response = await handleAPI(
       new Request("https://shop.pages.dev" + path, {
         method,
@@ -87,205 +101,283 @@ function setup() {
   }
   return { sql, env, call, login, password };
 }
-test("Cloudflare: authenticated orders, atomic stock, idempotency, returns and rate limits", async (t) => {
+test("Cloudflare: retail settings, orders, customer ownership and preserved history", async (t) => {
   const s = setup();
   t.after(() => s.sql.close());
   const { call, sql } = s;
-  assert.equal((await call("/api/admin/orders")).status, 401);
-  assert.equal(
-    (
-      await call("/api/admin/login", "POST", {
-        username: "admin",
-        password: "wrong",
-      })
-    ).status,
-    401,
-  );
+  assert.equal((await call("/api/admin/products")).status, 401);
   await s.login();
-  const p = products[0],
-    q = products[1];
-  const payload = (lines = [{ productId: p.id, ml: 10, quantity: 1 }]) => ({
+  const p = (await call("/api/products")).data.products[0];
+  assert.deepEqual(
+    p.variants.map((v) => v.ml),
+    [5, 10, 20, 30],
+  );
+  assert.equal(p.type, products[0].type || "raspiv");
+  assert.equal(p.available, true);
+  assert.equal(p.availableMl, undefined);
+  const balance = () =>
+    sql
+      .prepare("SELECT quantity_units FROM inventory WHERE product_id=?")
+      .get(p.id).quantity_units;
+  const make = (extra = {}) => ({
     requestKey: crypto.randomUUID(),
     name: "Айдана",
     phone: "+77000000000",
-    items: lines,
-    expectedTotal: lines.reduce(
-      (v, l) =>
-        v +
-        products
-          .find((x) => x.id === l.productId)
-          .variants.find((x) => x.ml === l.ml).price *
-          l.quantity,
-      0,
-    ),
+    address: "Алматы, Абая 1",
+    comment: "После 18:00",
+    items: [{ productId: p.id, type: p.type, ml: 30, quantity: 20 }],
+    expectedTotal: p.pricePerMl * 30 * 20,
+    ...extra,
   });
   assert.equal(
     (
-      await call("/api/orders", "POST", payload(), {
+      await call("/api/orders", "POST", make(), {
         origin: "https://attacker.example",
       })
     ).status,
     403,
   );
   assert.equal(
-    (await call("/api/orders", "POST", { ...payload(), name: "аывфаыв" }))
+    (await call("/api/orders", "POST", make({ address: "x".repeat(501) })))
       .status,
     400,
   );
   assert.equal(
-    (await call("/api/orders", "POST", { ...payload(), expectedTotal: 1 }))
-      .status,
+    (await call("/api/orders", "POST", make({ comment: 12 }))).status,
+    400,
+  );
+  assert.equal(
+    (await call("/api/orders", "POST", make({ expectedTotal: 1 }))).status,
     409,
   );
-  const data = payload();
-  const created = await Promise.all([
-    call("/api/orders", "POST", data),
-    call("/api/orders", "POST", data),
-  ]);
+  const data = make(),
+    created = await Promise.all([
+      call("/api/orders", "POST", data),
+      call("/api/orders", "POST", data),
+    ]);
   assert.deepEqual(created.map((r) => r.status).sort(), [200, 201]);
   const id = created[0].data.id;
-  assert.match(id, /^ARF-\d{8}-[A-F0-9]{10}$/);
-  assert.equal(
-    (await call("/api/orders", "POST", { ...data, name: "Алия" })).status,
-    409,
-  );
-  const getOrder = async (id) =>
-    (await call("/api/admin/orders?q=" + id)).data.orders[0];
-  const balance = (id) =>
-    sql
-      .prepare("SELECT quantity_units FROM inventory WHERE product_id=?")
-      .get(id).quantity_units;
-  async function update(id, status, extra = {}) {
-    return call("/api/admin/orders/" + id, "PATCH", {
-      version: (await getOrder(id)).version,
-      status,
-      note: "",
-      ...extra,
-    });
-  }
-  assert.equal((await update(id, "confirmed")).status, 400);
-  assert.equal(balance(p.id), 1000);
-  assert.equal(
-    (await update(id, "confirmed", { paymentConfirmed: true })).status,
-    200,
-  );
-  assert.equal(balance(p.id), 900);
-  await update(id, "ready");
-  assert.equal(balance(p.id), 900);
-  assert.equal((await getOrder(id)).inventory_state, "deducted");
-  assert.equal((await call("/api/admin/orders?q=айдана")).data.total, 1);
-  assert.equal(
-    (await call("/api/admin/orders")).data.orders[0].fingerprint,
-    undefined,
-  );
-  await update(id, "cancelled");
-  assert.equal(balance(p.id), 900);
-  let order = await getOrder(id);
+  let order = (await call("/api/admin/orders?q=" + id)).data.orders[0];
+  assert.equal(order.address, data.address);
+  assert.equal(order.comment, data.comment);
+  assert.equal(order.items[0].type, p.type);
+  assert.equal(order.inventory_state, undefined);
   assert.equal(
     (
-      await call("/api/admin/orders/" + id + "/return-stock", "POST", {
-        version: order.version,
-      })
-    ).status,
-    200,
-  );
-  assert.equal(balance(p.id), 1000);
-  assert.equal(
-    (
-      await call("/api/admin/orders/" + id + "/return-stock", "POST", {
-        version: order.version,
+      await call("/api/admin/orders/" + id, "PATCH", {
+        version: 1,
+        status: "paid",
+        note: "",
       })
     ).status,
     409,
   );
-  async function adjust(id, kind, ml) {
-    const row = sql
-      .prepare("SELECT version FROM inventory WHERE product_id=?")
-      .get(id);
-    const d = {
-      requestKey: crypto.randomUUID(),
-      version: row.version,
-      kind,
-      ml,
-      reason: "Проверка",
-    };
-    return { d, result: await call("/api/admin/inventory/" + id, "PATCH", d) };
-  }
-  let a = await adjust(p.id, "add", 5);
-  assert.equal(a.result.status, 200);
-  assert.equal(balance(p.id), 1050);
   assert.equal(
-    (await call("/api/admin/inventory/" + p.id, "PATCH", a.d)).status,
+    (
+      await call("/api/admin/orders/" + id, "PATCH", {
+        version: 1,
+        status: "awaiting_payment",
+        note: "",
+      })
+    ).status,
     200,
   );
-  assert.equal(balance(p.id), 1050);
   assert.equal(
-    (await call("/api/admin/inventory/" + p.id, "PATCH", { ...a.d, ml: 6 }))
+    (
+      await call("/api/admin/orders/" + id, "PATCH", {
+        version: 1,
+        status: "ready",
+        note: "",
+      })
+    ).status,
+    409,
+  );
+  assert.equal(
+    balance(),
+    1000,
+    "large orders/status updates never debit historical stock",
+  );
+  for (const path of [
+    "/api/admin/inventory",
+    "/api/admin/inventory/" + p.id,
+    "/api/admin/orders/" + id + "/return-stock",
+  ])
+    assert.equal(
+      (
+        await call(
+          path,
+          path.endsWith("/return-stock") ? "POST" : "GET",
+          path.endsWith("/return-stock") ? {} : undefined,
+        )
+      ).status,
+      404,
+    );
+  const patch = {
+    version: p.version,
+    pricePerMl: 1000,
+    available: false,
+    salePricePerMl: 800,
+    saleEndsAt: "2099-01-01T00:00:00Z",
+  };
+  const saves = await Promise.all([
+    call("/api/admin/products/" + p.id, "PATCH", patch),
+    call("/api/admin/products/" + p.id, "PATCH", patch),
+  ]);
+  assert.deepEqual(saves.map((r) => r.status).sort(), [200, 409]);
+  let current = (await call("/api/products")).data.products[0];
+  assert.equal(
+    (await call("/api/orders", "POST", data)).status,
+    200,
+    "accepted request survives later price and availability changes",
+  );
+  assert.equal(current.available, false);
+  assert.equal(current.pricePerMl, 800);
+  assert.equal(current.variants[0].price, 4000);
+  assert.equal(current.variants[0].originalPrice, 5000);
+  assert.equal(
+    (await call("/api/orders", "POST", make({ expectedTotal: 800 * 30 * 20 })))
       .status,
     409,
   );
-  await adjust(p.id, "set", 100);
-  const bulk = payload([{ productId: p.id, ml: 10, quantity: 6 }]);
-  const one = (await call("/api/orders", "POST", bulk)).data.id;
-  const two = (
-    await call("/api/orders", "POST", {
-      ...bulk,
-      requestKey: crypto.randomUUID(),
-    })
-  ).data.id;
-  const confirmed = await Promise.all([
-    update(one, "confirmed", { paymentConfirmed: true }),
-    update(two, "confirmed", { paymentConfirmed: true }),
-  ]);
-  assert.deepEqual(confirmed.map((r) => r.status).sort(), [200, 409]);
-  assert.equal(balance(p.id), 400);
-  const multi = payload([
-    { productId: p.id, ml: 10, quantity: 1 },
-    { productId: q.id, ml: 10, quantity: 1 },
-  ]);
-  const mid = (await call("/api/orders", "POST", multi)).data.id;
-  await adjust(q.id, "set", 0);
-  const pBefore = balance(p.id);
-  assert.equal(
-    (await update(mid, "confirmed", { paymentConfirmed: true })).status,
-    409,
-  );
-  assert.equal(balance(p.id), pBefore);
-  assert.equal((await getOrder(mid)).inventory_state, "pending");
-  assert.equal((await getOrder(mid)).status, "new");
-  assert.equal((await call("/api/orders", "POST", multi)).status, 200); // accepted request survives later stock changes
   assert.equal(
     (
-      await call("/api/orders", "POST", {
-        ...multi,
-        requestKey: crypto.randomUUID(),
+      await call("/api/admin/products/" + p.id, "PATCH", {
+        ...patch,
+        version: current.version,
+        pricePerMl: -1,
       })
     ).status,
-    409,
+    400,
   );
-  const pub = await call("/api/products");
-  assert.equal(pub.data.products.find((x) => x.id === q.id).availableMl, 0);
-  assert.equal(pub.data.products[0].stockVersion, undefined);
-  const now = sql
-    .prepare("SELECT version FROM inventory WHERE product_id=?")
-    .get(p.id).version;
-  const simultaneous = await Promise.all([
-    call("/api/admin/inventory/" + p.id, "PATCH", {
-      requestKey: crypto.randomUUID(),
-      version: now,
-      kind: "add",
-      ml: 1,
-      reason: "Один",
-    }),
-    call("/api/admin/inventory/" + p.id, "PATCH", {
-      requestKey: crypto.randomUUID(),
-      version: now,
-      kind: "add",
-      ml: 1,
-      reason: "Два",
-    }),
-  ]);
-  assert.deepEqual(simultaneous.map((r) => r.status).sort(), [200, 409]);
+  assert.equal(
+    (
+      await call("/api/admin/products/" + p.id, "PATCH", {
+        ...patch,
+        version: current.version,
+        available: true,
+        saleEndsAt: "2000-01-01T00:00:00Z",
+      })
+    ).status,
+    200,
+  );
+  current = (await call("/api/products")).data.products[0];
+  assert.equal(current.pricePerMl, 800);
+  assert.equal(current.onSale, true, "timer expiry must not silently change the seller price");
+  const registered = await call("/api/account/register", "POST", {
+    email: "Buyer@Example.com",
+    password: "a secure test password",
+    name: "Айдана",
+  });
+  assert.equal(registered.status, 201);
+  assert.match(
+    registered.headers.get("set-cookie"),
+    /HttpOnly; Secure; SameSite=Strict; Path=\/api;/,
+  );
+  const customerCookie = registered.headers.get("set-cookie").split(";")[0];
+  const buyer = { customerCookie };
+  assert.equal(
+    (await call("/api/account", "GET", undefined, buyer)).data.account.email,
+    "buyer@example.com",
+  );
+  assert.equal((await call("/api/account/orders")).status, 401);
+  const owned = await call(
+    "/api/orders",
+    "POST",
+    make({ expectedTotal: current.pricePerMl * 30 * 20 }),
+    buyer,
+  );
+  assert.equal(owned.status, 201);
+  assert.equal(
+    (await call("/api/account/orders", "GET", undefined, buyer)).data.orders
+      .length,
+    1,
+  );
+  const other = await call("/api/account/register", "POST", {
+    email: "second@example.com",
+    password: "another secure password",
+  });
+  const otherCookie = other.headers.get("set-cookie").split(";")[0];
+  assert.equal(
+    (
+      await call("/api/account/orders", "GET", undefined, {
+        customerCookie: otherCookie,
+      })
+    ).data.orders.length,
+    0,
+    "same phone grants no account access",
+  );
+  assert.notEqual(
+    sql.prepare("SELECT password_hash FROM customers LIMIT 1").get()
+      .password_hash,
+    "a secure test password",
+  );
+  assert.equal(
+    (
+      await call("/api/account/login", "POST", {
+        email: "buyer@example.com",
+        password: "wrong password",
+      })
+    ).status,
+    401,
+  );
+  const logged = await call(
+    "/api/account/login",
+    "POST",
+    { email: "buyer@example.com", password: "a secure test password" },
+    buyer,
+  );
+  assert.equal(logged.status, 200);
+  assert.equal(
+    (await call("/api/account/orders", "GET", undefined, buyer)).status,
+    401,
+    "login rotates session",
+  );
+  const loginCookie = logged.headers.get("set-cookie").split(";")[0];
+  assert.equal(
+    (
+      await call(
+        "/api/account/logout",
+        "POST",
+        {},
+        { customerCookie: loginCookie },
+      )
+    ).status,
+    200,
+  );
+  assert.equal(
+    (
+      await call("/api/account/orders", "GET", undefined, {
+        customerCookie: loginCookie,
+      })
+    ).status,
+    401,
+  );
+  assert.equal(
+    (
+      await call("/api/account/forgot-password", "POST", {
+        email: "buyer@example.com",
+      })
+    ).status,
+    503,
+  );
+  assert.equal(
+    (
+      await call("/api/account/reset-password", "POST", {
+        token: "invented",
+        password: "new test password",
+      })
+    ).status,
+    503,
+  );
+  assert.equal(balance(), 1000);
+  assert.equal(
+    sql
+      .prepare(
+        "SELECT COUNT(*) n FROM sqlite_master WHERE type='trigger' AND name IN ('order_paid','order_return','stock_adjusted','order_stock_check')",
+      )
+      .get().n,
+    0,
+  );
   const secondIP = "1.2.3.4";
   for (let i = 0; i < 10; i++)
     assert.equal(
@@ -310,8 +402,6 @@ test("Cloudflare: authenticated orders, atomic stock, idempotency, returns and r
     ).status,
     429,
   );
-  await call("/api/admin/logout", "POST", {});
-  assert.equal((await call("/api/admin/orders")).status, 401);
 });
 test("Cloudflare: hidden seller URL, public isolation and security headers", async (t) => {
   const s = setup();
@@ -353,4 +443,69 @@ test("Cloudflare: hidden seller URL, public isolation and security headers", asy
     ).status,
     401,
   );
+});
+test("retail migration preserves historical orders, events and stock audit rows", () => {
+  const sql = new DatabaseSync(":memory:");
+  try {
+    sql.exec(schema);
+    sql
+      .prepare(
+        "INSERT INTO inventory(product_id,quantity_units,updated_at) VALUES (?,?,?)",
+      )
+      .run("historic", 100, "2020-01-01");
+    const snapshot = JSON.stringify([
+      {
+        productId: "historic",
+        name: "Historical item",
+        ml: 5,
+        quantity: 1,
+        price: 100,
+        subtotal: 100,
+      },
+    ]);
+    sql
+      .prepare(
+        "INSERT INTO orders(id,request_key,fingerprint,name,phone,items,total,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?)",
+      )
+      .run(
+        "ARF-20200101-0123456789",
+        "old-key",
+        "old-fingerprint",
+        "Айдана",
+        "+77000000000",
+        snapshot,
+        100,
+        "2020-01-01",
+        "2020-01-01",
+      );
+    sql
+      .prepare(
+        "UPDATE orders SET status='confirmed',inventory_state='deducted',updated_at='2020-01-02' WHERE id=?",
+      )
+      .run("ARF-20200101-0123456789");
+    const before = {
+      order: sql.prepare("SELECT * FROM orders").get(),
+      events: sql.prepare("SELECT * FROM events").all(),
+      stock: sql.prepare("SELECT * FROM inventory").all(),
+      movements: sql.prepare("SELECT * FROM inventory_movements").all(),
+    };
+    sql.exec(awaitMigration);
+    const after = sql.prepare("SELECT * FROM orders").get();
+    for (const [key, value] of Object.entries(before.order))
+      assert.equal(after[key], value, key);
+    assert.deepEqual(sql.prepare("SELECT * FROM events").all(), before.events);
+    assert.deepEqual(
+      sql.prepare("SELECT * FROM inventory").all(),
+      before.stock,
+    );
+    assert.deepEqual(
+      sql.prepare("SELECT * FROM inventory_movements").all(),
+      before.movements,
+    );
+    assert.equal(after.address, "");
+    assert.equal(after.comment, "");
+    assert.equal(after.account_id, null);
+  } finally {
+    sql.close();
+  }
 });

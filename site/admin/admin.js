@@ -14,6 +14,8 @@
     }).format(new Date(value));
   const statuses = {
     new: "Новый",
+    awaiting_payment: "Ожидает оплаты",
+    paid: "Оплачен",
     confirmed: "Подтверждён",
     preparing: "Собирается",
     ready: "Готов",
@@ -25,10 +27,12 @@
     request = 0;
   let activeStatus = "active";
   let section = "orders";
-  let stockRequest = 0;
+
   const tabLabels = {
     active: "В работе",
     new: "Новые",
+    awaiting_payment: "Ожидают оплаты",
+    paid: "Оплаченные",
     confirmed: "Подтверждённые",
     preparing: "Собираются",
     ready: "Готовые",
@@ -90,9 +94,7 @@
   updateTabs();
   function loginState() {
     request++;
-    stockRequest++;
-    $("#inventory-list").replaceChildren();
-    $("#inventory-history").replaceChildren();
+
     $("#dashboard").hidden = true;
     $(".admin-login").hidden = false;
     $("#orders-list").replaceChildren();
@@ -114,13 +116,13 @@
     const russianItems = order.items
       .map(
         (item, index) =>
-          `${index + 1}. ${item.name}\nОбъём: ${item.ml} мл · Количество: ${item.quantity}\nЦена за 1 шт.: ${money(item.price)} · Сумма: ${money(item.subtotal)}`,
+          `${index + 1}. ${item.code ? item.code + " · " : ""}${item.name} (${item.type === "razliv" ? "разлив" : "распив"})\nОбъём: ${item.ml} мл · Количество: ${item.quantity}\nЦена за 1 шт.: ${money(item.price)} · Сумма: ${money(item.subtotal)}`,
       )
       .join("\n\n");
     const kazakhItems = order.items
       .map(
         (item, index) =>
-          `${index + 1}. ${item.name}\nКөлемі: ${item.ml} мл · Саны: ${item.quantity}\nБір данасының бағасы: ${money(item.price)} · Сомасы: ${money(item.subtotal)}`,
+          `${index + 1}. ${item.code ? item.code + " · " : ""}${item.name} (${item.type === "razliv" ? "разлив" : "распив"})\nКөлемі: ${item.ml} мл · Саны: ${item.quantity}\nБір данасының бағасы: ${money(item.price)} · Сомасы: ${money(item.subtotal)}`,
       )
       .join("\n\n");
     return `Здравствуйте, ${order.name}! Это Arafan Perfume.
@@ -171,11 +173,19 @@ ${kazakhItems}
     whatsapp.rel = "noopener noreferrer";
     contact.append(phone, whatsapp);
     article.append(contact);
+    if (order.address)
+      article.append(el("p", "order-address", "Адрес: " + order.address));
+    if (order.comment)
+      article.append(el("p", "order-comment", "Комментарий: " + order.comment));
     const items = el("ul", "order-products");
     for (const item of order.items) {
       const li = el("li");
       li.append(
-        el("span", "", `${item.name} · ${item.ml} мл × ${item.quantity}`),
+        el(
+          "span",
+          "",
+          `${item.code ? item.code + " · " : ""}${item.name} · ${item.type === "razliv" ? "Разлив" : "Распив"} · ${item.ml} мл × ${item.quantity}`,
+        ),
         el("strong", "", money(item.subtotal)),
       );
       items.append(li);
@@ -187,48 +197,6 @@ ${kazakhItems}
       el("strong", "", money(order.total)),
     );
     article.append(total);
-    const stockHint = el("p", "field-hint order-stock-state");
-    const returnButton = el(
-      "button",
-      "button button-glass",
-      "Вернуть объём на склад",
-    );
-    returnButton.type = "button";
-    const stockText = () => {
-      stockHint.textContent = {
-        pending: "Объём ещё не списан.",
-        deducted:
-          "Объём списан. При отмене возврат выполняется вручную после фактического возврата товара.",
-        returned: "Объём возвращён на склад.",
-        legacy:
-          "Заказ создан до учёта склада. В начальном остатке учитывайте его вручную.",
-      }[order.inventory_state];
-      returnButton.hidden =
-        order.status !== "cancelled" || order.inventory_state !== "deducted";
-    };
-    stockText();
-    returnButton.onclick = async () => {
-      if (
-        !discardConfirmed() ||
-        !confirm(
-          "Объём из этого заказа фактически вернулся на склад? Вернуть его в доступный остаток?",
-        )
-      )
-        return;
-      returnButton.disabled = true;
-      try {
-        await api("orders/" + order.id + "/return-stock", {
-          method: "POST",
-          body: JSON.stringify({ version: order.version }),
-        });
-        await load();
-      } catch (error) {
-        stockHint.textContent = error.message;
-      } finally {
-        returnButton.disabled = false;
-      }
-    };
-    article.append(stockHint, returnButton);
     const form = el("form", "order-edit");
     const statusLabel = el("label", "", "Статус заказа");
     const select = el("select");
@@ -238,31 +206,10 @@ ${kazakhItems}
       const option = el("option", "", title);
       option.value = value;
       option.selected = order.status === value;
+      if (value === "paid") option.disabled = true;
       select.append(option);
     }
     statusLabel.append(select);
-    const paymentLabel = el("label", "payment-check");
-    const payment = el("input");
-    payment.type = "checkbox";
-    payment.name = "paymentConfirmed";
-    paymentLabel.append(
-      payment,
-      el(
-        "span",
-        "",
-        "Оплата проверена. Подтверждаю списание объёма со склада.",
-      ),
-    );
-    const syncPayment = () => {
-      const needed =
-        ["pending", "returned"].includes(order.inventory_state) &&
-        ["confirmed", "preparing", "ready", "completed"].includes(select.value);
-      paymentLabel.hidden = !needed;
-      payment.required = needed;
-      if (!needed) payment.checked = false;
-    };
-    select.addEventListener("change", syncPayment);
-    syncPayment();
     const noteLabel = el("label", "", "Заметка продавца");
     const note = el("textarea");
     note.name = "note";
@@ -275,7 +222,7 @@ ${kazakhItems}
     button.type = "submit";
     const feedback = el("p", "save-feedback");
     feedback.setAttribute("role", "status");
-    form.append(statusLabel, paymentLabel, noteLabel, button, feedback);
+    form.append(statusLabel, noteLabel, button, feedback);
     form.addEventListener("input", () => {
       form.dataset.dirty = "true";
     });
@@ -290,12 +237,10 @@ ${kazakhItems}
             status: select.value,
             note: note.value,
             version: order.version,
-            paymentConfirmed: payment.checked,
           }),
         });
         order = result.order;
-        stockText();
-        syncPayment();
+
         badge.textContent = statuses[order.status];
         badge.dataset.status = order.status;
         note.value = order.note;
@@ -382,201 +327,6 @@ ${kazakhItems}
       }
     }
   }
-  const ml = (value) =>
-    new Intl.NumberFormat("ru-KZ", { maximumFractionDigits: 1 }).format(value) +
-    " мл";
-  async function loadInventory() {
-    const turn = ++stockRequest;
-    $("#inventory-list").inert = true;
-    $("#inventory-summary").textContent = "Загружаем остатки…";
-    try {
-      const data = await api("inventory");
-      if (turn !== stockRequest || $("#dashboard").hidden) return;
-      $("#inventory-summary").textContent =
-        data.products.length +
-        " ароматов · Нет в наличии: " +
-        data.products.filter(
-          (p) => !p.variants.some((v) => v.ml <= p.availableMl),
-        ).length;
-      $("#inventory-list").replaceChildren(
-        ...data.products.map((product) => {
-          const article = el("article", "inventory-card");
-          article.dataset.stockProduct = product.id;
-          const heading = el("div", "inventory-heading");
-          const title = el("div");
-          title.append(
-            el("p", "product-brand", product.brand),
-            el("h3", "", product.name),
-          );
-          heading.append(
-            title,
-            el("strong", "stock-amount", ml(product.availableMl)),
-          );
-          article.append(
-            heading,
-            el(
-              "p",
-              "stock-availability",
-              product.variants.some((v) => v.ml <= product.availableMl)
-                ? "В наличии"
-                : "Нет в наличии для заказа",
-            ),
-          );
-          const form = el("form", "stock-edit");
-          const actionLabel = el("label", "", "Операция");
-          const action = el("select");
-          action.name = "kind";
-          action.setAttribute("aria-label", "Операция");
-          for (const [value, title] of [
-            ["add", "Поступление"],
-            ["remove", "Списание"],
-            ["set", "Установить остаток"],
-          ]) {
-            const option = el("option", "", title);
-            option.value = value;
-            action.append(option);
-          }
-          actionLabel.append(action);
-          const amountLabel = el("label", "", "Объём, мл");
-          const amount = el("input");
-          amount.name = "ml";
-          amount.type = "number";
-          amount.min = "0.1";
-          amount.max = "1000000";
-          amount.step = "0.1";
-          amount.required = true;
-          amount.inputMode = "decimal";
-          amountLabel.append(amount);
-          action.onchange = () => {
-            amount.min = action.value === "set" ? "0" : "0.1";
-          };
-          const reasonLabel = el("label", "stock-reason", "Комментарий");
-          const reason = el("input");
-          reason.name = "reason";
-          reason.maxLength = 300;
-          reason.required = true;
-          reason.placeholder = "Например: поступление нового флакона";
-          reasonLabel.append(reason);
-          const button = el(
-            "button",
-            "button button-accent",
-            "Сохранить остаток",
-          );
-          button.type = "submit";
-          const feedback = el("p", "save-feedback");
-          feedback.setAttribute("role", "status");
-          form.append(actionLabel, amountLabel, reasonLabel, button, feedback);
-          let requestKey = crypto.randomUUID();
-          form.oninput = () => {
-            form.dataset.dirty = "true";
-            requestKey = crypto.randomUUID();
-          };
-          form.onsubmit = async (event) => {
-            event.preventDefault();
-            const payload = {
-              kind: action.value,
-              ml: Number(amount.value),
-              reason: reason.value,
-              version: product.stockVersion,
-              requestKey,
-            };
-            const inputs = [...form.querySelectorAll("button, input, select")];
-            inputs.forEach((e) => (e.disabled = true));
-            feedback.textContent = "Сохраняем…";
-            try {
-              await api("inventory/" + product.id, {
-                method: "PATCH",
-                body: JSON.stringify(payload),
-              });
-              form.dataset.dirty = "false";
-              if (!document.querySelector('[data-dirty="true"]'))
-                await loadInventory();
-              else {
-                feedback.textContent =
-                  "Сохранено. Обновите склад после остальных правок.";
-                form.dataset.saved = "true";
-              }
-            } catch (error) {
-              feedback.textContent = error.message;
-            } finally {
-              if (form.dataset.saved !== "true")
-                inputs.forEach((e) => (e.disabled = false));
-            }
-          };
-          article.append(form);
-          return article;
-        }),
-      );
-      const names = new Map(
-        data.products.map((p) => [p.id, p.brand + " " + p.name]),
-      );
-      const kinds = {
-        initial: "Начальный остаток",
-        add: "Поступление",
-        remove: "Списание",
-        set: "Корректировка",
-        order: "Заказ",
-        return: "Возврат",
-      };
-      $("#inventory-history").replaceChildren(
-        ...data.movements.map((m) => {
-          const row = el("article", "stock-movement");
-          const text = el("div");
-          text.append(
-            el("strong", "", names.get(m.product_id) || m.product_id),
-            el(
-              "p",
-              "",
-              kinds[m.kind] + " · " +
-                (m.reason.startsWith("Начальный демо-остаток")
-                  ? "Начальный остаток"
-                  : m.reason),
-            ),
-            el(
-              "small",
-              "field-hint",
-              date(m.created_at) + (m.order_id ? " · " + m.order_id : ""),
-            ),
-          );
-          const balance = el("div", "movement-amount");
-          balance.append(
-            el(
-              "strong",
-              "",
-              (m.delta_units > 0 ? "+" : "") + ml(m.delta_units / 10),
-            ),
-            el("small", "", "Остаток: " + ml(m.balance_units / 10)),
-          );
-          row.append(text, balance);
-          return row;
-        }),
-      );
-    } catch (error) {
-      $("#inventory-summary").textContent = error.message;
-    } finally {
-      if (turn === stockRequest) $("#inventory-list").inert = false;
-    }
-  }
-  for (const view of ["orders", "inventory"])
-    $("#show-" + view).onclick = () => {
-      if (!discardConfirmed()) return;
-      document
-        .querySelectorAll('[data-dirty="true"]')
-        .forEach((form) => (form.dataset.dirty = "false"));
-      section = view;
-      $("#orders-panel").hidden = view !== "orders";
-      $("#inventory-panel").hidden = view !== "inventory";
-      $("#show-orders").setAttribute("aria-pressed", String(view === "orders"));
-      $("#show-inventory").setAttribute(
-        "aria-pressed",
-        String(view === "inventory"),
-      );
-      if (view === "inventory") loadInventory();
-      else load();
-    };
-  $("#refresh-inventory").onclick = () => {
-    if (discardConfirmed()) loadInventory();
-  };
   function discardConfirmed() {
     return (
       !document.querySelector('[data-dirty="true"]') ||
@@ -599,7 +349,6 @@ ${kazakhItems}
       form.elements.password.value = "";
       page = 1;
       await load();
-      if (section === "inventory") await loadInventory();
     } catch (error) {
       $("#admin-message").textContent = error.message;
     } finally {
@@ -665,8 +414,7 @@ ${kazakhItems}
       document.activeElement?.closest(".order-edit, .admin-tools, .stock-edit")
     )
       return;
-    if (section === "inventory") loadInventory();
-    else load();
+    load();
   }, 20000);
   load();
 })();

@@ -54,6 +54,25 @@ export function openStore(directory = privateDir) {
       );
       CREATE TABLE IF NOT EXISTS inventory_requests (request_key TEXT PRIMARY KEY, fingerprint TEXT NOT NULL);
       CREATE INDEX IF NOT EXISTS inventory_movement_product ON inventory_movements(product_id, id);`);
+    db.exec(`DROP TRIGGER IF EXISTS order_stock_check; DROP TRIGGER IF EXISTS order_paid; DROP TRIGGER IF EXISTS order_return; DROP TRIGGER IF EXISTS stock_adjusted;
+      CREATE TABLE IF NOT EXISTS product_settings (product_id TEXT PRIMARY KEY,price_per_ml INTEGER NOT NULL CHECK(price_per_ml BETWEEN 0 AND 10000000),available INTEGER NOT NULL DEFAULT 1 CHECK(available IN (0,1)),sale_price_per_ml INTEGER CHECK(sale_price_per_ml IS NULL OR (sale_price_per_ml>=0 AND sale_price_per_ml<price_per_ml)),sale_ends_at TEXT,version INTEGER NOT NULL DEFAULT 1,updated_at TEXT NOT NULL);
+      CREATE TABLE IF NOT EXISTS customers (id TEXT PRIMARY KEY,email TEXT NOT NULL UNIQUE,name TEXT NOT NULL DEFAULT '',password_hash TEXT NOT NULL,password_salt TEXT NOT NULL,created_at TEXT NOT NULL);
+      CREATE TABLE IF NOT EXISTS customer_sessions (token_hash TEXT PRIMARY KEY,account_id TEXT NOT NULL REFERENCES customers(id),expires INTEGER NOT NULL);
+      CREATE INDEX IF NOT EXISTS customer_session_expiry ON customer_sessions(expires);`);
+    const columns = db
+      .prepare("PRAGMA table_info(orders)")
+      .all()
+      .map((c) => c.name);
+    for (const [name, definition] of [
+      ["account_id", "TEXT REFERENCES customers(id)"],
+      ["address", "TEXT NOT NULL DEFAULT ''"],
+      ["comment", "TEXT NOT NULL DEFAULT ''"],
+    ])
+      if (!columns.includes(name))
+        db.exec(`ALTER TABLE orders ADD COLUMN ${name} ${definition}`);
+    db.exec(
+      "CREATE INDEX IF NOT EXISTS order_account_date ON orders(account_id,created_at)",
+    );
     db.exec("COMMIT");
   } catch (error) {
     db.exec("ROLLBACK");
@@ -62,17 +81,11 @@ export function openStore(directory = privateDir) {
   }
   return db;
 }
-export const statuses = {
-  new: "Новый",
-  confirmed: "Подтверждён",
-  preparing: "Собирается",
-  ready: "Готов",
-  completed: "Выдан",
-  cancelled: "Отменён",
-};
+export { statuses } from "./commerce.mjs";
 export function presentOrder(row) {
   if (!row) return null;
-  const { request_key, fingerprint, ...order } = row;
+  const { request_key, fingerprint, inventory_state, account_id, ...order } =
+    row;
   // Keep historical order snapshots intact; show the current collection label.
   order.items = JSON.parse(order.items).map((item) => ({
     ...item,

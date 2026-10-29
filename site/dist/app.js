@@ -1,233 +1,421 @@
-const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
-const toggle = document.querySelector(".menu-toggle");
-const navigation = document.querySelector("#navigation");
-function closeMenu() {
-  toggle.setAttribute("aria-expanded", "false");
-  toggle.setAttribute("aria-label", "Открыть меню");
-  navigation.classList.remove("is-open");
+const menu = document.querySelector(".menu-toggle");
+const nav = document.querySelector("#navigation");
+let menuAnimation,
+  menuGeneration = 0;
+function setMenu(open, keyboard = false) {
+  if (!menu || !nav) return;
+  const turn = ++menuGeneration,
+    hidden = !nav.classList.contains("is-open"),
+    current = hidden ? null : getComputedStyle(nav),
+    from = {
+      opacity: hidden ? 0 : current.opacity,
+      transform: hidden ? "translateY(-6px)" : current.transform,
+    };
+  menuAnimation?.cancel();
+  menu.setAttribute("aria-expanded", String(open));
+  nav.inert = !open && matchMedia("(max-width:760px)").matches;
+  if (
+    !matchMedia("(max-width:760px)").matches ||
+    keyboard ||
+    matchMedia("(prefers-reduced-motion:reduce)").matches
+  ) {
+    nav.classList.toggle("is-open", open);
+    nav.inert = false;
+    return;
+  }
+  nav.classList.add("is-open");
+  menuAnimation = nav.animate(
+    [
+      from,
+      open
+        ? { opacity: 1, transform: "none" }
+        : { opacity: 0, transform: "translateY(-3px)" },
+    ],
+    {
+      duration: open ? 230 : 150,
+      easing: "cubic-bezier(.22,1,.36,1)",
+      fill: "both",
+    },
+  );
+  menuAnimation.finished
+    .then(() => {
+      if (turn !== menuGeneration) return;
+      nav.classList.toggle("is-open", open);
+      menuAnimation.cancel();
+      menuAnimation = null;
+    })
+    .catch(() => {});
 }
-toggle.addEventListener("click", () => {
-  const open = toggle.getAttribute("aria-expanded") !== "true";
-  toggle.setAttribute("aria-expanded", String(open));
-  toggle.setAttribute("aria-label", open ? "Закрыть меню" : "Открыть меню");
-  navigation.classList.toggle("is-open", open);
+function closeMenu(keyboard = false) {
+  setMenu(false, keyboard);
+}
+menu?.addEventListener("click", (event) =>
+  setMenu(menu.getAttribute("aria-expanded") !== "true", event.detail === 0),
+);
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && menu?.getAttribute("aria-expanded") === "true") {
+    closeMenu(true);
+    menu.focus();
+  }
+});
+document.addEventListener("click", (e) => {
+  if (!e.target.closest(".header")) closeMenu();
+  if (e.target.closest(".navigation a")) closeMenu();
+});
+matchMedia("(min-width:761px)").addEventListener(
+  "change",
+  () => menu && closeMenu(),
+);
+const year = document.querySelector("#year");
+if (year) year.textContent = new Date().getFullYear();
+
+const contactToggle = document.querySelector(".contact-toggle"),
+  contactPanel = document.querySelector("#contact-panel");
+let contactOpen = false,
+  contactAnimation,
+  contactGeneration = 0;
+function setContact(open) {
+  if (!contactPanel) return;
+  const wasHidden = contactPanel.hidden;
+  const style = wasHidden ? null : getComputedStyle(contactPanel);
+  const from = {
+    opacity: wasHidden ? 0 : style.opacity,
+    transform: wasHidden ? "translateY(14px) scale(.985)" : style.transform,
+  };
+  const generation = ++contactGeneration;
+  contactOpen = open;
+  contactAnimation?.cancel();
+  contactToggle.setAttribute("aria-expanded", String(open));
+  contactPanel.hidden = false;
+  contactPanel.inert = !open;
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    contactPanel.hidden = !open;
+    return;
+  }
+  contactAnimation = contactPanel.animate(
+    [
+      from,
+      open
+        ? { opacity: 1, transform: "translateY(0) scale(1)" }
+        : { opacity: 0, transform: "translateY(6px) scale(.99)" },
+    ],
+    {
+      duration: open ? 320 : 190,
+      easing: open ? "cubic-bezier(.22,1,.36,1)" : "cubic-bezier(.4,0,1,1)",
+      fill: "both",
+    },
+  );
+  contactAnimation.finished
+    .then(() => {
+      if (generation !== contactGeneration) return;
+      contactPanel.hidden = !open;
+      contactAnimation.cancel();
+      contactAnimation = null;
+    })
+    .catch(() => {});
+}
+const closeContact = () => setContact(false);
+contactToggle?.addEventListener("click", () => setContact(!contactOpen));
+document.querySelector(".contact-close")?.addEventListener("click", () => {
+  closeContact();
+  contactToggle.focus({ preventScroll: true });
 });
 document.addEventListener("keydown", (event) => {
-  if (
-    event.key === "Escape" &&
-    toggle.getAttribute("aria-expanded") === "true"
-  ) {
-    closeMenu();
-    toggle.focus();
+  if (event.key === "Escape" && contactOpen) {
+    closeContact();
+    contactToggle.focus({ preventScroll: true });
   }
 });
 document.addEventListener("click", (event) => {
-  if (!event.target.closest(".header")) closeMenu();
+  if (contactOpen && !event.target.closest(".contact-widget")) closeContact();
 });
-matchMedia("(min-width: 761px)").addEventListener("change", closeMenu);
-const navLinks = [...navigation.querySelectorAll("a")];
-const sections = [
-  document.querySelector(".hero"),
-  ...document.querySelectorAll("main section[id]"),
-].filter(Boolean);
-const header = document.querySelector(".header");
-function updateNavigation() {
-  if (document.body.dataset.page !== "home") {
-    header.classList.toggle("is-scrolled", window.scrollY > 24);
-    return;
-  }
-  let current = "#top";
-  for (const section of sections) {
-    if (
-      section.getBoundingClientRect().top <= header.offsetHeight + 65 &&
-      (!section.id ||
-        navLinks.some((link) => link.getAttribute("href") === `#${section.id}`))
-    )
-      current = section.id ? `#${section.id}` : "#top";
-  }
-  navLinks.forEach((link) => {
-    const active = link.getAttribute("href") === current;
-    link.classList.toggle("active", active);
-    if (active) link.setAttribute("aria-current", "location");
-    else link.removeAttribute("aria-current");
-  });
-  header.classList.toggle("is-scrolled", window.scrollY > 24);
-}
-let scheduled = false;
-window.addEventListener(
-  "scroll",
-  () => {
-    if (scheduled) return;
-    scheduled = true;
-    requestAnimationFrame(() => {
-      updateNavigation();
-      scheduled = false;
-    });
+matchMedia("(prefers-reduced-motion: reduce)").addEventListener(
+  "change",
+  (event) => {
+    if (event.matches && contactPanel) setContact(contactOpen);
   },
-  { passive: true },
 );
-
-// Ease only intentional anchor navigation; ordinary scrolling stays native.
-let scrollFrame;
-let revealObserver;
-const revealAnimations = new WeakMap();
-const revealedElements = new WeakSet();
-function showSection(target) {
-  for (const element of [target, ...target.querySelectorAll(".reveal")]) {
-    revealedElements.add(element);
-    revealObserver?.unobserve(element);
-    revealAnimations.get(element)?.cancel();
-  }
-}
-function stopScroll() {
-  cancelAnimationFrame(scrollFrame);
-  scrollFrame = undefined;
-}
-for (const event of ["wheel", "touchstart", "pointerdown"])
-  window.addEventListener(event, stopScroll, { passive: true });
-window.addEventListener("keydown", (event) => {
-  if (
-    [
-      "ArrowUp",
-      "ArrowDown",
-      "PageUp",
-      "PageDown",
-      "Home",
-      "End",
-      " ",
-      "Tab",
-      "Escape",
-    ].includes(event.key)
-  )
-    stopScroll();
-});
-window.addEventListener("popstate", stopScroll);
-function scrollToSection(target, instant = false) {
-  stopScroll();
-  showSection(target);
-  const from = window.scrollY;
-  const desired =
-    target === document.body
-      ? 0
-      : target.getBoundingClientRect().top + from - header.offsetHeight - 22;
-  const to = Math.max(
-    0,
-    Math.min(
-      desired,
-      document.documentElement.scrollHeight - window.innerHeight,
-    ),
+document.querySelector("#contact-form")?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const value = document.querySelector("#contact-message").value.trim();
+  if (!value) return;
+  window.open(
+    "https://wa.me/77472886509?text=" +
+      encodeURIComponent("Здравствуйте! " + value),
+    "_blank",
+    "noopener,noreferrer",
   );
-  const finish = () => {
-    if (target !== document.body) {
-      if (!target.hasAttribute("tabindex"))
-        target.setAttribute("tabindex", "-1");
-      target.focus({ preventScroll: true });
-    } else
-      document.querySelector(".header .brand").focus({ preventScroll: true });
-    updateNavigation();
+});
+const certDialog = document.querySelector("#certificate-lightbox");
+if (certDialog) {
+  let current = 0,
+    opener;
+  const large = document.querySelector("#certificate-large"),
+    view = document.querySelector(".certificate-view"),
+    zoom = document.querySelector("#certificate-zoom");
+  const renderCertificate = () => {
+    large.src = "/assets/certificates/origine-france-" + (current + 1) + ".jpg";
+    large.alt = "Документ Origine France Garantie, страница " + (current + 1);
+    document.querySelector("#certificate-page-label").textContent =
+      "Страница " + (current + 1) + " из 3";
+    document.querySelector("#certificate-counter").textContent =
+      current + 1 + " / 3";
+    view.classList.remove("is-zoomed");
+    zoom.setAttribute("aria-pressed", "false");
+    zoom.textContent = "Увеличить";
+    document.querySelector("#certificate-prev").disabled = current === 0;
+    document.querySelector("#certificate-next").disabled = current === 2;
   };
-  if (instant || reducedMotion.matches || Math.abs(to - from) < 2) {
-    window.scrollTo(0, to);
-    finish();
-    return;
-  }
-  const start = performance.now();
-  const duration = Math.min(1050, 650 + Math.abs(to - from) * 0.12);
-  function frame(now) {
-    const progress = Math.min(1, (now - start) / duration);
-    const ease =
-      progress < 0.5 ? 4 * progress ** 3 : 1 - (-2 * progress + 2) ** 3 / 2;
-    window.scrollTo(0, from + (to - from) * ease);
-    if (progress < 1) scrollFrame = requestAnimationFrame(frame);
-    else {
-      scrollFrame = undefined;
-      finish();
+  document.querySelectorAll("[data-certificate]").forEach((button) =>
+    button.addEventListener("click", () => {
+      opener = button;
+      current = Number(button.dataset.certificate);
+      renderCertificate();
+      certDialog.showModal();
+    }),
+  );
+  document.querySelector("#certificate-prev").onclick = () => {
+    if (current > 0) {
+      current--;
+      renderCertificate();
     }
+  };
+  document.querySelector("#certificate-next").onclick = () => {
+    if (current < 2) {
+      current++;
+      renderCertificate();
+    }
+  };
+  document.querySelector("#certificate-close").onclick = () =>
+    certDialog.close();
+  certDialog.addEventListener("close", () =>
+    opener?.focus({ preventScroll: true }),
+  );
+  zoom.onclick = () => {
+    const on = view.classList.toggle("is-zoomed");
+    zoom.setAttribute("aria-pressed", String(on));
+    zoom.textContent = on ? "По размеру окна" : "Увеличить";
+  };
+  const track = document.querySelector(".certificate-track");
+  document.querySelector(".certificate-scroll-prev").onclick = () =>
+    track.scrollBy({
+      left: -track.clientWidth * 0.85,
+      behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "instant"
+        : "smooth",
+    });
+  document.querySelector(".certificate-scroll-next").onclick = () =>
+    track.scrollBy({
+      left: track.clientWidth * 0.85,
+      behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "instant"
+        : "smooth",
+    });
+  certDialog.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowRight" && current < 2) {
+      current++;
+      renderCertificate();
+    }
+    if (event.key === "ArrowLeft" && current > 0) {
+      current--;
+      renderCertificate();
+    }
+  });
+}
+function updateFavoriteCount() {
+  let ids = [];
+  try {
+    ids = JSON.parse(localStorage.getItem("arafan-favorites") || "[]");
+    if (!Array.isArray(ids)) ids = [];
+  } catch {}
+  document.querySelectorAll(".favorites-count").forEach((e) => {
+    e.textContent = ids.length;
+    e.hidden = ids.length === 0;
+  });
+  document
+    .querySelector(".header-favorites")
+    ?.setAttribute("aria-label", "Открыть избранное: " + ids.length);
+}
+updateFavoriteCount();
+window.addEventListener("store:favorites-changed", updateFavoriteCount);
+window.addEventListener("storage", updateFavoriteCount);
+const mega = document.querySelector("#mega-catalog"),
+  catalogLink = document.querySelector("#main-catalog-link");
+if (mega && catalogLink) {
+  const desktop = matchMedia("(min-width:761px) and (hover:hover)");
+  let wanted = false,
+    animation,
+    generation = 0,
+    enterTimer,
+    leaveTimer;
+  function showMega(open, keyboard = false) {
+    clearTimeout(enterTimer);
+    clearTimeout(leaveTimer);
+    if (open && !desktop.matches) return;
+    const hidden = mega.hidden,
+      style = hidden ? null : getComputedStyle(mega);
+    const from = {
+      opacity: hidden ? 0 : style.opacity,
+      transform: hidden ? "translateY(-8px) scale(.995)" : style.transform,
+    };
+    wanted = open;
+    const turn = ++generation;
+    animation?.cancel();
+    catalogLink.setAttribute("aria-expanded", String(open));
+    mega.hidden = false;
+    mega.inert = !open;
+    if (keyboard || matchMedia("(prefers-reduced-motion:reduce)").matches) {
+      mega.hidden = !open;
+      if (keyboard && open) mega.querySelector("a").focus();
+      return;
+    }
+    animation = mega.animate(
+      [
+        from,
+        open
+          ? { opacity: 1, transform: "none" }
+          : { opacity: 0, transform: "translateY(-4px)" },
+      ],
+      {
+        duration: open ? 300 : 170,
+        easing: "cubic-bezier(.22,1,.36,1)",
+        fill: "both",
+      },
+    );
+    animation.finished
+      .then(() => {
+        if (turn !== generation) return;
+        mega.hidden = !open;
+        animation.cancel();
+        animation = null;
+      })
+      .catch(() => {});
+    if (keyboard && open)
+      mega.querySelector("a").focus({ preventScroll: true });
   }
-  scrollFrame = requestAnimationFrame(frame);
+  catalogLink.addEventListener("pointerenter", (event) => {
+    if (event.pointerType === "touch") return;
+    clearTimeout(leaveTimer);
+    enterTimer = setTimeout(() => showMega(true), 80);
+  });
+  mega.addEventListener("pointerenter", () => clearTimeout(leaveTimer));
+  document.querySelector(".header").addEventListener("pointerleave", () => {
+    clearTimeout(enterTimer);
+    if (wanted) leaveTimer = setTimeout(() => showMega(false), 150);
+  });
+  catalogLink.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowDown" && desktop.matches) {
+      event.preventDefault();
+      showMega(true, true);
+    }
+  });
+  document.querySelector(".mega-close").onclick = () => {
+    showMega(false);
+    catalogLink.focus({ preventScroll: true });
+  };
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && wanted) {
+      showMega(false);
+      catalogLink.focus({ preventScroll: true });
+    }
+  });
+  document.addEventListener("pointerdown", (event) => {
+    if (wanted && !event.target.closest(".header")) showMega(false);
+  });
+  document.querySelector(".header").addEventListener("focusout", () =>
+    setTimeout(() => {
+      if (
+        wanted &&
+        !mega.contains(document.activeElement) &&
+        document.activeElement !== catalogLink
+      )
+        showMega(false);
+    }, 0),
+  );
+  document.querySelectorAll("[data-mega-group]").forEach((link) => {
+    const select = () => {
+      document
+        .querySelectorAll("[data-mega-group]")
+        .forEach((a) => a.classList.toggle("is-active", a === link));
+      document.querySelectorAll("[data-mega-content]").forEach((panel) => {
+        panel.hidden = panel.dataset.megaContent !== link.dataset.megaGroup;
+      });
+    };
+    link.addEventListener("pointerenter", select);
+    link.addEventListener("focus", select);
+  });
+  desktop.addEventListener("change", () => showMega(false));
+}
+
+// Shared bag/favorite controls for catalog, home and asynchronously loaded cards.
+const productBagIcon =
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14l1 14H4L5 7ZM9 8V6a3 3 0 0 1 6 0v2"/></svg>';
+const productHeartIcon =
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 5.5c-2.2-2.3-5.6-1.8-8.5 1.3-2.9-3.1-6.3-3.6-8.5-1.3C.6 8.5 3 13 12 20c9-7 11.4-11.5 8.5-14.5Z"/></svg>';
+function readFavorites() {
+  try {
+    const ids = JSON.parse(localStorage.getItem("arafan-favorites") || "[]");
+    return Array.isArray(ids) ? ids : [];
+  } catch {
+    return [];
+  }
+}
+function syncProductActions() {
+  const saved = readFavorites();
+  document.querySelectorAll(".product-card[data-product]").forEach((card) => {
+    const add = card.querySelector("[data-add]");
+    if (!add) return;
+    const name = card.querySelector("h1,h3")?.textContent.trim() || "аромат";
+    add.classList.add("icon-cart-button");
+    if (!add.classList.contains("is-added")) add.innerHTML = productBagIcon;
+    add.setAttribute(
+      "aria-label",
+      add.disabled
+        ? "Аромат пока недоступен"
+        : "Добавить " + name + " в корзину",
+    );
+    add.title = "Добавить в корзину";
+    let favorite = card.querySelector(".favorite-toggle");
+    if (!favorite) {
+      const row = document.createElement("div");
+      row.className = "card-actions";
+      add.before(row);
+      row.append(add);
+      favorite = document.createElement("button");
+      favorite.type = "button";
+      favorite.className = "favorite-toggle";
+      favorite.innerHTML = productHeartIcon;
+      row.append(favorite);
+    }
+    favorite.dataset.favoriteId = card.dataset.product;
+    const selected = saved.includes(card.dataset.product);
+    favorite.setAttribute("aria-pressed", String(selected));
+    favorite.setAttribute(
+      "aria-label",
+      (selected ? "Убрать " : "Сохранить ") +
+        name +
+        (selected ? " из избранного" : " в избранное"),
+    );
+    favorite.title = selected
+      ? "Убрать из избранного"
+      : "Сохранить в избранное";
+  });
+  updateFavoriteCount();
 }
 document.addEventListener("click", (event) => {
-  const link = event.target.closest('a[href^="#"]');
-  if (
-    !link ||
-    event.defaultPrevented ||
-    event.button !== 0 ||
-    event.metaKey ||
-    event.ctrlKey ||
-    event.shiftKey ||
-    event.altKey
-  )
-    return;
-  const hash = link.getAttribute("href");
-  const target = document.getElementById(hash.slice(1));
-  if (!target) return;
-  event.preventDefault();
-  closeMenu();
-  if (location.hash !== hash) history.pushState(null, "", hash);
-  scrollToSection(target, event.detail === 0);
+  const button = event.target.closest("[data-favorite-id]");
+  if (!button) return;
+  const id = button.dataset.favoriteId,
+    ids = readFavorites(),
+    next = ids.includes(id)
+      ? ids.filter((value) => value !== id)
+      : [...ids, id];
+  try {
+    localStorage.setItem("arafan-favorites", JSON.stringify(next));
+  } catch {}
+  window.dispatchEvent(new Event("store:favorites-changed"));
 });
-
-// Animate once as a section enters the viewport. Content remains visible without JS.
-if ("IntersectionObserver" in window) {
-  revealObserver = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting || revealedElements.has(entry.target)) return;
-        revealedElements.add(entry.target);
-        revealObserver.unobserve(entry.target);
-        if (reducedMotion.matches) return;
-        const animation = entry.target.animate(
-          [
-            { opacity: 0, translate: "0 12px" },
-            { opacity: 1, translate: "0 0" },
-          ],
-          { duration: 320, easing: "cubic-bezier(.22,1,.36,1)" },
-        );
-        revealAnimations.set(entry.target, animation);
-      });
-    },
-    { threshold: 0.08 },
-  );
-  document
-    .querySelectorAll(".reveal")
-    .forEach((element) => {
-      // Never hide content that was already painted, or an arriving deep link.
-      if (!location.hash && element.getBoundingClientRect().top >= innerHeight)
-        revealObserver.observe(element);
-    });
-}
-reducedMotion.addEventListener("change", () => {
-  if (!reducedMotion.matches) return;
-  stopScroll();
-  document.getAnimations().forEach((animation) => animation.finish());
-});
-updateNavigation();
-document.querySelector("#year").textContent = new Date().getFullYear();
-
-// Warm only the two public documents before a deliberate cross-page navigation.
-const prefetchedPages = new Set();
-function warmPage(event) {
-  if (navigator.connection?.saveData) return;
-  const link = event.target.closest("a[href]");
-  if (!link) return;
-  const url = new URL(link.href);
-  if (url.origin !== location.origin ||
-      !["/", "/index.html", "/catalog", "/catalog.html"].includes(url.pathname) ||
-      (url.pathname === location.pathname && url.search === location.search)) return;
-  url.hash = "";
-  if (prefetchedPages.has(url.href)) return;
-  prefetchedPages.add(url.href);
-  const hint = document.createElement("link");
-  hint.rel = "prefetch";
-  hint.href = url.href;
-  document.head.append(hint);
-}
-document.addEventListener("pointerover", warmPage, { passive: true });
-document.addEventListener("focusin", warmPage);
-
-window.addEventListener("pagehide", () => {
-  stopScroll();
-  document.querySelectorAll(".reveal").forEach(element =>
-    revealAnimations.get(element)?.cancel());
-});
-window.addEventListener("pageshow", updateNavigation);
+syncProductActions();
+document.addEventListener("store:refresh-controls", syncProductActions);
+window.addEventListener("store:favorites-changed", syncProductActions);
+window.addEventListener("storage", syncProductActions);

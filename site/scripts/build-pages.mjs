@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 const site = resolve(dirname(fileURLToPath(import.meta.url)), ".."),
   root = resolve(site, ".."),
   output = resolve(root, "artifacts/arafan-pages");
-await mkdir(resolve(root, "artifacts/arafan-cloudflare"), {recursive:true});
+await mkdir(resolve(root, "artifacts/arafan-cloudflare"), { recursive: true });
 await rm(output, { recursive: true, force: true });
 await mkdir(output, { recursive: true });
 const allowed = new Set([
@@ -36,7 +36,7 @@ async function copyPublic(from, to) {
     const source = resolve(from, item.name),
       target = resolve(to, item.name);
     if (item.isDirectory()) {
-      if (!["assets", "fonts", "products"].includes(item.name))
+      if (!["assets", "fonts", "products", "certificates"].includes(item.name))
         throw Error("Unexpected public directory: " + item.name);
       await mkdir(target, { recursive: true });
       await copyPublic(source, target);
@@ -51,7 +51,7 @@ async function copyPublic(from, to) {
 }
 await copyPublic(resolve(site, "dist"), output);
 await mkdir(resolve(output, "seller-assets"));
-for (const f of ["admin.js", "admin.css"])
+for (const f of ["admin.js", "admin.css", "products.js"])
   await copyFile(
     resolve(site, "admin", f),
     resolve(output, "seller-assets", f),
@@ -60,7 +60,8 @@ let html = await readFile(resolve(site, "admin/index.html"), "utf8");
 html = html
   .replaceAll("__STOREFRONT_URL__", "/")
   .replace('src="/admin.js"', 'src="/seller-assets/admin.js"')
-  .replace('href="/admin.css"', 'href="/seller-assets/admin.css"');
+  .replace('href="/admin.css"', 'href="/seller-assets/admin.css"')
+  .replace('src="/products.js"', 'src="/seller-assets/products.js"');
 const worker = relative(output, resolve(site, "cloudflare/worker.mjs"))
   .split("\\")
   .join("/");
@@ -84,20 +85,6 @@ await writeFile(
   resolve(output, "404.html"),
   '<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Страница не найдена — Arafan Perfume</title><body><h1>Страница не найдена</h1><a href="/">На главную</a></body></html>',
 );
-// Seed only the catalog and starting volumes. Never read site/private or import orders.
-const products = JSON.parse(
-  await readFile(resolve(site, "data/products.json"), "utf8"),
-);
-const seed = products
-  .map(
-    (p) =>
-      `INSERT OR IGNORE INTO inventory(product_id,quantity_units,updated_at) VALUES (${JSON.stringify(p.id).replaceAll('"', "'")},1000,'2026-10-22T00:00:00.000Z');`,
-  )
-  .join("\n");
-await writeFile(
-  resolve(root, "artifacts/arafan-cloudflare/seed.sql"),
-  seed + "\n",
-);
 console.log(
-  "Safe Pages build: artifacts/arafan-pages (public assets + bundled server entry). No private files copied.",
+  "Safe public build prepared; no stock seed or private customer data copied.",
 );

@@ -206,3 +206,148 @@
     text-align: left;
   }
 }
+/* Retail workspace: clear order data, no decorative dashboard effects. */
+body {
+  background: #f7f8f5;
+  color: #172d25;
+}
+.admin-header {
+  background: white !important;
+  border-bottom: 1px solid #dce3dc;
+}
+.admin-container {
+  width: min(1200px, calc(100% - 40px));
+  margin: auto;
+}
+.admin-title h1,
+.admin-login h1 {
+  font-family: Manrope, sans-serif;
+  font-size: 32px;
+  font-weight: 550;
+  letter-spacing: -0.035em;
+}
+.order-card {
+  background: white !important;
+  border: 1px solid #dce3dc !important;
+  border-radius: 3px !important;
+  box-shadow: none !important;
+  color: #172d25;
+}
+.order-card h2 {
+  font-size: 26px !important;
+  font-weight: 550;
+}
+.order-products li,
+.order-total {
+  border-color: #e1e6e0 !important;
+}
+.order-tab {
+  color: #405349 !important;
+  background: white !important;
+  border-color: #dce3dc !important;
+  border-radius: 2px !important;
+  min-height: 44px;
+}
+.order-tab[aria-selected="true"] {
+  background: #164d3b !important;
+  color: white !important;
+}
+.tab-count {
+  color: inherit !important;
+}
+.order-stats {
+  background: none !important;
+  color: #172d25;
+}
+.admin-tools input,
+.order-edit select,
+.order-edit textarea,
+.login-form input {
+  background: white !important;
+  color: #172d25 !important;
+  border: 1px solid #dce3dc !important;
+  border-radius: 2px !important;
+}
+.order-edit label,
+.field-hint,
+.order-date {
+  color: #53685d !important;
+}
+.order-total strong {
+  color: #164d3b !important;
+}
+.button-accent {
+  background: #164d3b !important;
+  color: white !important;
+  border: 1px solid #164d3b !important;
+  box-shadow: none !important;
+}
+.product-editor {
+  border-top: 1px solid #dce3dc;
+  margin-top: 45px;
+  padding: 30px 0;
+}
+.product-editor > p {
+  font-size: 13px;
+  color: #607069;
+}
+#edit-products {
+  margin-top: 20px;
+  display: grid;
+  gap: 15px;
+}
+#edit-products > input,
+#edit-products > select {
+  width: 100%;
+  background: white;
+  border: 1px solid #dce3dc;
+  padding: 12px;
+  border-radius: 2px;
+}
+.account-form {
+  display: grid;
+  gap: 18px;
+  max-width: 500px;
+}
+.account-form label {
+  display: grid;
+  gap: 7px;
+  font-size: 13px;
+}
+.account-form input:not([type="checkbox"]) {
+  padding: 12px;
+  border: 1px solid #dce3dc;
+}
+.account-form input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: #164d3b;
+}
+.admin-login {
+  background: white !important;
+  border-color: #dce3dc !important;
+}
+.admin-empty {
+  background: #eef2eb !important;
+  color: #53685d !important;
+}
+.order-products {
+  font-size: 13px;
+}
+.order-tools a {
+  color: #164d3b;
+}
+@media (max-width: 600px) {
+  .admin-title h1 {
+    font-size: 26px;
+  }
+  .order-card {
+    padding: 20px !important;
+  }
+  .order-card-heading {
+    gap: 10px;
+  }
+  .order-tools {
+    flex-wrap: wrap;
+  }
+}

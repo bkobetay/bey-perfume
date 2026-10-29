@@ -22,6 +22,8 @@ const types = {
   ".css": "text/css; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
   ".webp": "image/webp",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
   ".png": "image/png",
   ".svg": "image/svg+xml",
   ".ttf": "font/ttf",
@@ -56,7 +58,9 @@ const server = http.createServer(async (request, response) => {
       const allowed = admin
         ? url.pathname.startsWith("/api/admin/")
         : (url.pathname === "/api/products" && request.method === "GET") ||
-          (url.pathname === "/api/orders" && request.method === "POST");
+          (url.pathname === "/api/orders" && request.method === "POST") ||
+          (url.pathname.startsWith("/api/account") &&
+            ["GET", "POST"].includes(request.method));
       if (!allowed) {
         notFound();
         return;
@@ -78,7 +82,9 @@ const server = http.createServer(async (request, response) => {
     const pathname = decodeURIComponent(url.pathname);
     const adminFile =
       admin &&
-      ["/", "/index.html", "/admin.js", "/admin.css"].includes(pathname);
+      ["/", "/index.html", "/admin.js", "/admin.css", "/products.js"].includes(
+        pathname,
+      );
     // The seller service serves only its UI and explicitly shared visual assets.
     if (
       admin &&
@@ -104,7 +110,25 @@ const server = http.createServer(async (request, response) => {
     const fileRoot = adminFile ? adminRoot : root;
     const path = resolve(
       fileRoot,
-      `.${pathname === "/" ? "/index.html" : pathname === "/catalog" ? "/catalog.html" : pathname}`,
+      `.${
+        pathname === "/"
+          ? "/index.html"
+          : [
+                "/catalog",
+                "/raspiv",
+                "/sets",
+                "/promotions",
+                "/wholesale",
+                "/about",
+                "/contacts",
+                "/delivery",
+                "/fragrance",
+                "/favorites",
+                "/account",
+              ].includes(pathname)
+            ? pathname + ".html"
+            : pathname
+      }`,
     );
     if (
       !path.startsWith(fileRoot.endsWith(sep) ? fileRoot : fileRoot + sep) ||
