@@ -150,10 +150,12 @@
             !matchMedia("(prefers-reduced-motion:reduce)").matches
           )
             panelAnimation = panel.animate(
-              [
-                { opacity: 0.2, transform: "translateY(5px)" },
-                { opacity: 1, transform: "none" },
-              ],
+              panel.id === "product-panel-performance"
+                ? [{ transform: "translateY(5px)" }, { transform: "none" }]
+                : [
+                    { opacity: 0.2, transform: "translateY(5px)" },
+                    { opacity: 1, transform: "none" },
+                  ],
               { duration: 220, easing: "cubic-bezier(.22,1,.36,1)" },
             );
         }

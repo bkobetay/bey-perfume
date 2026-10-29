@@ -78,8 +78,8 @@
   color-scheme: light;
   --bg: #fff;
   --surface: #f5f6f3;
-  --text: #172d25;
-  --muted: #607069;
+  --text: #111;
+  --muted: #111;
   --accent: #124d3b;
   --line: #dce3dc;
   --max: 1280px;
@@ -272,7 +272,7 @@ textarea:focus-visible {
   letter-spacing: 0.16em;
   font-weight: 650;
   margin: 0 0 15px;
-  color: #6b735f;
+  color: #111;
 }
 h1,
 h2,
@@ -509,7 +509,7 @@ h3 {
   line-height: 1.5;
   letter-spacing: 0.12em;
   text-align: center;
-  color: #577461;
+  color: #111;
 }
 .shop-note {
   border-top: 1px solid var(--line);
@@ -1279,10 +1279,10 @@ html {
   text-underline-offset: 4px;
 }
 .product-brand {
-  color: #6b6d60;
+  color: #111;
 }
 .purchase-controls label {
-  color: #526456;
+  color: #111;
 }
 .volume-select {
   border-radius: 5px;
@@ -1318,10 +1318,10 @@ html {
   background: #fafbf8;
 }
 .page-heading .kicker {
-  color: #8c743a;
+  color: #111;
 }
 .brand small {
-  color: #836f40;
+  color: #111;
 }
 .contact-widget {
   position: fixed;
@@ -1629,11 +1629,11 @@ html {
 }
 .contact-greeting span {
   font-size: 9px;
-  color: #748276;
+  color: #111;
 }
 .contact-context {
   font-size: 10px;
-  color: #6a796c;
+  color: #111;
   margin: 12px 0 0;
 }
 .contact-panel .contact-composer {
@@ -1685,7 +1685,7 @@ html {
 .contact-disclosure {
   font-size: 9px;
   text-align: center;
-  color: #738173;
+  color: #111;
   background: white;
   margin: 0;
   padding: 1px 10px 12px;
@@ -1792,7 +1792,7 @@ html {
   gap: 9px;
   flex-wrap: wrap;
   font-size: 11px;
-  color: #738176;
+  color: #111;
   line-height: 1.7;
 }
 .breadcrumbs a:hover {
@@ -1800,7 +1800,7 @@ html {
   text-decoration: underline;
 }
 .breadcrumbs [aria-current] {
-  color: #314d3c;
+  color: #111;
 }
 .detail-product {
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
@@ -1817,7 +1817,7 @@ html {
 }
 .gallery-caption {
   font-size: 11px;
-  color: #718071;
+  color: #111;
   line-height: 1.7;
   margin: 14px 0 0;
   max-width: 460px;
@@ -1844,7 +1844,7 @@ html {
 }
 .detail-audience {
   font-size: 13px;
-  color: #637863;
+  color: #111;
   margin: 0 0 17px;
 }
 .detail-buy > .product-availability {
@@ -1884,7 +1884,7 @@ html {
 }
 .unit-price {
   font-size: 11px;
-  color: #73816f;
+  color: #111;
   margin: 0 0 5px;
 }
 .detail-actions {
@@ -1938,7 +1938,7 @@ html {
 .detail-delivery {
   font-size: 11px;
   line-height: 1.8;
-  color: #6c7d6c;
+  color: #111;
   margin: 4px 0;
 }
 .fragrance-information {
@@ -1955,7 +1955,7 @@ html {
 .fragrance-description > p:not(.kicker) {
   font-size: 15px;
   line-height: 1.9;
-  color: #4f6553;
+  color: #111;
 }
 .note-list {
   display: flex;
@@ -1972,7 +1972,7 @@ html {
 }
 .fragrance-description .direction-explainer {
   font-size: 12px !important;
-  color: #788772 !important;
+  color: #111 !important;
 }
 .fragrance-facts dl {
   margin: 0;
@@ -1987,13 +1987,13 @@ html {
   font-size: 13px;
 }
 .fragrance-facts dt {
-  color: #798573;
+  color: #111;
   flex-shrink: 0;
 }
 .fragrance-facts dd {
   text-align: right;
   margin: 0;
-  color: #2d4834;
+  color: #111;
 }
 .rating-item {
   display: grid;
@@ -2023,7 +2023,7 @@ html {
 }
 .rating-circle small {
   font-size: 10px;
-  color: #9aa48f;
+  color: #111;
 }
 .promotion-product img {
   object-fit: contain;
@@ -2041,7 +2041,7 @@ html {
 }
 .promotion-product del {
   font-size: 12px;
-  color: #8d9785;
+  color: #111;
   margin-right: 8px;
 }
 @media (max-width: 760px) {
@@ -2165,7 +2165,7 @@ html {
   display: block;
   font-size: 11px;
   margin: 10px 3px 3px;
-  color: #4b654c;
+  color: #111;
 }
 .certificate-controls {
   display: none;
@@ -2273,7 +2273,7 @@ html {
     justify-content: space-between;
     gap: 8px;
     font-size: 10px;
-    color: #63755f;
+    color: #111;
   }
   .certificate-controls button {
     width: 40px;
@@ -2386,7 +2386,7 @@ main[tabindex="-1"]:focus {
 }
 .contact-panel-heading span {
   font-size: 9px;
-  color: #708474;
+  color: #111;
   margin-top: 3px;
 }
 .contact-panel-heading .contact-close {
@@ -2394,7 +2394,7 @@ main[tabindex="-1"]:focus {
   height: 25px;
   border-radius: 50%;
   background: #edf0e9;
-  color: #6f8271;
+  color: #111;
   font-size: 18px;
 }
 .contact-conversation {
@@ -2436,7 +2436,7 @@ main[tabindex="-1"]:focus {
 .contact-disclosure {
   font-size: 9px;
   padding-bottom: 10px;
-  color: #86927f;
+  color: #111;
 }
 .contact-toggle {
   min-height: 43px;
@@ -2493,7 +2493,7 @@ main[tabindex="-1"]:focus {
   border: 0;
   background: none;
   padding: 14px 0 15px;
-  color: #728069;
+  color: #111;
   white-space: nowrap;
   font-size: 12px;
   min-height: 44px;
@@ -2523,14 +2523,14 @@ main[tabindex="-1"]:focus {
   min-height: 220px;
   font-size: 13px;
   line-height: 1.8;
-  color: #50664f;
+  color: #111;
 }
 .product-tabpanel > p {
   margin: 0 0 15px;
 }
 .product-tabpanel .direction-explainer {
   font-size: 11px;
-  color: #839078;
+  color: #111;
   line-height: 1.7;
 }
 .product-tabpanel .note-list {
@@ -2554,13 +2554,13 @@ main[tabindex="-1"]:focus {
   font-size: 12px;
 }
 .product-tabpanel dt {
-  color: #849078;
+  color: #111;
   flex-shrink: 0;
 }
 .product-tabpanel dd {
   margin: 0;
   text-align: right;
-  color: #385135;
+  color: #111;
 }
 .product-tabpanel .metrics {
   display: flex;
@@ -2609,7 +2609,7 @@ main[tabindex="-1"]:focus {
 }
 .panel-intro {
   font-size: 12px;
-  color: #6c7b63;
+  color: #111;
 }
 @media (max-width: 1100px) {
   .product-tablist {
@@ -2894,14 +2894,14 @@ main[tabindex="-1"]:focus {
   padding: 13px 14px;
   border-radius: 9px;
   font-size: 14px;
-  color: #607058;
+  color: #111;
   transition:
     background 180ms,
     color 180ms;
 }
 .mega-groups a small {
   font-size: 10px;
-  color: #8a987d;
+  color: #111;
 }
 .mega-groups a.is-active,
 .mega-groups a:hover {
@@ -2909,7 +2909,7 @@ main[tabindex="-1"]:focus {
   color: #174e35;
 }
 .mega-groups a.is-active small {
-  color: #618159;
+  color: #111;
 }
 .mega-content {
   display: grid;
@@ -2921,7 +2921,7 @@ main[tabindex="-1"]:focus {
 .mega-preview .kicker {
   font-size: 9px;
   margin-bottom: 17px;
-  color: #9a864d;
+  color: #111;
 }
 .mega-brands > div {
   display: grid;
@@ -2931,7 +2931,7 @@ main[tabindex="-1"]:focus {
 .mega-brands a {
   font-size: 11px;
   line-height: 1.5;
-  color: #3d573a;
+  color: #111;
   min-height: 22px;
 }
 .mega-brands a:hover {
@@ -2973,7 +2973,7 @@ main[tabindex="-1"]:focus {
 }
 .mega-perfume small {
   font-size: 9px;
-  color: #8a987d;
+  color: #111;
 }
 .mega-close {
   position: absolute;
@@ -2983,7 +2983,7 @@ main[tabindex="-1"]:focus {
   height: 28px;
   border: 0;
   background: none;
-  color: #829174;
+  color: #111;
   font-size: 22px;
 }
 .mega-catalog::before {
@@ -3331,14 +3331,14 @@ main[tabindex="-1"]:focus {
 }
 .rating-circle small {
   font-size: 14px;
-  color: #778474;
+  color: #111;
   font-weight: 400;
   letter-spacing: 0;
 }
 .performance-hint {
   font-size: 11px !important;
   text-align: center;
-  color: #7b8676 !important;
+  color: #111 !important;
   line-height: 1.7 !important;
   max-width: 370px;
   margin: 0 auto !important;
@@ -3695,7 +3695,7 @@ main[tabindex="-1"]:focus {
 .shop-strip {
   padding: 0 24px;
   background: #fff;
-  color: #596b5c;
+  color: #111;
   border-bottom: 1px solid #edf1e9;
   font-size: 11px;
   letter-spacing: 0;
@@ -3768,7 +3768,7 @@ main[tabindex="-1"]:focus {
   border-radius: 0;
 }
 .header-search input::placeholder {
-  color: #7d8879;
+  color: #111;
 }
 .header .search-submit,
 .header .search-clear {
@@ -4097,7 +4097,7 @@ footer {
 .footer-grid p {
   font-size: 14px;
   line-height: 1.75;
-  color: #44594b;
+  color: #111;
 }
 .footer-grid a {
   font-size: 14px;
@@ -4105,7 +4105,7 @@ footer {
 }
 .footer-bottom {
   font-size: 12px;
-  color: #526657;
+  color: #111;
 }
 .footer-grid a:hover {
   text-decoration: underline;
@@ -4242,5 +4242,72 @@ footer {
   .shop-location svg {
     width: 14px;
     height: 14px;
+  }
+}
+
+/* Readable secondary copy; opacity stays full for text, not disabled controls. */
+input::placeholder,
+textarea::placeholder {
+  color: #111;
+  opacity: 1;
+}
+.product-tabpanel .rating-circle > span {
+  font-size: 56px;
+  font-weight: 600;
+  color: #111;
+  opacity: 1;
+}
+.product-tabpanel .rating-circle small {
+  font-size: 20px;
+  font-weight: 450;
+  color: #111;
+  opacity: 1;
+}
+.product-tabpanel .rating-item {
+  font-size: 18px;
+  font-weight: 550;
+  color: #111;
+  opacity: 1;
+  gap: 14px;
+}
+.product-tabpanel .rating-item > span {
+  color: #111;
+  opacity: 1;
+}
+.performance-hint {
+  font-size: 13px !important;
+  color: #111 !important;
+  opacity: 1;
+  line-height: 1.7 !important;
+}
+@media (max-width: 400px) {
+  .product-tabpanel .rating-circle > span {
+    font-size: 42px;
+  }
+  .product-tabpanel .rating-circle small {
+    font-size: 16px;
+  }
+  .product-tabpanel .rating-item {
+    font-size: 16px;
+    gap: 12px;
+  }
+}
+.product-tabpanel .rating-item > span {
+  font-size: 18px;
+  font-weight: 550;
+}
+@media (max-width: 400px) {
+  .product-tabpanel .rating-item > span {
+    font-size: 16px;
+  }
+}
+.detail-gallery,
+.detail-buy,
+.product-tabs {
+  min-width: 0;
+}
+@media (max-width: 760px) {
+  .detail-product {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
