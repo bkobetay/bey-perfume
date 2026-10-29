@@ -4451,5 +4451,110 @@ body[data-page="about"] .certificate-heading h2 {
 }
 
 /* Keep the content origin stable between short and long routes. */
-html { scrollbar-gutter: stable; }
-.current-price, .set-price { min-height: 1.5em; }
+html {
+  scrollbar-gutter: stable;
+}
+.current-price,
+.set-price {
+  min-height: 1.5em;
+}
+
+/* Researched information: a readable text column and an ordered note composition. */
+.product-tabpanel {
+  font-size: 17px;
+  line-height: 1.8;
+  color: #111;
+}
+.product-tabpanel > p {
+  margin-bottom: 18px;
+}
+.product-tabpanel .direction-explainer {
+  font-size: 12px;
+  line-height: 1.75;
+  border-top: 1px solid #e3e8e1;
+  padding-top: 16px;
+  margin-top: 20px;
+}
+.scent-profile {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 0 0 20px;
+}
+.scent-profile span {
+  font-size: 12px;
+  line-height: 1.4;
+  background: #edf3ed;
+  color: #174e3e;
+  padding: 7px 11px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+.note-pyramid {
+  display: grid;
+  gap: 0;
+}
+.note-stage {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 14px;
+  padding: 17px 0;
+  border-bottom: 1px solid #e3e8e1;
+}
+.note-stage:first-child {
+  padding-top: 3px;
+}
+.note-stage-number {
+  font-family: Onest, Manrope, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: #174e3e;
+  padding-top: 3px;
+}
+.note-stage h3 {
+  font-size: 15px;
+  margin: 0 0 9px;
+  font-weight: 700;
+}
+.note-stage ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.note-stage li {
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 6px 10px;
+  background: #f4f6f1;
+  border-radius: 6px;
+}
+.product-tabpanel dl > div {
+  font-size: 14px;
+  padding: 13px 0;
+}
+.product-tabpanel .note-list span {
+  font-size: 14px;
+  padding: 10px 12px;
+}
+@media (max-width: 600px) {
+  .product-tabpanel {
+    font-size: 16px;
+    line-height: 1.8;
+  }
+  .note-stage {
+    grid-template-columns: 25px minmax(0, 1fr);
+    gap: 10px;
+  }
+  .product-tabpanel dl > div {
+    font-size: 13px;
+  }
+}
+
+.product-tabpanel {
+  display: flow-root;
+}
+/* Tab selection is immediate; retain motion only for pointer hover controls. */
+.product-tablist button::after { transition: none; }

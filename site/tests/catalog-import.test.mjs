@@ -58,5 +58,40 @@ test("owner performance scores match exact SKUs with a ten-point scale", () => {
   }
   assert.equal(products.find((p) => p.code === "SW-055").longevity, 7);
   assert.equal(products.find((p) => p.code === "SW-055").sillage, 8);
-  assert.ok(!products.some(p => p.code === 'W-044'));
+  assert.ok(!products.some((p) => p.code === "W-044"));
+});
+
+test("all retail fragrances retain researched copy and verified note structures on replay", async () => {
+  const replay = JSON.parse(
+    await readFile(
+      new URL("../scripts/catalog-enrichment.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  for (const p of products) {
+    assert.ok(p.description.length >= 200, p.code);
+    assert.equal(p.descriptionParagraphs.join("\n\n"), p.description, p.code);
+    assert.ok(p.keyNotes.length > 0, p.code);
+    assert.ok(p.descriptionSources.length > 0, p.code);
+    for (const source of p.descriptionSources)
+      assert.equal(new URL(source).protocol, "https:");
+    for (const [stage, notes] of Object.entries(p.notePyramid)) {
+      assert.ok(["top", "heart", "base"].includes(stage));
+      assert.ok(notes.length > 0);
+      assert.equal(new Set(notes).size, notes.length);
+    }
+    for (const key of [
+      "description",
+      "descriptionParagraphs",
+      "notePyramid",
+      "keyNotes",
+      "olfactoryProfile",
+      "descriptionSources",
+    ])
+      assert.deepEqual(replay[p.id][key], p[key], p.code + " " + key);
+    assert.equal(
+      p.notePyramidBasis,
+      p.type === "razliv" ? "reference-fragrance" : "original-fragrance",
+    );
+  }
 });

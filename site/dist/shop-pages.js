@@ -82,7 +82,14 @@
             key: "description",
             title: "Описание",
             html:
-              description.querySelector("p:not(.kicker)").outerHTML +
+              '<div class="scent-profile" aria-label="Характер аромата">' +
+              (p.olfactoryProfile || [])
+                .map((x) => `<span>${esc(x)}</span>`)
+                .join("") +
+              "</div>" +
+              (p.descriptionParagraphs || [p.description])
+                .map((text) => `<p>${esc(text)}</p>`)
+                .join("") +
               description.querySelector(".direction-explainer").outerHTML,
           },
           {
@@ -92,12 +99,37 @@
               '<p class="panel-intro">Основные ноты' +
               (p.type === "razliv" ? " аромата-ориентира" : " аромата") +
               "</p>" +
-              description.querySelector(".note-list").outerHTML,
+              (Object.values(p.notePyramid || {}).some((x) => x.length)
+                ? '<div class="note-pyramid">' +
+                  [
+                    ["top", "Верхние ноты"],
+                    ["heart", "Ноты сердца"],
+                    ["base", "Базовые ноты"],
+                  ]
+                    .filter(([key]) => p.notePyramid[key]?.length)
+                    .map(
+                      ([key, label], i) =>
+                        `<section class="note-stage"><span class="note-stage-number">0${i + 1}</span><div><h3>${label}</h3><ul>${p.notePyramid[key].map((n) => `<li>${esc(n)}</li>`).join("")}</ul></div></section>`,
+                    )
+                    .join("") +
+                  "</div>"
+                : '<div class="note-list" aria-label="Ключевые ноты">' +
+                  (p.keyNotes || p.notes.split(/[·,]/))
+                    .map((n) => `<span>${esc(n.trim())}</span>`)
+                    .join("") +
+                  "</div>"),
           },
           {
             key: "facts",
             title: "Характеристики",
-            html: facts.querySelector("dl").outerHTML,
+            html: facts
+              .querySelector("dl")
+              .outerHTML.replace(
+                "</dl>",
+                (p.olfactoryProfile?.length
+                  ? `<div><dt>Характер</dt><dd>${p.olfactoryProfile.map(esc).join(" · ")}</dd></div>`
+                  : "") + "</dl>",
+              ),
           },
           {
             key: "performance",
@@ -129,6 +161,40 @@
         target.querySelector(".detail-buy").append(tabs);
         info.remove();
         const tabButtons = [...tabs.querySelectorAll("[role=tab]")];
+        // Reserve the tallest information panel so selecting tabs cannot clamp the scroll position.
+        function sizePanels() {
+          const width = tabs.clientWidth;
+          if (!width) return;
+          let tallest = 0;
+          tabs.querySelectorAll("[role=tabpanel]").forEach((panel) => {
+            const previous = panel.getAttribute("style");
+            if (panel.hidden)
+              panel.style.cssText =
+                "display:flow-root!important;position:absolute;visibility:hidden;pointer-events:none;width:" +
+                width +
+                "px";
+            tallest = Math.max(tallest, panel.getBoundingClientRect().height);
+            if (previous === null) panel.removeAttribute("style");
+            else panel.setAttribute("style", previous);
+          });
+          tabs.style.minHeight =
+            Math.ceil(
+              tallest +
+                tabs.querySelector(".product-tablist").getBoundingClientRect()
+                  .height +
+                8,
+            ) + "px";
+        }
+        sizePanels();
+        document.fonts.ready.then(sizePanels);
+        let previousWidth = tabs.clientWidth;
+        new ResizeObserver(() => {
+          if (tabs.clientWidth !== previousWidth) {
+            previousWidth = tabs.clientWidth;
+            sizePanels();
+          }
+        }).observe(tabs);
+
         function activateTab(index, keyboard = false) {
           const selected = tabButtons[index];
           if (selected.getAttribute("aria-selected") === "true") return;

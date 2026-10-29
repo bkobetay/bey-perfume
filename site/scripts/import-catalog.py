@@ -64,12 +64,12 @@ def main():
    title=re.sub(r'\s+ОРИГ\b','',title).strip()
    product={'id':identifier,'code':sku,'type':'raspiv' if sku=='OF-001' else 'razliv','collection':collection,'brand':brand,'name':title,'originalName':name,'pricePerMl':price,'notes':'','description':f'Направление {name.replace(" ОРИГ", "")}. Разлив от 5 мл.','categories':[],'image':None,'featured':False,'referenceImage':False,'variants':[{'ml':ml,'price':ml*price} for ml in [5,10,20,30]],'source':{'file':filename,'sheet':sheet,'row':row,'sku':sku,'priceCell':f'D{row}'}}
    previous={**enrichment.get(identifier,{}),**old.get(identifier,{})}
-   for field in ['notes','description','categories','image','referenceImage','referenceName','referenceSource','officialSource','imageSource','notesSource','matchStatus','audience','audienceSource','audienceBasis','brand','name','longevity','sillage','performanceSource']:
+   for field in ['notes','description','categories','image','referenceImage','referenceName','referenceSource','officialSource','imageSource','notesSource','matchStatus','audience','audienceSource','audienceBasis','brand','name','longevity','sillage','performanceSource','descriptionParagraphs','notePyramid','olfactoryProfile','descriptionSources','contentVersion','notePyramidBasis','keyNotes']:
     if field in previous:product[field]=previous[field]
    if sku in OWNER_NAMES:
     product['brand'],product['name']=OWNER_NAMES[sku]
     product['source']['ownerConfirmedName']=product['brand']+' '+product['name']
-    product['description']='Направление '+product['brand']+' '+product['name']+'.'+(' Ориентиры композиции: '+product['notes'].lower().replace(' · ', ', ')+'.' if product['notes'] else '')
+    if not product.get('contentVersion'):product['description']='Направление '+product['brand']+' '+product['name']+'.'+(' Ориентиры композиции: '+product['notes'].lower().replace(' · ', ', ')+'.' if product['notes'] else '')
    if not old.get(identifier):
     for field in ['brand','name']:
      if field in enrichment.get(identifier,{}):product[field]=enrichment[identifier][field]
