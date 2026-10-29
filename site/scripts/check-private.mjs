@@ -24,7 +24,8 @@ const privatePath = (name) =>
   /(^|\/)private\//.test(name) ||
   /(^|\/)\.dev\.vars(?:\.|$)/.test(name) ||
   (/(^|\/)\.env(?:\.|$)/.test(name) && !name.endsWith(".env.example")) ||
-  /\.(?:sqlite(?:-.*)?|db(?:-.*)?|pem|key)$/.test(name) ||
+  /\.(?:sqlite(?:-.*)?|db(?:-.*)?|pem|key|p12|pfx)$/.test(name) ||
+  /(^|\/)(?:\.npmrc|\.netrc|id_rsa[^/]*|id_ed25519[^/]*)$/.test(name) ||
   /(^|\/)admin-access\.txt$/.test(name);
 const blocked = files.filter(privatePath);
 if (blocked.length) {
