@@ -3965,7 +3965,7 @@ html {
 
 /* onest-cyrillic-ext-wght-normal */
 @font-face {
-  font-family: "Onest Variable";
+  font-family: Onest;
   font-style: normal;
   font-display: swap;
   font-weight: 100 900;
@@ -3976,7 +3976,7 @@ html {
 }
 /* onest-cyrillic-wght-normal */
 @font-face {
-  font-family: "Onest Variable";
+  font-family: Onest;
   font-style: normal;
   font-display: swap;
   font-weight: 100 900;
@@ -3986,7 +3986,7 @@ html {
 }
 /* onest-latin-ext-wght-normal */
 @font-face {
-  font-family: "Onest Variable";
+  font-family: Onest;
   font-style: normal;
   font-display: swap;
   font-weight: 100 900;
@@ -3999,7 +3999,7 @@ html {
 }
 /* onest-latin-wght-normal */
 @font-face {
-  font-family: "Onest Variable";
+  font-family: Onest;
   font-style: normal;
   font-display: swap;
   font-weight: 100 900;
