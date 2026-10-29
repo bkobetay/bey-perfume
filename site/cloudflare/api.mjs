@@ -257,7 +257,7 @@ export async function handleAPI(request, env) {
           hex(random(5)).toUpperCase(),
         now = new Date().toISOString();
       const inserted = await first(
-        "INSERT INTO orders(id,request_key,fingerprint,name,search_name,phone,items,total,created_at,updated_at,address,comment,account_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(request_key) DO NOTHING RETURNING id,total",
+        "INSERT INTO orders(id,request_key,fingerprint,name,search_name,phone,items,total,created_at,updated_at,address,comment,account_id,fulfillment) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(request_key) DO NOTHING RETURNING id,total",
         id,
         data.requestKey,
         fingerprint,
@@ -271,6 +271,7 @@ export async function handleAPI(request, env) {
         order.address,
         order.comment,
         order.accountId,
+        order.fulfillment,
       );
       if (!inserted) {
         const row = await first(

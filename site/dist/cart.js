@@ -10,20 +10,23 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
   let products = [],
     basket = [],
     busy = false,
-    opener,
     requestKey = crypto.randomUUID();
   try {
     basket = JSON.parse(localStorage.getItem("bey-cart-v1") || "[]");
   } catch {}
   if (!Array.isArray(basket)) basket = [];
-  const dialog = el("dialog", "cart-dialog");
-  dialog.setAttribute("aria-labelledby", "cart-title");
-  dialog.innerHTML = `<div class="cart-heading"><div><p class="eyebrow">ВАШ ЗАКАЗ</p><h2 id="cart-title">Корзина</h2></div><button type="button" class="icon-close" aria-label="Закрыть корзину">×</button></div><div class="cart-body"><div class="cart-items"></div><p class="cart-stock-warning" role="status"></p><div class="cart-empty" hidden><img class="cart-empty-logo" src="/assets/arafan-perfume-logo.png" alt="" aria-hidden="true" width="1318" height="1298" /><h3>Ваша корзина пока пуста</h3><p>Добавьте аромат и выберите подходящий объём.</p><a class="button button-accent" href="/catalog">Открыть каталог</a></div><form class="checkout-form"><div class="cart-summary"><span>Сумма заявки</span><strong class="cart-total"></strong></div><h3>Контактные данные</h3><label>Ваше имя<input name="name" autocomplete="name" minlength="2" maxlength="80" placeholder="Например, Айдана" aria-describedby="name-hint name-error" required /></label><p class="field-hint" id="name-hint">Введите ваше настоящее имя, чтобы продавец знал, как к вам обратиться.</p><p class="name-error" id="name-error" role="status" hidden></p><label>Номер телефона<span class="phone-field"><span class="phone-prefix" aria-hidden="true">+7</span><input name="phone" type="tel" aria-label="Номер телефона" aria-describedby="phone-hint" autocomplete="tel-national" inputmode="numeric" maxlength="12" pattern="[0-9]{3} [0-9]{3} [0-9]{4}" placeholder="700 000 0000" required /></span></label><p class="field-hint" id="phone-hint">Код +7 уже указан. Введи 10 цифр номера. Продавец свяжется с тобой и уточнит наличие, стоимость и получение.</p><label>Адрес доставки<textarea name="address" maxlength="500" required placeholder="Улица, дом, квартира"></textarea></label><label>Комментарий к заказу<textarea name="comment" maxlength="1000" placeholder="Необязательно"></textarea></label><p class="field-hint">Доставка оплачивается отдельно при получении. Стоимость зависит от адреса и тарифа курьерской службы «Яндекс».</p><label class="contact-consent"><input type="checkbox" name="consent" required /><span>Разрешаю связаться со мной по этой заявке.</span></label><button class="button button-accent submit-order" type="submit">Отправить заказ</button></form><p class="checkout-message" role="status" aria-live="polite"></p><div class="order-success" hidden tabindex="-1"><span class="success-symbol" aria-hidden="true">✓</span><p class="eyebrow">ЗАКАЗ ПРИНЯТ</p><h3>Спасибо за заказ</h3><p>Магазин свяжется с вами, чтобы уточнить детали.</p><p class="receipt-code"></p><p class="receipt-total"></p><button type="button" class="button button-glass continue-shopping">Продолжить выбор</button></div></div>`;
-  document.body.append(dialog);
-  const form = dialog.querySelector("form"),
-    list = dialog.querySelector(".cart-items"),
-    message = dialog.querySelector(".checkout-message"),
-    success = dialog.querySelector(".order-success");
+  const cartRoot = document.querySelector("#cart-root");
+  const existingPanel = cartRoot?.querySelector(".cart-page-content");
+  const panel = existingPanel || el("section", "cart-page-content");
+  panel.setAttribute("aria-labelledby", "cart-page-title");
+  if (!existingPanel)
+    panel.innerHTML = `<div class="cart-heading"><div><p class="eyebrow">ВАШ ЗАКАЗ</p><h2 id="cart-title">Корзина</h2></div><button type="button" class="icon-close" aria-label="Закрыть корзину">×</button></div><div class="cart-body"><div class="cart-items"></div><p class="cart-stock-warning" role="status"></p><div class="cart-empty" hidden><img class="cart-empty-logo" src="/assets/arafan-perfume-logo.png" alt="" aria-hidden="true" width="1318" height="1298" /><h3>Ваша корзина пока пуста</h3><p>Добавьте аромат и выберите подходящий объём.</p><a class="button button-accent" href="/catalog">Открыть каталог</a></div><form class="checkout-form"><div class="cart-summary"><span>Сумма заявки</span><strong class="cart-total"></strong></div><fieldset class="fulfillment-choice"><legend>Способ получения</legend><label><input type="radio" name="fulfillment" value="delivery" checked><span>Доставка</span></label><label><input type="radio" name="fulfillment" value="pickup"><span>Самовывоз</span></label></fieldset><p class="pickup-details" hidden>Забрать в магазине: Алматы, Достык, 108Б.<br>Ежедневно с 10:00 до 21:00.</p><h3>Контактные данные</h3><label>Ваше имя<input name="name" autocomplete="name" minlength="2" maxlength="80" placeholder="Например, Айдана" aria-describedby="name-hint name-error" required /></label><p class="field-hint" id="name-hint">Введите ваше имя, чтобы продавец знал, как к вам обратиться.</p><p class="name-error" id="name-error" role="status" hidden></p><label>Номер телефона<span class="phone-field"><span class="phone-prefix" aria-hidden="true">+7</span><input name="phone" type="tel" aria-label="Номер телефона" aria-describedby="phone-hint" autocomplete="tel-national" inputmode="numeric" maxlength="12" pattern="[0-9]{3} [0-9]{3} [0-9]{4}" placeholder="700 000 0000" required /></span></label><p class="field-hint" id="phone-hint">Код +7 уже указан. Введите 10 цифр номера — по нему магазин свяжется с вами.</p><label class="delivery-address">Адрес доставки<textarea name="address" maxlength="500" required placeholder="Улица, дом, квартира"></textarea></label><label>Комментарий к заказу<textarea name="comment" maxlength="1000" placeholder="Необязательно"></textarea></label><p class="field-hint delivery-terms">Доставка оплачивается отдельно при получении. Стоимость зависит от адреса и тарифа курьерской службы «Яндекс».</p><label class="contact-consent"><input type="checkbox" name="consent" required /><span>Разрешаю связаться со мной по этой заявке.</span></label><button class="button button-accent submit-order" type="submit">Отправить заказ</button></form><p class="checkout-message" role="status" aria-live="polite"></p><div class="order-success" hidden tabindex="-1"><span class="success-symbol" aria-hidden="true">✓</span><p class="eyebrow">ЗАКАЗ ПРИНЯТ</p><h3>Спасибо за заказ</h3><p>Магазин свяжется с вами, чтобы уточнить детали.</p><p class="receipt-code"></p><p class="receipt-total"></p><p class="receipt-fulfillment"></p><button type="button" class="button button-glass continue-shopping">Продолжить выбор</button></div></div>`;
+  panel.querySelector(".cart-heading")?.remove();
+  if (cartRoot && !existingPanel) cartRoot.replaceChildren(panel);
+  const form = panel.querySelector("form"),
+    list = panel.querySelector(".cart-items"),
+    message = panel.querySelector(".checkout-message"),
+    success = panel.querySelector(".order-success");
   const toast = el("div", "cart-toast");
   toast.setAttribute("role", "status");
   document.body.append(toast);
@@ -49,6 +52,7 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
   function changed() {
     requestKey = crypto.randomUUID();
     save();
+    persistDraft();
     render();
     message.textContent = "";
   }
@@ -138,6 +142,10 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
     }
   }
   function render() {
+    if (cartRoot)
+      document.documentElement.dataset.cartState = basket.length
+        ? "full"
+        : "empty";
     document
       .querySelectorAll(".cart-count")
       .forEach(
@@ -145,7 +153,9 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
       );
     list.replaceChildren();
     for (const [index, item] of basket.entries()) {
-      const { p, v } = detail(item);
+      const found = detail(item);
+      if (!found) continue;
+      const { p, v } = found;
       const row = el("article", "cart-item");
       const art = el("div", "cart-item-art");
       if (p.image) {
@@ -201,7 +211,7 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
         changed();
         (
           list.querySelector(".remove-item") ||
-          dialog.querySelector(".icon-close")
+          panel.querySelector(".cart-empty a")
         ).focus();
       };
       side.append(remove);
@@ -209,9 +219,9 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
       list.append(row);
     }
     form.hidden = !basket.length;
-    dialog.querySelector(".cart-empty").hidden = !!basket.length;
-    dialog.querySelector(".cart-total").textContent = money(total());
-    dialog.querySelector(".cart-stock-warning").textContent = stockProblem();
+    panel.querySelector(".cart-empty").hidden = !!basket.length;
+    panel.querySelector(".cart-total").textContent = money(total());
+    panel.querySelector(".cart-stock-warning").textContent = stockProblem();
     form.querySelector(".submit-order").disabled = !!stockProblem() || busy;
     updateAvailability();
   }
@@ -222,49 +232,54 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
     const button = buttons?.[plus ? 1 : 0];
     if (button) (button.disabled ? buttons[plus ? 0 : 1] : button).focus();
   }
-  function open() {
-    if (dialog.open) return;
-    opener = document.activeElement;
-    success.hidden = true;
-    list.hidden = false;
-    message.textContent = "";
-    render();
-    dialog.showModal();
-    document.body.classList.add("cart-open");
-    refreshAvailability();
-  }
-  function close() {
-    if (busy) return;
-    dialog.close();
-  }
-  dialog.querySelector(".icon-close").onclick = close;
-  dialog.querySelector(".continue-shopping").onclick = close;
-  dialog.addEventListener("cancel", (e) => {
-    if (busy) e.preventDefault();
-  });
-  dialog.addEventListener("close", () => {
-    if (dialog.open) return; // Ignore a queued close event after a quick reopen.
-    document.body.classList.remove("cart-open");
-    opener?.focus();
-  });
-  dialog.addEventListener("click", (e) => {
-    if (e.target === dialog) {
-      const r = dialog.getBoundingClientRect();
+  panel.querySelector(".continue-shopping").onclick = () => {
+    location.href = "/catalog";
+  };
+  function restoreDraft() {
+    try {
+      const d = JSON.parse(
+        sessionStorage.getItem("arafan-checkout-draft") || "{}",
+      );
+      for (const key of ["name", "phone", "address", "comment"]) {
+        if (typeof d[key] === "string") form.elements[key].value = d[key];
+      }
+      if (d.fulfillment === "pickup")
+        form.querySelector('[value="pickup"]').checked = true;
       if (
-        e.clientX < r.left ||
-        e.clientX > r.right ||
-        e.clientY < r.top ||
-        e.clientY > r.bottom
+        d.basket === JSON.stringify(basket) &&
+        typeof d.requestKey === "string" &&
+        /^[0-9a-f-]{36}$/i.test(d.requestKey)
       )
-        close();
-    }
-  });
-  document.querySelectorAll(".cart-toggle").forEach((button) => {
-    button.disabled = true;
-    button.addEventListener("click", open);
+        requestKey = d.requestKey;
+    } catch {}
+  }
+  function persistDraft() {
+    try {
+      const old = JSON.parse(
+        sessionStorage.getItem("arafan-checkout-draft") || "{}",
+      );
+      const d = cartRoot ? Object.fromEntries(new FormData(form)) : old;
+      delete d.consent;
+      d.requestKey = requestKey;
+      d.basket = JSON.stringify(basket);
+      sessionStorage.setItem("arafan-checkout-draft", JSON.stringify(d));
+    } catch {}
+  }
+  function receiving() {
+    const pickup = form.elements.fulfillment.value === "pickup";
+    form.querySelector(".delivery-address").hidden = pickup;
+    form.elements.address.required = !pickup;
+    panel.querySelector(".pickup-details").hidden = !pickup;
+    panel.querySelector(".delivery-terms").hidden = pickup;
+  }
+  if (cartRoot) restoreDraft();
+  receiving();
+  form.addEventListener("change", () => {
+    receiving();
+    persistDraft();
   });
   const nameInput = form.elements.name;
-  const nameFeedback = dialog.querySelector("#name-error");
+  const nameFeedback = panel.querySelector("#name-error");
   let nameTouched = false;
   function validateName(show = false) {
     const error = customerNameError(nameInput.value);
@@ -385,7 +400,7 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
     const phone = "+7" + national;
     busy = true;
     message.textContent = "Сохраняем заявку…";
-    dialog
+    panel
       .querySelectorAll("button, input, textarea")
       .forEach((e) => (e.disabled = true));
     try {
@@ -398,7 +413,9 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
           phone,
           items: basket,
           expectedTotal: total(),
-          address: data.get("address"),
+          address:
+            data.get("fulfillment") === "pickup" ? "" : data.get("address"),
+          fulfillment: data.get("fulfillment"),
           comment: data.get("comment"),
         }),
       });
@@ -408,13 +425,22 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
       basket = [];
       changed();
       form.reset();
+      receiving();
+      try {
+        sessionStorage.removeItem("arafan-checkout-draft");
+      } catch {}
       form.hidden = true;
       list.hidden = true;
-      dialog.querySelector(".cart-empty").hidden = true;
+      panel.querySelector(".cart-empty").hidden = true;
+      document.documentElement.dataset.cartState = "success";
       success.hidden = false;
       success.querySelector(".receipt-code").textContent = result.id;
       success.querySelector(".receipt-total").textContent =
         "Сумма: " + money(result.total);
+      success.querySelector(".receipt-fulfillment").textContent =
+        data.get("fulfillment") === "pickup"
+          ? "Самовывоз: Алматы, Достык, 108Б · 10:00–21:00"
+          : "Доставка по указанному адресу";
       message.textContent = "";
       success.focus();
     } catch (error) {
@@ -424,7 +450,7 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
           : error.message;
     } finally {
       busy = false;
-      dialog
+      panel
         .querySelectorAll("button, input, textarea")
         .forEach((e) => (e.disabled = false));
       if (success.hidden) render();
@@ -434,6 +460,7 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
   // A changed contact is a new request; a retry of unchanged data retains its key.
   form.addEventListener("input", () => {
     requestKey = crypto.randomUUID();
+    persistDraft();
   });
   fetch("/api/products")
     .then(async (response) => {
@@ -461,9 +488,7 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
         .slice(0, 24);
       save();
       render();
-      document
-        .querySelectorAll(".cart-toggle")
-        .forEach((button) => (button.disabled = false));
+
       document.addEventListener("change", (e) => {
         if (e.target.matches(".volume-select")) updateAvailability();
       });
@@ -541,10 +566,20 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
       });
     })
     .catch(() => {
-      basket = [];
-      render();
-      notify(
-        "Не удалось загрузить цены. Обнови страницу, когда сервер будет доступен.",
-      );
+      form.hidden = true;
+      list.hidden = true;
+      panel.querySelector(".cart-empty").hidden = true;
+      message.textContent =
+        "Не удалось загрузить цены. Корзина сохранена. Обновите страницу, когда связь восстановится.";
+      document
+        .querySelectorAll(".cart-count")
+        .forEach(
+          (e) =>
+            (e.textContent = basket.reduce(
+              (n, i) => n + (Number.isInteger(i.quantity) ? i.quantity : 0),
+              0,
+            )),
+        );
+      notify("Не удалось загрузить цены. Обновите страницу.");
     });
 })();

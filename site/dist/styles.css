@@ -2,7 +2,7 @@
 @font-face {
   font-family: Manrope;
   font-style: normal;
-  font-display: swap;
+  font-display: block;
   font-weight: 200 800;
   src: url(/assets/fonts/manrope-cyrillic-ext-wght-normal.woff2)
     format("woff2-variations");
@@ -14,7 +14,7 @@
 @font-face {
   font-family: Manrope;
   font-style: normal;
-  font-display: swap;
+  font-display: block;
   font-weight: 200 800;
   src: url(/assets/fonts/manrope-cyrillic-wght-normal.woff2)
     format("woff2-variations");
@@ -25,7 +25,7 @@
 @font-face {
   font-family: Manrope;
   font-style: normal;
-  font-display: swap;
+  font-display: block;
   font-weight: 200 800;
   src: url(/assets/fonts/manrope-greek-wght-normal.woff2)
     format("woff2-variations");
@@ -37,7 +37,7 @@
 @font-face {
   font-family: Manrope;
   font-style: normal;
-  font-display: swap;
+  font-display: block;
   font-weight: 200 800;
   src: url(/assets/fonts/manrope-vietnamese-wght-normal.woff2)
     format("woff2-variations");
@@ -51,7 +51,7 @@
 @font-face {
   font-family: Manrope;
   font-style: normal;
-  font-display: swap;
+  font-display: block;
   font-weight: 200 800;
   src: url(/assets/fonts/manrope-latin-ext-wght-normal.woff2)
     format("woff2-variations");
@@ -65,7 +65,7 @@
 @font-face {
   font-family: Manrope;
   font-style: normal;
-  font-display: swap;
+  font-display: block;
   font-weight: 200 800;
   src: url(/assets/fonts/manrope-latin-wght-normal.woff2)
     format("woff2-variations");
@@ -3967,7 +3967,7 @@ html {
 @font-face {
   font-family: Onest;
   font-style: normal;
-  font-display: swap;
+  font-display: block;
   font-weight: 100 900;
   src: url(/assets/fonts/onest-cyrillic-ext-wght-normal.woff2)
     format("woff2-variations");
@@ -3978,7 +3978,7 @@ html {
 @font-face {
   font-family: Onest;
   font-style: normal;
-  font-display: swap;
+  font-display: block;
   font-weight: 100 900;
   src: url(/assets/fonts/onest-cyrillic-wght-normal.woff2)
     format("woff2-variations");
@@ -3988,7 +3988,7 @@ html {
 @font-face {
   font-family: Onest;
   font-style: normal;
-  font-display: swap;
+  font-display: block;
   font-weight: 100 900;
   src: url(/assets/fonts/onest-latin-ext-wght-normal.woff2)
     format("woff2-variations");
@@ -4001,7 +4001,7 @@ html {
 @font-face {
   font-family: Onest;
   font-style: normal;
-  font-display: swap;
+  font-display: block;
   font-weight: 100 900;
   src: url(/assets/fonts/onest-latin-wght-normal.woff2)
     format("woff2-variations");
@@ -4449,3 +4449,7 @@ body[data-page="about"] .certificate-heading h2 {
     margin: 16px auto 20px;
   }
 }
+
+/* Keep the content origin stable between short and long routes. */
+html { scrollbar-gutter: stable; }
+.current-price, .set-price { min-height: 1.5em; }

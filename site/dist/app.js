@@ -59,8 +59,8 @@ document.addEventListener("keydown", (e) => {
   }
 });
 document.addEventListener("click", (e) => {
-  if (!e.target.closest(".header")) closeMenu();
-  if (e.target.closest(".navigation a")) closeMenu();
+  if (!e.target.closest(".header")) closeMenu(true);
+  if (e.target.closest(".navigation a")) closeMenu(true);
 });
 matchMedia("(min-width:1081px)").addEventListener(
   "change",
@@ -393,6 +393,9 @@ if (mega && catalogLink) {
     };
     link.addEventListener("pointerenter", select);
     link.addEventListener("focus", select);
+  });
+  document.querySelector(".header").addEventListener("click", (event) => {
+    if (event.target.closest("a[href]")) showMega(false, true);
   });
   desktop.addEventListener("change", () => showMega(false));
 }

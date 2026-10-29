@@ -67,6 +67,10 @@ export function openStore(directory = privateDir) {
       ["account_id", "TEXT REFERENCES customers(id)"],
       ["address", "TEXT NOT NULL DEFAULT ''"],
       ["comment", "TEXT NOT NULL DEFAULT ''"],
+      [
+        "fulfillment",
+        "TEXT NOT NULL DEFAULT 'delivery' CHECK(fulfillment IN ('delivery','pickup'))",
+      ],
     ])
       if (!columns.includes(name))
         db.exec(`ALTER TABLE orders ADD COLUMN ${name} ${definition}`);

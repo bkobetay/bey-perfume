@@ -125,6 +125,7 @@ const server = http.createServer(async (request, response) => {
                 "/fragrance",
                 "/favorites",
                 "/account",
+                "/cart",
               ].includes(pathname)
             ? pathname + ".html"
             : pathname
@@ -192,7 +193,10 @@ const server = http.createServer(async (request, response) => {
       );
     response.writeHead(200, {
       "Content-Type": types[extname(path)],
-      "Cache-Control": "no-store",
+      "Cache-Control":
+        extname(path) === ".woff2"
+          ? "public, max-age=31536000, immutable"
+          : "no-store",
     });
     response.end(request.method === "HEAD" ? undefined : contents);
   } catch (error) {

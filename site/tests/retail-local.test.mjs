@@ -117,6 +117,47 @@ test("local retail: availability/CAS, account sessions/ownership, addresses, sto
       .orders.length,
     0,
   );
+  assert.equal(owned[0].fulfillment, "delivery");
+  for (const extra of [{ address: "" }, { fulfillment: "courier" }])
+    assert.equal(
+      (
+        await call(
+          "/api/orders",
+          "POST",
+          { ...order, ...extra, requestKey: randomUUID() },
+          customer,
+        )
+      ).status,
+      400,
+    );
+  const pickup = {
+    ...order,
+    fulfillment: "pickup",
+    address: "",
+    requestKey: randomUUID(),
+  };
+  const picked = await call("/api/orders", "POST", pickup, customer);
+  assert.equal(picked.status, 201);
+  const pickupRow = api.db
+    .prepare("SELECT fulfillment,address FROM orders WHERE id=?")
+    .get(picked.data.id);
+  assert.equal(pickupRow.fulfillment, "pickup");
+  assert.equal(pickupRow.address, "");
+  assert.equal(
+    (await call("/api/orders", "POST", pickup, customer)).status,
+    200,
+  );
+  assert.equal(
+    (
+      await call(
+        "/api/orders",
+        "POST",
+        { ...pickup, fulfillment: "delivery", address: "Другой адрес" },
+        customer,
+      )
+    ).status,
+    409,
+  );
   const id = created.data.id;
   assert.equal(
     (
@@ -193,7 +234,7 @@ test("local retail: availability/CAS, account sessions/ownership, addresses, sto
   assert.equal(
     (await call("/api/account/orders", "GET", undefined, customer)).data.orders
       .length,
-    1,
+    2,
   );
   assert.equal(
     api.db

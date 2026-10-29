@@ -79,7 +79,7 @@ await writeFile(
 );
 await writeFile(
   resolve(output, "_headers"),
-  `/*\n  X-Content-Type-Options: nosniff\n  X-Frame-Options: DENY\n  Referrer-Policy: strict-origin-when-cross-origin\n  Permissions-Policy: camera=(), microphone=(), geolocation=()\n  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'\n/seller-assets/*\n  X-Robots-Tag: noindex, nofollow\n`,
+  `/*\n  X-Content-Type-Options: nosniff\n  X-Frame-Options: DENY\n  Referrer-Policy: strict-origin-when-cross-origin\n  Permissions-Policy: camera=(), microphone=(), geolocation=()\n  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'\n/assets/fonts/*\n  Cache-Control: public, max-age=31536000, immutable\n/seller-assets/*\n  X-Robots-Tag: noindex, nofollow\n`,
 );
 await writeFile(
   resolve(output, "404.html"),

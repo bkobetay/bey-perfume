@@ -129,6 +129,8 @@
 
 Код заказа: ${order.id}
 Имя клиента: ${order.name}
+Получение: ${order.fulfillment === "pickup" ? "Самовывоз — Достык, 108Б, 10:00–21:00" : "Доставка"}
+${order.address ? "Адрес: " + order.address : ""}
 
 ${russianItems}
 
@@ -141,6 +143,8 @@ ${russianItems}
 
 Тапсырыс коды: ${order.id}
 Клиенттің аты: ${order.name}
+Алу тәсілі: ${order.fulfillment === "pickup" ? "Дүкеннен алып кету — Достық, 108Б, 10:00–21:00" : "Жеткізу"}
+${order.address ? "Мекенжай: " + order.address : ""}
 
 ${kazakhItems}
 
@@ -173,6 +177,15 @@ ${kazakhItems}
     whatsapp.rel = "noopener noreferrer";
     contact.append(phone, whatsapp);
     article.append(contact);
+    article.append(
+      el(
+        "p",
+        "order-fulfillment",
+        order.fulfillment === "pickup"
+          ? "Самовывоз: Достык, 108Б · 10:00–21:00"
+          : "Доставка",
+      ),
+    );
     if (order.address)
       article.append(el("p", "order-address", "Адрес: " + order.address));
     if (order.comment)

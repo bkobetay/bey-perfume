@@ -84,21 +84,6 @@
       card.getAnimations().forEach((animation) => animation.cancel());
       card.hidden = !visibleCards.has(card);
     }
-    visible.forEach(({ card }, index) => {
-      if (animate && !reducedMotion.matches)
-        card.animate(
-          [
-            { opacity: 0, translate: "0 12px" },
-            { opacity: 1, translate: "0 0" },
-          ],
-          {
-            duration: 420,
-            delay: index * 25,
-            easing: "cubic-bezier(.22,1,.36,1)",
-            fill: "backwards",
-          },
-        );
-    });
     tabs.forEach((tab) => {
       const selected = tab.dataset.filter === family;
       tab.setAttribute("aria-selected", String(selected));
@@ -125,7 +110,7 @@
       results.focus({ preventScroll: true });
       results.scrollIntoView({
         block: "start",
-        behavior: reducedMotion.matches ? "instant" : "smooth",
+        behavior: "instant",
       });
     }
   }

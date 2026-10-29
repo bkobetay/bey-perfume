@@ -166,6 +166,7 @@ test("orders, authentication, persistence and security boundaries", async (t) =>
   const payload = {
     requestKey: randomUUID(),
     name: "Тестовый покупатель",
+    address: "Алматы, тестовый адрес 1",
     phone: "+7 700 000 00 00",
     items: [{ productId: product.id, ml: variant.ml, quantity: 2 }],
     expectedTotal: variant.price * 2,

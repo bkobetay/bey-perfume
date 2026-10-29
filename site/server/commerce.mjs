@@ -141,10 +141,18 @@ export function validateOrder(data, products) {
   const total = items.reduce((s, i) => s + i.subtotal, 0);
   if (data.expectedTotal !== total)
     fail(409, "Стоимость изменилась. Обновите страницу и проверьте сумму.");
+  const fulfillment = data.fulfillment ?? "delivery";
+  if (!["delivery", "pickup"].includes(fulfillment))
+    fail(400, "Выберите доставку или самовывоз.");
+  const address =
+    fulfillment === "pickup" ? "" : textField(data.address, "Адрес", 500);
+  if (fulfillment === "delivery" && !address)
+    fail(400, "Укажите адрес доставки.");
   return {
+    fulfillment,
     name: normalizeCustomerName(data.name),
     phone: "+" + digits,
-    address: textField(data.address, "Адрес", 500),
+    address,
     comment: textField(data.comment, "Комментарий", 1000),
     items,
     total,
@@ -161,7 +169,10 @@ export function matchesAcceptedOrder(data, row, accountId) {
     (row.account_id ?? null) === accountId &&
     normalizeCustomerName(data.name) === row.name &&
     "+" + phone === row.phone &&
-    textField(data.address, "Адрес", 500) === (row.address || "") &&
+    (data.fulfillment ?? "delivery") === (row.fulfillment ?? "delivery") &&
+    (data.fulfillment === "pickup"
+      ? ""
+      : textField(data.address, "Адрес", 500)) === (row.address || "") &&
     textField(data.comment, "Комментарий", 1000) === (row.comment || "") &&
     data.expectedTotal === row.total &&
     Array.isArray(data.items) &&

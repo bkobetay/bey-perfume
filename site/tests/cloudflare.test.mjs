@@ -16,10 +16,18 @@ const awaitMigration = await readFile(
   new URL("../cloudflare/migrations/0002_retail_accounts.sql", import.meta.url),
   "utf8",
 );
+const fulfillmentMigration = await readFile(
+  new URL(
+    "../cloudflare/migrations/0003_order_fulfillment.sql",
+    import.meta.url,
+  ),
+  "utf8",
+);
 function setup() {
   const sql = new DatabaseSync(":memory:");
   sql.exec(schema);
   sql.exec(awaitMigration);
+  sql.exec(fulfillmentMigration);
   for (const p of products)
     sql
       .prepare(
@@ -150,6 +158,34 @@ test("Cloudflare: retail settings, orders, customer ownership and preserved hist
     (await call("/api/orders", "POST", make({ expectedTotal: 1 }))).status,
     409,
   );
+  assert.equal(
+    (await call("/api/orders", "POST", make({ address: "" }))).status,
+    400,
+  );
+  assert.equal(
+    (await call("/api/orders", "POST", make({ fulfillment: "invalid" })))
+      .status,
+    400,
+  );
+  const pickup = make({ fulfillment: "pickup", address: "" });
+  const picked = await call("/api/orders", "POST", pickup);
+  assert.equal(picked.status, 201);
+  const pickedRow = sql
+    .prepare("SELECT fulfillment,address FROM orders WHERE id=?")
+    .get(picked.data.id);
+  assert.equal(pickedRow.fulfillment, "pickup");
+  assert.equal(pickedRow.address, "");
+  assert.equal((await call("/api/orders", "POST", pickup)).status, 200);
+  assert.equal(
+    (
+      await call("/api/orders", "POST", {
+        ...pickup,
+        fulfillment: "delivery",
+        address: "Алматы",
+      })
+    ).status,
+    409,
+  );
   const data = make(),
     created = await Promise.all([
       call("/api/orders", "POST", data),
@@ -262,7 +298,11 @@ test("Cloudflare: retail settings, orders, customer ownership and preserved hist
   );
   current = (await call("/api/products")).data.products[0];
   assert.equal(current.pricePerMl, 800);
-  assert.equal(current.onSale, true, "timer expiry must not silently change the seller price");
+  assert.equal(
+    current.onSale,
+    true,
+    "timer expiry must not silently change the seller price",
+  );
   const registered = await call("/api/account/register", "POST", {
     email: "Buyer@Example.com",
     password: "a secure test password",
@@ -490,6 +530,7 @@ test("retail migration preserves historical orders, events and stock audit rows"
       movements: sql.prepare("SELECT * FROM inventory_movements").all(),
     };
     sql.exec(awaitMigration);
+    sql.exec(fulfillmentMigration);
     const after = sql.prepare("SELECT * FROM orders").get();
     for (const [key, value] of Object.entries(before.order))
       assert.equal(after[key], value, key);
@@ -505,6 +546,7 @@ test("retail migration preserves historical orders, events and stock audit rows"
     assert.equal(after.address, "");
     assert.equal(after.comment, "");
     assert.equal(after.account_id, null);
+    assert.equal(after.fulfillment, "delivery");
   } finally {
     sql.close();
   }

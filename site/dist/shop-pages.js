@@ -128,12 +128,10 @@
             .join("");
         target.querySelector(".detail-buy").append(tabs);
         info.remove();
-        let panelAnimation;
         const tabButtons = [...tabs.querySelectorAll("[role=tab]")];
         function activateTab(index, keyboard = false) {
           const selected = tabButtons[index];
           if (selected.getAttribute("aria-selected") === "true") return;
-          panelAnimation?.cancel();
           tabButtons.forEach((button, i) => {
             const on = i === index;
             button.setAttribute("aria-selected", String(on));
@@ -142,22 +140,6 @@
               button.getAttribute("aria-controls"),
             ).hidden = !on;
           });
-          const panel = document.getElementById(
-            selected.getAttribute("aria-controls"),
-          );
-          if (
-            !keyboard &&
-            !matchMedia("(prefers-reduced-motion:reduce)").matches
-          )
-            panelAnimation = panel.animate(
-              panel.id === "product-panel-performance"
-                ? [{ transform: "translateY(5px)" }, { transform: "none" }]
-                : [
-                    { opacity: 0.2, transform: "translateY(5px)" },
-                    { opacity: 1, transform: "none" },
-                  ],
-              { duration: 220, easing: "cubic-bezier(.22,1,.36,1)" },
-            );
         }
         tabButtons.forEach((button, index) => {
           button.onclick = (event) => activateTab(index, event.detail === 0);

@@ -67,7 +67,7 @@ export function customerAuth({ first, all, run, limit, secure, cookies }) {
         const account = await current();
         if (!account) fail(401, "Войдите в личный кабинет.");
         const orders = await all(
-          "SELECT id,name,phone,address,comment,items,total,status,created_at,updated_at FROM orders WHERE account_id=? ORDER BY created_at DESC,id DESC LIMIT 100",
+          "SELECT id,name,phone,address,comment,fulfillment,items,total,status,created_at,updated_at FROM orders WHERE account_id=? ORDER BY created_at DESC,id DESC LIMIT 100",
           account.id,
         );
         return {

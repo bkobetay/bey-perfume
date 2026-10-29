@@ -202,7 +202,7 @@ export function createAPI(products, directory = privateDir) {
               return send(res, 200, { id: prior.id, total: prior.total });
             }
             db.prepare(
-              "INSERT INTO orders (id, request_key, fingerprint, name, phone, items, total, created_at, updated_at,address,comment,account_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+              "INSERT INTO orders (id, request_key, fingerprint, name, phone, items, total, created_at, updated_at,address,comment,account_id,fulfillment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             ).run(
               id,
               data.requestKey,
@@ -216,6 +216,7 @@ export function createAPI(products, directory = privateDir) {
               validated.address,
               validated.comment,
               validated.accountId,
+              validated.fulfillment,
             );
             db.prepare(
               "INSERT INTO events (order_id, status, at) VALUES (?, ?, ?)",
