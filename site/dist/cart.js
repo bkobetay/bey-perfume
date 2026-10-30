@@ -301,6 +301,7 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
         decorateSale(card, p, variant, priceLabel);
       }
       button.disabled = p.available === false;
+      card.classList.toggle("is-sold-out", p.available === false);
       const quick = card.querySelector(".buy-now");
       if (quick) quick.disabled = p.available === false;
       if (!button.classList.contains("is-added") || p.available === false) {
