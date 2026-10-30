@@ -1,3 +1,4 @@
+import { trackOrder } from "../server/order-tracking.mjs";
 import products from "../data/products.json" with { type: "json" };
 import {
   productPatch,
@@ -145,9 +146,12 @@ export async function handleAPI(request, env) {
     if (method !== "GET" && request.headers.get("Origin") !== url.origin)
       fail(403, "Запрос с другого сайта запрещён.");
     async function limit(kind, max, windowMs) {
-      const now = Date.now();
       const ip = request.headers.get("CF-Connecting-IP") || "local";
-      const key = await digest(kind + ":" + ip + ":" + env.SECURITY_KEY);
+      return limitKey(kind + ":" + ip, max, windowMs);
+    }
+    async function limitKey(name, max, windowMs) {
+      const now = Date.now();
+      const key = await digest(name + ":" + env.SECURITY_KEY);
       const row = await first(
         "INSERT INTO rate_limits(key,hits,expires) VALUES (?,1,?) ON CONFLICT(key) DO UPDATE SET hits=CASE WHEN expires<=? THEN 1 ELSE hits+1 END,expires=CASE WHEN expires<=? THEN ? ELSE expires END RETURNING hits",
         key,
@@ -233,6 +237,15 @@ export async function handleAPI(request, env) {
       );
       return json({ ok: true }, 200, { "Set-Cookie": cookie(token, secure) });
     }
+    if (method === "POST" && path === "/api/orders/track")
+      return json(
+        await trackOrder({
+          data: await body(request),
+          first,
+          limit,
+          limitKey,
+        }),
+      );
     if (method === "POST" && path === "/api/orders") {
       await limit("order", 30, 10 * 60 * 1000);
       const data = await body(request);

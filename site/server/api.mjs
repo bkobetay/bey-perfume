@@ -13,6 +13,7 @@ import { randomBytes, createHash, scrypt, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import { resolve } from "node:path";
 import { openStore, privateDir, presentOrder, statuses } from "./store.mjs";
+import { trackOrder } from "./order-tracking.mjs";
 
 const digest = (value) => createHash("sha256").update(value).digest("hex");
 const fail = (status, message) => {
@@ -170,6 +171,21 @@ export function createAPI(products, directory = privateDir) {
             {
               "Set-Cookie": `bey_session=${token}; HttpOnly; SameSite=Strict; Path=/api/admin; Max-Age=28800`,
             },
+          );
+        }
+        if (req.method === "POST" && path === "/api/orders/track") {
+          const data = await body(req);
+          return send(
+            res,
+            200,
+            await trackOrder({
+              data,
+              first: async (sql, ...args) =>
+                db.prepare(sql).get(...args) || null,
+              limit: async (kind, max, ms) =>
+                limit(kind + ":" + req.socket.remoteAddress, max, ms),
+              limitKey: async (key, max, ms) => limit(key, max, ms),
+            }),
           );
         }
         if (req.method === "POST" && path === "/api/orders") {

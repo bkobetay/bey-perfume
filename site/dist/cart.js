@@ -775,6 +775,12 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
       document.documentElement.dataset.cartState = "success";
       success.hidden = false;
       success.querySelector(".receipt-code").textContent = result.id;
+      let track = success.querySelector(".receipt-track");
+      if (!track) {
+        track = el("a", "button receipt-track", "Отследить заказ");
+        success.querySelector(".continue-shopping").before(track);
+      }
+      track.href = "/track?code=" + encodeURIComponent(result.id);
       success.querySelector(".receipt-total").textContent =
         "Сумма: " + money(result.total);
       success.querySelector(".receipt-fulfillment").textContent =

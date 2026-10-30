@@ -7070,3 +7070,120 @@ html {
     gap: 12px;
   }
 }
+
+/* Stage 62: guest order tracking. */
+.track {
+  display: grid;
+  grid-template-columns: minmax(0, 400px) minmax(0, 1fr);
+  align-items: start;
+  gap: 24px;
+  margin-bottom: 48px;
+}
+.track-form,
+.track-result {
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+}
+.track-form {
+  display: grid;
+  gap: 14px;
+}
+.track-form label {
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.track-form input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 46px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 400;
+}
+.track-phone {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.track-phone > span {
+  flex: none;
+  font-size: 16px;
+  font-weight: 400;
+}
+.track-form .button {
+  width: 100%;
+  border: 0;
+  cursor: pointer;
+}
+.track-form .button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.track-message {
+  margin: 0;
+  color: #b3362b;
+  font-size: 14px;
+}
+.track-message:empty {
+  display: none;
+}
+.track-hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.track-result[hidden] {
+  display: none;
+}
+.track-result:focus {
+  outline: none;
+}
+.track-code {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.track-head h2 {
+  margin: 4px 0 0;
+  font-size: 22px;
+  line-height: 1.25;
+}
+.track-facts {
+  margin: 0 0 18px;
+  font-size: 14px;
+}
+.track-facts > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 9px 0;
+  border-top: 1px solid var(--line);
+}
+.track-facts dt {
+  color: var(--muted);
+}
+.track-facts dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+}
+.receipt-track {
+  display: block;
+  margin-bottom: 10px;
+  text-align: center;
+}
+@media (max-width: 760px) {
+  .track {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

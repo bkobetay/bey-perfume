@@ -46,6 +46,37 @@ test("local retail: availability/CAS, account sessions/ownership, addresses, sto
       cookie: response.headers.get("set-cookie")?.split(";")[0],
     };
   }
+  const missing = await call("/api/orders/track", "POST", {
+    code: "ARF-010101-99",
+    phone: "700 000 0000",
+  });
+  assert.equal(missing.status, 404);
+  api.db
+    .prepare(
+      "INSERT INTO orders (id,request_key,fingerprint,name,phone,items,total,created_at,updated_at,address,comment,note) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+    )
+    .run(
+      "ARF-010101-01",
+      randomUUID(),
+      "f",
+      "Секретное Имя",
+      "+77000000000",
+      JSON.stringify([{ quantity: 2 }, { quantity: 1 }]),
+      5000,
+      "2026-01-01T00:00:00.000Z",
+      "2026-01-01T00:00:00.000Z",
+      "Секретный адрес",
+      "Секретный комментарий",
+      "Секретная заметка",
+    );
+  const tracked = await call("/api/orders/track", "POST", {
+    code: "arf-010101-01",
+    phone: "700 000 0000",
+  });
+  assert.equal(tracked.status, 200);
+  assert.equal(tracked.data.positions, 3);
+  assert.doesNotMatch(JSON.stringify(tracked.data), /Секрет|\+7700/);
+  api.db.prepare("DELETE FROM orders WHERE id=?").run("ARF-010101-01");
   const p = (await call("/api/products")).data.products[0];
   assert.deepEqual(
     p.variants.map((v) => v.ml),

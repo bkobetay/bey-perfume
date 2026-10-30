@@ -60,7 +60,8 @@ const server = http.createServer(async (request, response) => {
       const allowed = admin
         ? url.pathname.startsWith("/api/admin/")
         : (url.pathname === "/api/products" && request.method === "GET") ||
-          (url.pathname === "/api/orders" && request.method === "POST") ||
+          (["/api/orders", "/api/orders/track"].includes(url.pathname) &&
+            request.method === "POST") ||
           (url.pathname.startsWith("/api/account") &&
             ["GET", "POST"].includes(request.method));
       if (!allowed) {
@@ -122,6 +123,7 @@ const server = http.createServer(async (request, response) => {
                 "/raspiv",
                 "/sets",
                 "/promotions",
+                "/track",
                 "/wholesale",
                 "/about",
                 "/contacts",

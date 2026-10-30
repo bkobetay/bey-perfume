@@ -175,6 +175,52 @@ test("Cloudflare: retail settings, orders, customer ownership and preserved hist
   const pickup = make({ fulfillment: "pickup", address: "" });
   const picked = await call("/api/orders", "POST", pickup);
   assert.equal(picked.status, 201);
+  const track = (code, phone, ip = "198.51.100.7") =>
+    call("/api/orders/track", "POST", { code, phone }, { auth: false, ip });
+  const orderPhone = sql
+    .prepare("SELECT phone FROM orders WHERE id=?")
+    .get(picked.data.id).phone;
+  const found = await track(picked.data.id.toLowerCase(), orderPhone);
+  assert.equal(found.status, 200);
+  assert.deepEqual(Object.keys(found.data).sort(), [
+    "createdAt",
+    "fulfillment",
+    "id",
+    "positions",
+    "status",
+    "total",
+    "updatedAt",
+  ]);
+  assert.equal(found.data.fulfillment, "pickup");
+  const wrongPhone = await track(picked.data.id, "+7 700 000 0001");
+  const wrongCode = await track("ARF-010101-99", orderPhone);
+  assert.equal(wrongPhone.status, 404);
+  assert.deepEqual(wrongPhone.data, wrongCode.data);
+  assert.equal((await track("anything", orderPhone)).status, 400);
+  assert.equal(
+    (
+      await call(
+        "/api/orders/track",
+        "POST",
+        { code: picked.data.id, phone: orderPhone },
+        { auth: false, origin: "https://evil.example" },
+      )
+    ).status,
+    403,
+  );
+  // Guesses from many addresses still hit the cap for one order.
+  let guessed;
+  for (let i = 0; i < 25; i++)
+    guessed = await track(
+      picked.data.id,
+      "+7 700 000 " + String(1000 + i),
+      "203.0.113." + i,
+    );
+  assert.equal(guessed.status, 429);
+  assert.equal(
+    (await track(picked.data.id, orderPhone, "203.0.113.200")).status,
+    429,
+  );
   const pickedRow = sql
     .prepare("SELECT fulfillment,address FROM orders WHERE id=?")
     .get(picked.data.id);
