@@ -3,7 +3,7 @@
   const grid = document.querySelector("#product-grid");
   if (!grid) return;
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
-  const tabs = [...document.querySelectorAll("[data-filter]")];
+  const familyInputs = [...document.querySelectorAll('input[name="family"]')];
   const cards = [...grid.querySelectorAll(".product-card")];
   const search = document.querySelector("#fragrance-search");
   const clear = document.querySelector(".search-clear");
@@ -105,7 +105,7 @@
   };
   function readURL() {
     const params = new URL(location.href).searchParams;
-    family = tabs.some((tab) => tab.dataset.filter === params.get("family"))
+    family = familyInputs.some((input) => input.value === params.get("family"))
       ? params.get("family")
       : "all";
     search.value = (params.get("q") || "").slice(0, 120);
@@ -146,9 +146,11 @@
     if (url.href !== location.href)
       history[mode === "push" ? "pushState" : "replaceState"](null, "", url);
   }
+  const matchesWords = (entry, words) =>
+    words.every((word) => entry.text.includes(word));
   const matchesBase = (entry, words) =>
     (family === "all" || entry.categories.includes(family)) &&
-    words.every((word) => entry.text.includes(word));
+    matchesWords(entry, words);
   function render({
     historyMode = "replace",
     animate = true,
@@ -173,12 +175,6 @@
       card.getAnimations().forEach((animation) => animation.cancel());
       card.hidden = !visibleCards.has(card);
     }
-    tabs.forEach((tab) => {
-      const selected = tab.dataset.filter === family;
-      tab.setAttribute("aria-selected", String(selected));
-      tab.tabIndex = selected ? 0 : -1;
-      if (selected) results.setAttribute("aria-labelledby", tab.id);
-    });
     document.querySelector("#filter-description").textContent =
       descriptions[family];
     document.querySelector("#catalog-count").textContent =
@@ -208,27 +204,6 @@
       });
     }
   }
-  tabs.forEach((tab, index) => {
-    const select = (event) => {
-      if (family === tab.dataset.filter) return;
-      family = tab.dataset.filter;
-      page = 1;
-      render({ historyMode: "push", animate: event.detail !== 0 });
-    };
-    tab.addEventListener("click", select);
-    tab.addEventListener("keydown", (event) => {
-      let next;
-      if (event.key === "ArrowRight") next = (index + 1) % tabs.length;
-      if (event.key === "ArrowLeft")
-        next = (index + tabs.length - 1) % tabs.length;
-      if (event.key === "Home") next = 0;
-      if (event.key === "End") next = tabs.length - 1;
-      if (next === undefined) return;
-      event.preventDefault();
-      tabs[next].focus({ preventScroll: true });
-      tabs[next].click();
-    });
-  });
   document
     .querySelector("#header-search-form")
     .addEventListener("submit", (event) => {
@@ -274,10 +249,14 @@
     render({ animate: false });
   });
   const dialog = document.querySelector("#catalog-filters");
+  // Wide screens keep this same element open as a sidebar; phones show it as a sheet.
+  const sidebar = matchMedia("(min-width: 1051px)");
+  sidebar.addEventListener("change", () => {
+    if (dialog?.open) dialog.close();
+  });
   const openFilters = document.querySelector("#catalog-filter-open");
   const filterCount = document.querySelector("#catalog-filter-count");
   const activeList = document.querySelector("#catalog-active");
-  const scentBox = document.querySelector("#filter-scents");
   const brandBox = document.querySelector("#filter-brands");
   const brandSearch = document.querySelector("#filter-brand-search");
   const fields = {
@@ -286,29 +265,11 @@
     min: document.querySelector("#filter-min"),
     max: document.querySelector("#filter-max"),
   };
-  const filterOption = (group, value, text) => {
-    const label = document.createElement("label");
-    const input = document.createElement("input");
-    const name = document.createElement("span");
-    const count = document.createElement("small");
-    input.type = "checkbox";
-    input.dataset.group = group;
-    input.value = value;
-    name.textContent = text;
-    label.append(input, name, count);
-    return label;
-  };
-  const brands = [...new Set(entries.map((e) => e.brand))].sort((a, b) =>
-    a.localeCompare(b, "ru"),
-  );
-  scentBox?.append(
-    ...Object.entries(scentNames).map(([k, v]) => filterOption("scents", k, v)),
-  );
-  brandBox?.append(...brands.map((b) => filterOption("brands", b, b)));
-  // A catalog that fits on one page does not need filters.
-  if (openFilters) openFilters.hidden = entries.length <= pageSize;
   function syncFilterControls() {
     if (!dialog) return;
+    familyInputs.forEach((input) => {
+      input.checked = input.value === family;
+    });
     fields.stock.checked = filters.stock;
     fields.sale.checked = filters.sale;
     fields.min.value = filters.min ?? "";
@@ -320,6 +281,9 @@
   function drawFilters(found, words) {
     if (!dialog) return;
     const active = [
+      ...(family !== "all"
+        ? [["family", "", familyInputs.find((i) => i.value === family).parentElement.querySelector("span").textContent]]
+        : []),
       ...(filters.stock ? [["stock", "", "В наличии"]] : []),
       ...(filters.sale ? [["sale", "", "Со скидкой"]] : []),
       ...(filters.min !== null || filters.max !== null
@@ -349,7 +313,17 @@
     filterCount.hidden = !active.length;
     filterCount.textContent = active.length;
     document.querySelector("#filter-show").textContent = "Показать " + label(found);
-    document.querySelector("#filter-clear").disabled = !active.length;
+    document.querySelector("#filter-clear").hidden = !active.length;
+    familyInputs.forEach((input) => {
+      const n = entries.filter(
+        (entry) =>
+          (input.value === "all" || entry.categories.includes(input.value)) &&
+          matchesWords(entry, words) &&
+          passesFilters(entry),
+      ).length;
+      input.parentElement.querySelector("small").textContent = n;
+      input.parentElement.classList.toggle("is-empty", !n && !input.checked);
+    });
     for (const group of ["scents", "brands"]) {
       const counts = new Map();
       for (const entry of entries) {
@@ -370,12 +344,21 @@
   }
   openFilters?.addEventListener("click", () => dialog.showModal());
   dialog?.addEventListener("click", (event) => {
-    if (event.target === dialog || event.target.closest("[data-filters-close]"))
+    if (
+      dialog.open &&
+      (event.target === dialog || event.target.closest("[data-filters-close]"))
+    )
       dialog.close();
   });
   dialog?.addEventListener("submit", (event) => event.preventDefault());
   dialog?.addEventListener("change", (event) => {
     const input = event.target;
+    if (input.name === "family") {
+      family = input.value;
+      page = 1;
+      render({ historyMode: "push", animate: false });
+      return;
+    }
     if (input.dataset.group) {
       const set = filters[input.dataset.group];
       if (input.checked) set.add(input.value);
@@ -399,6 +382,7 @@
   });
   document.querySelector("#filter-clear")?.addEventListener("click", () => {
     filters = emptyFilters();
+    family = "all";
     syncFilterControls();
     filtersChanged();
   });
@@ -406,7 +390,8 @@
     const chip = event.target.closest("[data-chip]");
     if (!chip) return;
     const group = chip.dataset.chip;
-    if (group === "price") filters.min = filters.max = null;
+    if (group === "family") family = "all";
+    else if (group === "price") filters.min = filters.max = null;
     else if (group === "stock" || group === "sale") filters[group] = false;
     else filters[group].delete(chip.dataset.value);
     syncFilterControls();
@@ -435,10 +420,16 @@
   syncFilterControls();
   render({ animate: false });
   applyStoreData();
-  // The tab chosen in the URL appears instantly; only later clicks animate.
-  requestAnimationFrame(() =>
-    requestAnimationFrame(() =>
-      document.querySelector(".scent-tabs")?.classList.remove("is-initializing"),
-    ),
-  );
+  // Phones start with the long groups folded, so the panel fits without scrolling.
+  if (sidebar.matches === false) {
+    const inUse = {
+      price: filters.min !== null || filters.max !== null,
+      scents: filters.scents.size > 0,
+      brands: filters.brands.size > 0,
+    };
+    dialog?.querySelectorAll(".filter-group").forEach((group) => {
+      const name = group.dataset.groupName;
+      group.open = name === "family" || inUse[name];
+    });
+  }
 })();
