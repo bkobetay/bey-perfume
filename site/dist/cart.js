@@ -32,12 +32,22 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
   toast.setAttribute("role", "status");
   document.body.append(toast);
   let toastTimer;
-  function notify(text) {
+  function notify(text, link) {
     toast.textContent = text;
+    toast.classList.toggle("has-link", !!link);
+    if (link) {
+      const a = el("a", "", link.label);
+      a.href = link.href;
+      toast.append(a);
+    }
     toast.classList.add("shown");
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toast.classList.remove("shown"), 2800);
+    toastTimer = setTimeout(
+      () => toast.classList.remove("shown"),
+      link ? 4500 : 2800,
+    );
   }
+  const cartLink = { href: "/cart", label: "Открыть корзину" };
   // Basket lines are either {productId, type, ml, quantity} or {setId, quantity}.
   const detail = (item) => {
     if (item?.setId !== undefined) {
@@ -420,7 +430,11 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
     document
       .querySelectorAll(".cart-count")
       .forEach(
-        (e) => (e.textContent = basket.reduce((n, i) => n + i.quantity, 0)),
+        (e) => {
+          const count = basket.reduce((n, i) => n + i.quantity, 0);
+          e.textContent = count;
+          e.toggleAttribute("data-empty", !count);
+        },
       );
     list.replaceChildren();
     for (const [index, item] of basket.entries()) {
@@ -796,6 +810,9 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
     .then((data) => {
       products = data.products;
       sets = data.sets || [];
+      // The catalog and homepage read prices from this single request.
+      window.storeData = data;
+      document.dispatchEvent(new Event("store:data"));
       const seen = new Set();
       basket = basket
         .filter((i) => {
@@ -842,7 +859,7 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
             setButton.classList.remove("is-added");
             updateAvailability();
           }, 1200);
-          notify("Набор добавлен в корзину");
+          notify("Набор добавлен в корзину", cartLink);
           return;
         }
         const button = event.target.closest("[data-add]");
@@ -898,7 +915,7 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
           button.classList.remove("is-added");
           updateAvailability();
         }, 1200);
-        notify("Аромат добавлен в корзину");
+        notify("Аромат добавлен в корзину", cartLink);
       });
       updateAvailability();
       function syncBasket() {
@@ -942,6 +959,8 @@ import { customerNameError, normalizeCustomerName } from "/name-validation.js";
       });
     })
     .catch(() => {
+      window.storeData = null;
+      document.dispatchEvent(new Event("store:data"));
       form.hidden = true;
       list.hidden = true;
       panel.querySelector(".cart-empty").hidden = true;

@@ -472,6 +472,12 @@ document.addEventListener("click", (event) => {
   window.dispatchEvent(new Event("store:favorites-changed"));
 });
 syncProductActions();
+document.querySelector("[data-focus-search]")?.addEventListener("click", () => {
+  const field = document.querySelector(".header-search input");
+  if (!field) return;
+  scrollTo({ top: 0, behavior: "instant" });
+  field.focus();
+});
 document.addEventListener("store:refresh-controls", syncProductActions);
 window.addEventListener("store:favorites-changed", syncProductActions);
 window.addEventListener("storage", syncProductActions);

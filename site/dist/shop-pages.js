@@ -74,6 +74,75 @@
         "",
       )}</ul><div class="price-row"><strong class="set-price">${money(set.price)}</strong>${set.onSale ? `<del class="sale-old-price">${money(set.regularPrice)}</del><span class="sale-save">Выгода ${money(set.regularPrice - set.price)}</span>` : ""}</div>${separate > 0 ? `<p class="set-separate">По отдельности — ${money(set.componentsPrice)}</p>` : ""}${set.onSale && future(set.saleEndsAt) ? tiles(set.saleEndsAt, set.promotion ? `«${set.promotion.title}» закончится через` : "Акция закончится через") : ""}<button type="button" class="button" data-add-set="${esc(set.id)}" disabled>Добавить набор в корзину</button></div></article>`;
   }
+  // Shared card for the recommendation sections of a fragrance page.
+  const miniCard = (x) =>
+    `<article class="product-card" data-product="${esc(x.id)}"><a class="product-visual" href="/fragrance?id=${esc(x.id)}">${x.image ? `<img src="/assets/products/${esc(x.image)}" alt="Флакон ${esc(x.brand)} ${esc(x.name)}" width="800" height="800" loading="lazy">` : ""}</a><div class="product-copy"><span class="type-label ${x.type === "razliv" ? "razliv" : ""}">${x.type === "razliv" ? "Разлив" : "Распив оригинала"} · ${audiences[x.audience] || ""}</span><span class="sku">Код: ${esc(x.code)}</span><p class="product-brand">${esc(x.brand)}</p><h3><a href="/fragrance?id=${esc(x.id)}">${esc(x.name)}</a></h3><p class="product-notes">${esc(x.notes)}</p><div class="purchase-controls"><strong class="current-price" data-current-price>${money(x.variants[0].price)}</strong><label>Объём<select class="volume-select" aria-label="Объём ${esc(x.name)}">${x.variants.map((v) => `<option value="${v.ml}">${v.ml} мл — ${money(v.price)}</option>`).join("")}</select></label><div class="card-actions"><button class="add-cart" data-add="${esc(x.id)}" disabled>В корзину</button><button type="button" class="favorite-toggle" data-favorite-id="${esc(x.id)}" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 5.5c-2.2-2.3-5.6-1.8-8.5 1.3-2.9-3.1-6.3-3.6-8.5-1.3C.6 8.5 3 13 12 20c9-7 11.4-11.5 8.5-14.5Z"/></svg></button></div><span class="product-availability" role="status"></span></div></div></article>`;
+  // Tap the photo to look closer; the native dialog handles focus and Esc.
+  function addPhotoZoom(visual, title) {
+    const image = visual?.querySelector("img");
+    if (!image) return;
+    const open = document.createElement("button");
+    open.type = "button";
+    open.className = "photo-zoom";
+    open.setAttribute("aria-label", "Увеличить фото " + title);
+    open.innerHTML =
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5M10.5 7.5v6M7.5 10.5h6"/></svg>';
+    visual.append(open);
+    const dialog = document.createElement("dialog");
+    dialog.className = "photo-lightbox";
+    dialog.setAttribute("aria-label", "Фото " + title);
+    dialog.innerHTML =
+      '<button type="button" class="photo-lightbox-close" aria-label="Закрыть фото"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>';
+    const large = new Image();
+    large.alt = image.alt;
+    dialog.append(large);
+    document.body.append(dialog);
+    const show = () => {
+      large.src = image.src;
+      dialog.showModal();
+    };
+    open.onclick = show;
+    image.onclick = show;
+    dialog.onclick = () => dialog.close();
+  }
+  // On phones the buy button stays reachable while the description is being read.
+  function addBuyBar(root) {
+    const add = root.querySelector(".detail-actions [data-add]");
+    const controls = root.querySelector(".detail-product .purchase-controls");
+    if (!add || !controls) return;
+    const select = controls.querySelector(".volume-select");
+    const bar = document.createElement("div");
+    bar.className = "buy-bar";
+    bar.innerHTML =
+      '<div><small></small><strong></strong></div><button type="button" class="button">В корзину</button><a class="button" href="/cart" hidden></a>';
+    const button = bar.querySelector("button"),
+      link = bar.querySelector("a");
+    button.onclick = () => add.click();
+    document.body.append(bar);
+    const sync = () => {
+      bar.querySelector("small").textContent = select.value + " мл";
+      bar.querySelector("strong").textContent =
+        controls.querySelector("[data-current-price]").textContent;
+      const inCart = controls.querySelector(".in-cart-control:not([hidden]) .in-cart-count");
+      button.hidden = !!inCart;
+      link.hidden = !inCart;
+      if (inCart) link.textContent = inCart.textContent;
+      button.disabled = add.disabled;
+      button.textContent = add.disabled ? "Нет в наличии" : "В корзину";
+    };
+    sync();
+    select.addEventListener("change", sync);
+    new MutationObserver(sync).observe(controls, {
+      subtree: true,
+      childList: true,
+      characterData: true,
+      attributes: true,
+      attributeFilter: ["hidden", "disabled"],
+    });
+    new IntersectionObserver(([entry]) => {
+      document.body.classList.toggle("has-buy-bar", !entry.isIntersecting);
+    }).observe(root.querySelector(".detail-actions"));
+  }
   function rating(value, label) {
     const ok = Number.isFinite(value) && value >= 0 && value <= 10;
     return `<div class="rating-item"><div class="rating-circle" role="img" aria-label="${label}: ${ok ? value + " из 10" : "оценка пока не указана"}"><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="rating-track" cx="60" cy="60" r="51"/><circle class="rating-arc" cx="60" cy="60" r="51" pathLength="100" stroke-dasharray="${ok ? value * 10 : 0} 100"/></svg><span>${ok ? value : "—"}<small>/10</small></span></div><span>${label}</span></div>`;
@@ -123,7 +192,7 @@
     <article class="product-card detail-product" data-product="${esc(p.id)}"><div class="detail-gallery"><div class="product-visual">${p.image ? `<img src="/assets/products/${esc(p.image)}" alt="Аромат-ориентир ${esc(p.brand)} ${esc(p.name)}" width="800" height="800" fetchpriority="high">` : ""}</div><p class="gallery-caption">${p.type === "razliv" ? "На фото — флакон аромата-ориентира. В заказе — разливная парфюмерия в выбранном объёме." : "На фото — оригинальный флакон. Вы заказываете выбранный объём распива."}</p></div>
     <div class="product-copy detail-buy"><div class="detail-meta"><span class="type-label ${p.type === "razliv" ? "razliv" : ""}">${type}</span><span class="sku">Артикул ${esc(p.code)}</span></div><p class="product-brand">${esc(p.brand)}</p><h1>${esc(p.name)}</h1><p class="detail-audience">${audience} аромат</p><span class="product-availability" role="status">${p.available ? "В наличии" : "Нет в наличии"}</span>
     <div class="purchase-controls"><strong class="current-price" data-current-price>${money(selectedVariant.price)}</strong><div class="volume-picker"><span class="volume-picker-label" id="volume-picker-label">Объём флакона</span><div class="volume-pills" role="radiogroup" aria-labelledby="volume-picker-label">${p.variants.map((v) => `<button type="button" role="radio" data-ml="${v.ml}" aria-checked="${v.ml === selectedVariant.ml}" tabindex="${v.ml === selectedVariant.ml ? 0 : -1}"><strong>${v.ml} мл</strong><span>${money(v.price)}</span>${v.originalPrice ? `<del>${money(v.originalPrice)}</del>` : ""}</button>`).join("")}</div><label class="visually-hidden" aria-hidden="true">Объём флакона<select class="volume-select" tabindex="-1">${p.variants.map((v) => `<option value="${v.ml}" ${v.ml === selectedVariant.ml ? "selected" : ""}>${v.ml} мл — ${money(v.price)}</option>`).join("")}</select></label></div><p class="unit-price">${money(p.pricePerMl)} за 1 мл${p.onSale ? ` <del>${money(p.basePricePerMl)}</del>` : ""} · без доплаты за упаковку</p><div class="detail-actions"><button data-add="${esc(p.id)}" class="add-cart" disabled>Добавить в корзину</button><button class="favorite-toggle" aria-pressed="false" aria-label="Сохранить ${esc(p.name)} в избранное"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 5.5c-2.2-2.3-5.6-1.8-8.5 1.3-2.9-3.1-6.3-3.6-8.5-1.3C.6 8.5 3 13 12 20c9-7 11.4-11.5 8.5-14.5Z"/></svg></button></div><button class="button button-glass buy-now" disabled>Добавить и оформить</button></div>
-    <a class="product-question" href="https://wa.me/77472886509?text=${encodeURIComponent(question)}" target="_blank" rel="noopener">Есть вопрос об аромате? Напишите нам</a><p class="detail-delivery">Доставка — отдельно при получении. Итоговая стоимость товаров отображается в корзине.</p></div></article>
+    <div class="product-contact"><span>Есть вопрос об аромате?</span><div><a href="tel:+77472886509"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2c0 9 7 16 16 16a2 2 0 0 0 2-2v-3l-5-2-2 3a14 14 0 0 1-7-7l3-2-2-5Z"/></svg>Позвонить</a><a href="https://wa.me/77472886509?text=${encodeURIComponent(question)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-12 7L3 20l1.5-5A8 8 0 1 1 20 11.5Z"/></svg>WhatsApp</a></div></div><dl class="detail-fulfillment"><div><dt>Самовывоз</dt><dd>Алматы, Достык, 108Б. Ежедневно с 10:00 до 21:00.</dd></div><div><dt>Доставка</dt><dd>Курьером «Яндекс». Оплачивается отдельно при получении, стоимость зависит от адреса.</dd></div><div><dt>После заказа</dt><dd>Магазин свяжется с вами, чтобы уточнить детали. Онлайн-оплата на сайте пока не подключена.</dd></div></dl></div></article>
     <section class="fragrance-information"><div class="fragrance-description"><p class="kicker">ЗНАКОМСТВО С АРОМАТОМ</p><h2>Описание и ноты</h2><p>${esc(p.description)}</p><div class="note-list" aria-label="Основные ноты">${p.notes
       .split(/[·,]/)
       .map((n) => `<span>${esc(n.trim())}</span>`)
@@ -320,14 +389,30 @@
           const section = document.createElement("section");
           section.className = "similar-fragrances";
           section.setAttribute("aria-labelledby", "similar-title");
-          section.innerHTML = `<div class="section-heading"><div><p class="kicker">ПОХОЖИЕ АРОМАТЫ</p><h2 id="similar-title">Вам может понравиться</h2></div><a class="catalog-view-all" href="${back}"><span>${esc(group)}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg></a></div><div class="product-grid">${similar
-            .map(
-              (x) =>
-                `<article class="product-card" data-product="${esc(x.id)}"><a class="product-visual" href="/fragrance?id=${esc(x.id)}">${x.image ? `<img src="/assets/products/${esc(x.image)}" alt="Флакон ${esc(x.brand)} ${esc(x.name)}" width="800" height="800" loading="lazy">` : ""}</a><div class="product-copy"><span class="type-label ${x.type === "razliv" ? "razliv" : ""}">${x.type === "razliv" ? "Разлив" : "Распив оригинала"} · ${audiences[x.audience] || ""}</span><span class="sku">Код: ${esc(x.code)}</span><p class="product-brand">${esc(x.brand)}</p><h3><a href="/fragrance?id=${esc(x.id)}">${esc(x.name)}</a></h3><p class="product-notes">${esc(x.notes)}</p><div class="purchase-controls"><strong class="current-price" data-current-price>${money(x.variants[0].price)}</strong><label>Объём<select class="volume-select" aria-label="Объём ${esc(x.name)}">${x.variants.map((v) => `<option value="${v.ml}">${v.ml} мл — ${money(v.price)}</option>`).join("")}</select></label><div class="card-actions"><button class="add-cart" data-add="${esc(x.id)}" disabled>В корзину</button><button type="button" class="favorite-toggle" data-favorite-id="${esc(x.id)}" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 5.5c-2.2-2.3-5.6-1.8-8.5 1.3-2.9-3.1-6.3-3.6-8.5-1.3C.6 8.5 3 13 12 20c9-7 11.4-11.5 8.5-14.5Z"/></svg></button></div><span class="product-availability" role="status"></span></div></div></article>`,
-            )
-            .join("")}</div>`;
+          section.innerHTML = `<div class="section-heading"><div><p class="kicker">ПОХОЖИЕ АРОМАТЫ</p><h2 id="similar-title">Вам может понравиться</h2></div><a class="catalog-view-all" href="${back}"><span>${esc(group)}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg></a></div><div class="product-grid">${similar.map(miniCard).join("")}</div>`;
           target.append(section);
         }
+        const sameBrand = products
+          .filter(
+            (x) =>
+              x.id !== p.id &&
+              x.brand === p.brand &&
+              x.available !== false &&
+              !similar.includes(x),
+          )
+          .slice(0, 4);
+        if (sameBrand.length) {
+          const section = document.createElement("section");
+          section.className = "similar-fragrances";
+          section.setAttribute("aria-labelledby", "brand-title");
+          section.innerHTML = `<div class="section-heading"><div><p class="kicker">ЭТОТ БРЕНД</p><h2 id="brand-title">Ещё от ${esc(p.brand)}</h2></div><a class="catalog-view-all" href="/catalog?brand=${encodeURIComponent(p.brand)}"><span>Все ароматы бренда</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg></a></div><div class="product-grid">${sameBrand.map(miniCard).join("")}</div>`;
+          target.append(section);
+        }
+        addPhotoZoom(
+          target.querySelector(".detail-gallery .product-visual"),
+          p.brand + " " + p.name,
+        );
+        addBuyBar(target);
         document.title = p.brand + " " + p.name + " — ARAFAN Perfume";
         target.querySelector(".buy-now").onclick = () => {
           const add = target.querySelector("[data-add]");
