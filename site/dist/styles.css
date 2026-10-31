@@ -7382,3 +7382,60 @@ html {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Language switch */
+.lang-switch {
+  display: inline-flex;
+  flex: none;
+  gap: 2px;
+}
+.utility-links {
+  margin-left: auto;
+}
+.lang-switch button {
+  padding: 2px 7px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  opacity: 0.7;
+  cursor: pointer;
+}
+.lang-switch button:hover {
+  opacity: 1;
+}
+.lang-switch button:focus-visible {
+  opacity: 1;
+  outline: 2px solid currentColor;
+  outline-offset: 1px;
+}
+html[lang="ru"] .lang-switch [data-lang="ru"],
+html[lang="kk"] .lang-switch [data-lang="kk"],
+html[lang="en"] .lang-switch [data-lang="en"] {
+  background: #103d31;
+  color: #fff;
+  opacity: 1;
+}
+@media (max-width: 600px) {
+  .utility-links {
+    display: none;
+  }
+  .shop-location a {
+    white-space: nowrap;
+  }
+}
+html[lang="kk"] .product-card.is-sold-out .product-visual::after {
+  content: "Қазір жоқ";
+}
+html[lang="en"] .product-card.is-sold-out .product-visual::after {
+  content: "Out of stock";
+}
+html[lang="kk"] h1,
+html[lang="kk"] h2,
+html[lang="kk"] h3 {
+  overflow-wrap: break-word;
+}

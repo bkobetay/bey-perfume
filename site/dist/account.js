@@ -8,7 +8,7 @@
     loading = $("#account-loading");
   const money = (n) => new Intl.NumberFormat("ru-KZ").format(n) + " ₸";
   const date = (value) =>
-    new Intl.DateTimeFormat("ru-KZ", {
+    window.arafanDateFormat({
       day: "numeric",
       month: "long",
       year: "numeric",

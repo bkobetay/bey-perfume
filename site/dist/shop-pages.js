@@ -502,7 +502,7 @@
               promo.scope === "brand"
                 ? ["/catalog?q=" + encodeURIComponent(promo.scopeValue), promo.scopeValue]
                 : scopeLinks[promo.scope] || scopeLinks.all;
-            return `<article class="promo-banner"><span class="sale-badge">−${promo.percent}%</span><div><p class="promo-banner-scope">${esc(label)}</p><h2>${esc(promo.title)}</h2><p>${promo.endsAt ? "До " + new Intl.DateTimeFormat("ru-KZ", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }).format(new Date(promo.endsAt)) : "Без ограничения по сроку"}</p></div>${future(promo.endsAt) ? `<p class="countdown countdown-compact" role="timer" data-countdown-end="${esc(promo.endsAt)}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg><span class="countdown-text"></span></p>` : ""}<a class="button" href="${href}">Смотреть</a></article>`;
+            return `<article class="promo-banner"><span class="sale-badge">−${promo.percent}%</span><div><p class="promo-banner-scope">${esc(label)}</p><h2>${esc(promo.title)}</h2><p>${promo.endsAt ? "До " + window.arafanDateFormat({ day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }).format(new Date(promo.endsAt)) : "Без ограничения по сроку"}</p></div>${future(promo.endsAt) ? `<p class="countdown countdown-compact" role="timer" data-countdown-end="${esc(promo.endsAt)}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg><span class="countdown-text"></span></p>` : ""}<a class="button" href="${href}">Смотреть</a></article>`;
           })
           .join("");
         const bannerList = document.querySelector("#promotions-banners");

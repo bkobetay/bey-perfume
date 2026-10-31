@@ -37,7 +37,7 @@ async function copyPublic(from, to) {
     const source = resolve(from, item.name),
       target = resolve(to, item.name);
     if (item.isDirectory()) {
-      if (!["assets", "fonts", "products", "certificates"].includes(item.name))
+      if (!["assets", "fonts", "products", "certificates", "i18n"].includes(item.name))
         throw Error("Unexpected public directory: " + item.name);
       await mkdir(target, { recursive: true });
       await copyPublic(source, target);

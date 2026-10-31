@@ -7,7 +7,7 @@
   const submit = form.querySelector("button[type=submit]");
   const money = (n) => new Intl.NumberFormat("ru-KZ").format(n) + " ₸";
   const date = (value) =>
-    new Intl.DateTimeFormat("ru-KZ", {
+    window.arafanDateFormat({
       day: "numeric",
       month: "long",
       hour: "2-digit",
